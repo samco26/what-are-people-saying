@@ -40,7 +40,7 @@ Create an OpenAI API key without committing or sharing it, set it privately for 
 
 ## Latest verification
 
-The BETA 0.9.3 search and daily-example work has been combined with the OpenAI migration. Both consensus and news-topic selection now use the Responses API with `store: false`. Ten mocked tests pass, including all 300 YouTube comments reaching analysis, one-source and multi-source responses, citation constraints, shortfalls, dated news and fallback behaviour. TypeScript passes. Paid live API access remains unverified; deployment verification is the next check for this combined checkpoint.
+The BETA 0.9.3 search and daily-example work has been combined with the OpenAI migration. Both consensus and news-topic selection now use the Responses API with `store: false`. Ten mocked tests, TypeScript and the production build pass. GitHub/Vercel confirmed production deployment `6403248138` for commit `a39030b` succeeded on 12 September 2026. The live homepage returned HTTP 200 with BETA 0.9.3 and the new niche example; `/api/subjects` returned HTTP 200 with six news topics and six evergreen examples. This verifies deployment and live news suggestions, not the paid consensus/YouTube analysis or its speed; those milestone acceptance checks remain open.
 
 - `npm run typecheck`: passed.
 - `npm run build`: passed with Next.js 15.5.25.

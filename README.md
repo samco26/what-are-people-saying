@@ -4,6 +4,8 @@ A personal, non-commercial app that reads a bounded selection of online discussi
 
 ## Current checkpoint: BETA 0.9.3
 
+Deployed to production on 12 September 2026: Vercel confirmed commit `a39030b` succeeded. The live homepage serves BETA 0.9.3, and the daily-suggestions endpoint returned six news topics interleaved with six niche examples. The revised paid consensus/YouTube path and its latency remain unverified against live services.
+
 The interface, server-side OpenAI analysis and YouTube/X/Reddit connectors are implemented. The user has observed a live result on the deployed site. This workspace has no live API keys, so the revised collection and AI paths are checked with simulated service responses; live response quality and latency still need verification after deployment.
 
 Searches now lead with the opinion itself, display **N opinions read from the last 1 month**, and show labelled positive/neutral/negative percentages above the bar. Live results do not say “Live sample” or “Nothing is kept”. Fictional results retain their explicit label. Source coverage explains missing platforms or comments, and live evidence links open the actual collected comments.
@@ -77,7 +79,7 @@ Suggestions load independently of searches. Only the public news suggestions and
 - `npm test`: mocked YouTube collection, parallel requests, complete AI input, one-source and multi-source schemas, citation validation, partial failures, time windows, rounding, dated news parsing, topic grounding and news fallback.
 - `npm run typecheck` and `npm run build`: required before a checkpoint is committed.
 - Browser checks cover desktop/mobile search, labelled samples, the revised live-result layout using an explicitly fictional fixture, evidence links, source coverage, asynchronous suggestions, Enter-to-search, overflow and runtime errors.
-- The public BBC feed format was checked directly. AI-selected real news and the revised live YouTube/OpenAI search have not been exercised with real credentials in this workspace. Mocked checks do not verify real model phrasing, provider permissions or speed.
+- The public BBC feed format was checked directly, and production returned six AI-selected news topics after deployment. The revised live YouTube/OpenAI consensus search has not been exercised with real credentials in this workspace. Mocked checks do not verify real consensus phrasing, provider permissions or speed.
 - Popular videos and top-ranked comments are a popularity-biased selection. A short date window can miss relevant discussion of niche or older subjects. Fewer than 300 opinions is expected where coverage is limited. Suggestions can be broader than the available evidence.
 - The news rotation uses one publisher across several categories, not a comprehensive trend ranking.
 - The glass effect needs `backdrop-filter`; smaller windows scroll within the card.
