@@ -270,6 +270,11 @@ button {
   height: 36px;
   flex: 0 0 auto;
   z-index: 10;
+  /* Where the pill sits: the search card's edge, measured from the panel's
+     edge. Set in pixels by the script from the wrapper's width, because a
+     percentage means the panel's width inside clip-path but the button's
+     own width inside transform, and the two have to agree exactly. */
+  --pillLeft: 0px;
 }
 .morph {
   position: absolute;
@@ -279,7 +284,6 @@ button {
   border-radius: 24px;
   padding: 0 8px 12px;
   box-shadow: none;
-  --pillLeft: max(0px, calc(50% - (var(--cardRest) / 2)));
   clip-path: inset(0 calc(100% - var(--pillLeft) - 132px) calc(100% - 36px) var(--pillLeft) round 999px);
   transition: clip-path var(--durSlowOut) var(--easeIn);
 }

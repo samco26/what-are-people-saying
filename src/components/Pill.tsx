@@ -1,6 +1,10 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
+
+/* A layout effect in the browser, a plain effect on the server, where a
+   layout effect has nothing to lay out and React says so. */
+const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /* A segmented control whose highlight slides to the chosen stop rather than
    redrawing. The highlight is measured in a layout effect because the stops
@@ -30,7 +34,7 @@ export function Pill<T extends string>({
   const thumb = useRef<HTMLSpanElement>(null);
   const seen = useRef<HTMLSpanElement | null>(null);
 
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     const t = track.current;
     const th = thumb.current;
     if (!t || !th) return;
