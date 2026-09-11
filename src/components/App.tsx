@@ -14,8 +14,8 @@ export function App() {
   const [log, setLog] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col px-5 pb-10 sm:px-8">
-      <header className="flex items-center justify-between py-6">
+    <div className="h-[100dvh] flex flex-col px-5 pb-5 sm:px-8 overflow-hidden">
+      <header className="flex-none flex items-center justify-between py-5">
         <button
           type="button"
           onClick={() => setSession((n) => n + 1)}
@@ -36,11 +36,11 @@ export function App() {
         </button>
       </header>
 
-      <main className="flex-1 w-full max-w-[1180px] mx-auto pt-[clamp(24px,12vh,120px)]">
+      <main className="flex-1 min-h-0 w-full max-w-[1180px] mx-auto flex flex-col pt-[clamp(12px,6vh,72px)]">
         <SearchCard key={session} />
       </main>
 
-      <footer className="w-full max-w-[720px] mx-auto pt-10 text-[12px] leading-relaxed page-faint">
+      <footer className="flex-none w-full max-w-[720px] mx-auto pt-4 text-[12px] leading-relaxed page-faint">
         A personal, non-commercial project. Every result shown in this version is an
         illustrative sample, clearly marked, and no social media content is stored.
       </footer>

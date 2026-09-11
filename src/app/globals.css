@@ -46,11 +46,12 @@
   --soft: rgba(236, 234, 228, 0.08);
   --softer: rgba(236, 234, 228, 0.045);
 
-  /* The pane: smoked charcoal, dense enough over a light ground for paper
-     type to clear 4.5:1, so the ground shows through as a glow rather than a
-     picture. */
-  --pane: rgba(20, 21, 24, 0.88);
-  --paneBlur: blur(20px) saturate(1.2);
+  /* The pane: smoked charcoal, slightly see-through. 76% is as thin as it
+     can go over the palest part of the ground with paper type still clearing
+     4.5:1; the blur and the saturation are what make the ground read as a
+     picture behind the glass rather than a stain on it. */
+  --pane: rgba(20, 21, 24, 0.76);
+  --paneBlur: blur(26px) saturate(1.5) brightness(1.02);
   --e3: 0 25px 50px rgba(20, 21, 24, 0.28);
 
   /* The accent. Orange on charcoal is under the floor for small type, so
@@ -78,23 +79,38 @@
   --cardRest: 720px;
   --cardWide: 1180px;
 
-  /* Motion tokens. */
+  /* Motion tokens. Expansions are slow on purpose: the two big ones, the
+     answer opening and Get Specific opening, take the slow pair; every
+     other expansion takes the standard pair; hover, press and colour take
+     the micro one. */
   --easeOut: cubic-bezier(0.2, 0.7, 0.3, 1);
   --easeIn: cubic-bezier(0.4, 0, 0.7, 0.2);
-  --durIn: 320ms;
-  --durOut: 220ms;
+  --durSlow: 900ms;
+  --durSlowOut: 600ms;
+  --durIn: 520ms;
+  --durOut: 360ms;
   --durMicro: 180ms;
+
+  /* The sentiment bar: the user's own three colours, green, dark grey and
+     red, kept for the bar alone. */
+  --sentPos: #5ba56f;
+  --sentNeu: #4a4b50;
+  --sentNeg: #d9503f;
 }
 
+/* The page never scrolls. The app is one screen tall; cards grow outward,
+   and a card that still cannot fit scrolls inside itself. */
 html {
   background: var(--bg);
   color-scheme: light;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
   margin: 0;
-  min-height: 100vh;
-  overflow-y: auto;
+  height: 100%;
+  overflow: hidden;
   background: var(--bg);
   color: var(--pageInk);
   font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
@@ -136,7 +152,7 @@ button {
   z-index: -1;
   pointer-events: none;
   overflow: hidden;
-  background: linear-gradient(160deg, #efeee9 0%, #e6e5e0 40%, #d9dad7 74%, #cdd0d2 100%);
+  background: linear-gradient(160deg, #f3f2ed 0%, #e6e5e0 34%, #d3d5d4 62%, #b9bfc8 100%);
 }
 .ground::before,
 .ground::after {
@@ -151,7 +167,7 @@ button {
   height: 72vmax;
   right: -22vmax;
   top: -30vmax;
-  background: radial-gradient(closest-side, rgba(78, 91, 112, 0.34), rgba(78, 91, 112, 0));
+  background: radial-gradient(closest-side, rgba(78, 91, 112, 0.46), rgba(78, 91, 112, 0));
   animation: drift1 46s ease-in-out infinite alternate;
 }
 .ground::after {
@@ -198,9 +214,9 @@ button {
   border-radius: inherit;
   pointer-events: none;
   box-shadow:
-    inset 0 1px 0 rgba(236, 234, 228, 0.32),
-    inset 0 0 0 1px rgba(236, 234, 228, 0.09),
-    inset 0 -1px 0 rgba(236, 234, 228, 0.12);
+    inset 0 1px 0 rgba(236, 234, 228, 0.42),
+    inset 0 0 0 1px rgba(236, 234, 228, 0.11),
+    inset 0 -1px 0 rgba(236, 234, 228, 0.16);
 }
 .pane-small { border-radius: 24px; }
 @supports not ((-webkit-backdrop-filter: blur(2px)) or (backdrop-filter: blur(2px))) {
@@ -224,12 +240,23 @@ button {
   width: 100%;
   max-width: var(--cardRest);
   margin: 0 auto;
-  transition: max-width var(--durIn) var(--easeOut);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 0 1 auto;
+  transition: max-width var(--durSlow) var(--easeOut);
 }
 .card-top {
+  width: 100%;
   max-width: calc(var(--cardRest) - 32px);
   margin: 0 auto;
+  flex: 0 0 auto;
 }
+.card > .unfold { flex: 0 1 auto; min-height: 0; }
+/* Once open and settled, a card's body may scroll inside the card if the
+   window is too short for it. Never during the opening, so no scrollbar
+   flashes while the row is still growing. */
+.unfold.unfold-settled > div { overflow: auto; overscroll-behavior: contain; }
 .answer {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -245,45 +272,53 @@ button {
   .card[data-wide="1"] .answer .unfold[data-open="1"] { transition: none; }
 }
 
-/* ---------- the morph ----------
-   Get Specific is a small glass pill that grows into its own panel: the
-   width, the corners and the padding all animate, and the panel's body
-   unfolds inside it. Same element throughout, so it reads as one thing
-   opening rather than a menu dropping out of a button. */
-.morph {
+/* ---------- the bar ----------
+   Get Specific is a second card under the search card, the same width,
+   with a bar at the top built like the search field: text where the
+   subject goes and a round control where the search button is. Clicking
+   the bar unfolds the panel beneath it, the same slow way the answer opens
+   under the search box. */
+.bar {
   width: 100%;
-  max-width: 132px;
-  padding: 0;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 6px 6px 22px;
   border-radius: 999px;
-  transition:
-    max-width var(--durIn) var(--easeOut),
-    border-radius var(--durIn) var(--easeOut),
-    padding var(--durIn) var(--easeOut);
+  border: 1px solid var(--line);
+  background: rgba(236, 234, 228, 0.06);
+  box-shadow: inset 0 1px 0 rgba(236, 234, 228, 0.08);
+  color: var(--ink);
+  font-size: 17px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--durMicro) ease, background var(--durMicro) ease;
 }
-.morph[data-open="1"] {
-  max-width: var(--cardRest);
-  border-radius: 24px;
-  padding: 8px 8px 12px;
+.bar:hover,
+.bar[aria-expanded="true"] {
+  border-color: var(--accentLine);
+  background: rgba(236, 234, 228, 0.08);
 }
-.morph-head {
+.bar-knob {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 36px;
-  padding: 0 14px;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
+  justify-content: center;
+  background: var(--soft);
   color: var(--ink);
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background var(--durMicro) ease;
+  transition: background var(--durMicro) ease, border-color var(--durMicro) ease;
 }
-.morph-head:hover { background: var(--soft); }
-.morph-body { padding: 10px 8px 4px; }
+.bar[aria-expanded="true"] .bar-knob {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--accentInk);
+}
+.bar-knob .chev { width: 14px; height: 14px; }
 
 /* ---------- the unfold ----------
    A container grows by animating a grid row from 0fr to 1fr, the one way
@@ -294,7 +329,6 @@ button {
 .unfold {
   display: grid;
   grid-template-rows: 0fr;
-  margin: 0 -4px;
   transition: grid-template-rows var(--durOut) var(--easeIn);
 }
 .unfold[data-open="1"] {
@@ -302,8 +336,9 @@ button {
   transition: grid-template-rows var(--durIn) var(--easeOut);
 }
 .unfold > div { min-height: 0; overflow: hidden; }
+/* The content element carries its own padding through its classes; nothing
+   is set here so those classes are never overridden. */
 .unfold > div > * {
-  padding: 0 4px 4px;
   opacity: 0;
   transform: translateY(6px);
   transition: opacity var(--durOut) var(--easeIn), transform var(--durOut) var(--easeIn);
@@ -312,6 +347,17 @@ button {
   opacity: 1;
   transform: none;
   transition: opacity var(--durIn) var(--easeOut) 60ms, transform var(--durIn) var(--easeOut) 60ms;
+}
+
+/* The two big openings, the answer and Get Specific, take the slow pair and
+   let the content arrive a longer beat behind. */
+.unfold-slow { transition: grid-template-rows var(--durSlowOut) var(--easeIn); }
+.unfold-slow[data-open="1"] { transition: grid-template-rows var(--durSlow) var(--easeOut); }
+.unfold-slow > div > * {
+  transition: opacity var(--durSlowOut) var(--easeIn), transform var(--durSlowOut) var(--easeIn);
+}
+.unfold-slow[data-open="1"] > div > * {
+  transition: opacity var(--durSlow) var(--easeOut) 140ms, transform var(--durSlow) var(--easeOut) 140ms;
 }
 
 /* Content replaced inside an already open container crossfades. */
@@ -478,7 +524,53 @@ button {
 
 /* The chevron on a disclosure button turns as it opens. */
 .chev { transition: transform var(--durMicro) var(--easeOut); }
-[aria-expanded="true"] > .chev { transform: rotate(180deg); }
+[aria-expanded="true"] > .chev,
+.bar[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+/* A platform button under an answer: the logo alone, in a 36px circle. The
+   name is the accessible label and the tooltip. */
+.srcbtn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--durMicro) ease, border-color var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
+}
+.srcbtn:hover { background: rgba(236, 234, 228, 0.12); }
+.srcbtn:active { transform: scale(0.94); }
+.srcbtn[aria-expanded="true"] {
+  background: var(--accentBg);
+  border-color: var(--accentLine);
+}
+.srcbtn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.srcbtn img { width: 20px; height: 20px; object-fit: contain; }
+.srcbtn:disabled img { filter: grayscale(1); }
+
+/* The sentiment bar: one horizontal rectangle, the height of the platform
+   buttons, split into positive, neutral and negative in proportion. No
+   figures on it; the split is in its accessible label. */
+.sentbar {
+  display: flex;
+  height: 36px;
+  width: min(220px, 100%);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.sentbar span {
+  display: block;
+  height: 100%;
+  transition: flex-basis var(--durIn) var(--easeOut);
+}
+.sent-pos { background: var(--sentPos); }
+.sent-neu { background: var(--sentNeu); }
+.sent-neg { background: var(--sentNeg); }
 
 /* The BETA badge, in the accent. */
 .beta {
@@ -709,9 +801,10 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .ground::before, .ground::after { animation: none; }
   .sweep { animation: none; opacity: 1; transform: none; }
-  .unfold, .unfold[data-open="1"] { transition: none; }
-  .unfold > div > *, .unfold[data-open="1"] > div > * { transition: none; }
-  .card, .morph, .morph-head, .pill-thumb, .chev, .btn, .chip, .go, .beta, .example { transition: none; }
+  .unfold, .unfold[data-open="1"], .unfold-slow, .unfold-slow[data-open="1"] { transition: none; }
+  .unfold > div > *, .unfold[data-open="1"] > div > *,
+  .unfold-slow > div > *, .unfold-slow[data-open="1"] > div > * { transition: none; }
+  .card, .bar, .bar-knob, .srcbtn, .sentbar span, .pill-thumb, .chev, .btn, .chip, .go, .beta, .example { transition: none; }
   .rise, .swap, .scrim, .dialog { animation: none; }
   .dots span { animation: none; opacity: 0.7; }
 }

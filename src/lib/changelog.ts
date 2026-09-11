@@ -13,6 +13,19 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.5",
+    date: "11 September 2026",
+    items: [
+      ["changed", "The page never scrolls. Cards grow outward, and a card that still cannot fit the window scrolls inside itself."],
+      ["changed", "Every expansion is slower and smoother. The answer and Get Specific take the longest, nearly a second."],
+      ["changed", "Get Specific is now a second card the same width as the search card, with a bar built like the search box. It opens the same way and spreads into two columns."],
+      ["changed", "Nothing inside a card sits wider than the search box's text. The answer has more room above it, and the heading sits the same distance above the card as Get Specific sits below it."],
+      ["changed", "The platform buttons are logos alone, smaller, under their label on the right."],
+      ["new", "A sentiment bar bottom left under every answer: green, dark grey and red in proportion, no figures."],
+      ["changed", "The ground is a deeper gradient and the glass is slightly see-through, so it shows."],
+    ],
+  },
+  {
     v: "0.4",
     date: "11 September 2026",
     items: [

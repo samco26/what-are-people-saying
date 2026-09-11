@@ -92,10 +92,19 @@ export interface SourceAnalysis {
   threads: SourceThread[];
 }
 
+/* The share of the sample that read as positive, neutral and negative.
+   Fractions that sum to one. Drawn as a bar, never printed as figures. */
+export interface SentimentSplit {
+  positive: number;
+  neutral: number;
+  negative: number;
+}
+
 export interface ConsensusResult {
   subject: string;
   /* One to three qualitative sentences. The default view shows only this. */
   summary: string;
+  sentiment: SentimentSplit;
   verdict: Verdict;
   agreement: Agreement;
   confidence: Confidence;

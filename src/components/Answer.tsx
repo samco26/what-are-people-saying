@@ -1,6 +1,6 @@
 "use client";
 
-import { SOURCES, type ConsensusResponse, type ConsensusResult, type SourceId } from "@/lib/types";
+import { SOURCES, type ConsensusResponse, type ConsensusResult, type SentimentSplit, type SourceId } from "@/lib/types";
 import { Logo } from "./Logo";
 
 /* What the card shows once a search has answered: either the answer column,
@@ -43,9 +43,9 @@ export function Answer({
   return <Result result={response.result} pick={pick} onChoose={onChoose} panelId={panelId} />;
 }
 
-/* The default view is the short answer and, under it, the platforms the
-   sentiment was extracted from. Each logo opens that platform's own
-   evidence page. */
+/* The default view is the short answer. Under it, bottom left, the sentiment
+   bar; bottom right, the platforms the sentiment was extracted from, as
+   logos alone. Each logo opens that platform's own evidence page. */
 function Result({
   result,
   pick,
@@ -66,29 +66,51 @@ function Result({
 
       <p className="m-0 text-[17px] sm:text-[19px] leading-[1.55] text-ink">{result.summary}</p>
 
-      <div className="mt-6 flex flex-wrap items-center gap-2 sm:justify-end">
-        <span className="label mr-1 w-full sm:w-auto">Sentiment extracted from</span>
-        {SOURCES.map((s) => {
-          const st = result.sources.find((x) => x.source === s.id);
-          const off = !st || st.availability === "unavailable" || !result.bySource.some((b) => b.source === s.id);
-          return (
-            <button
-              key={s.id}
-              type="button"
-              className="btn"
-              aria-expanded={pick === s.id}
-              aria-controls={panelId}
-              disabled={off}
-              title={off ? `${s.name} was unavailable for this sample` : `What ${s.name} users said`}
-              onClick={() => onChoose(s.id)}
-            >
-              <Logo id={s.id} />
-              {s.name}
-              {off ? <small>Unavailable</small> : null}
-            </button>
-          );
-        })}
+      <div className="mt-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+        <SentimentBar split={result.sentiment} />
+
+        <div className="flex flex-col items-start sm:items-end gap-2">
+          <span className="label">Sentiment extracted from</span>
+          <div className="flex gap-2">
+            {SOURCES.map((s) => {
+              const st = result.sources.find((x) => x.source === s.id);
+              const off = !st || st.availability === "unavailable" || !result.bySource.some((b) => b.source === s.id);
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  className="srcbtn"
+                  aria-label={off ? `${s.name}, unavailable for this sample` : `What ${s.name} users said`}
+                  aria-expanded={pick === s.id}
+                  aria-controls={panelId}
+                  disabled={off}
+                  title={off ? `${s.name} was unavailable for this sample` : s.name}
+                  onClick={() => onChoose(s.id)}
+                >
+                  <Logo id={s.id} size={20} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
+    </div>
+  );
+}
+
+/* One horizontal bar, positive then neutral then negative, each segment in
+   proportion. The split is spoken, never printed. */
+function SentimentBar({ split }: { split: SentimentSplit }) {
+  const pct = (n: number) => `${Math.round(n * 100)}%`;
+  return (
+    <div
+      className="sentbar"
+      role="img"
+      aria-label={`Sentiment in the sample: ${pct(split.positive)} positive, ${pct(split.neutral)} neutral, ${pct(split.negative)} negative`}
+    >
+      <span className="sent-pos" style={{ flex: `0 0 ${pct(split.positive)}` }} />
+      <span className="sent-neu" style={{ flex: `0 0 ${pct(split.neutral)}` }} />
+      <span className="sent-neg" style={{ flex: `1 1 auto` }} />
     </div>
   );
 }

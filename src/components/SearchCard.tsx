@@ -8,13 +8,17 @@ import { Answer } from "./Answer";
 import { PlatformEvidence } from "./PlatformEvidence";
 import { GetSpecific } from "./GetSpecific";
 
-/* The heading, the one glass card, and the flow inside it: idle, then a
-   brief processing state, then the answer. The field stays where it is at
-   the top. The card unfolds downward for the answer, and when a platform's
-   evidence is opened it grows outward to both sides and the evidence takes
-   the column beside the answer; on a narrow screen it stacks beneath. The
-   example subjects rotate inside the empty field, and Get Specific sits
-   under the card as a pill that grows into its own panel. */
+/* The heading, the search card, and the Get Specific card under it, on a
+   page that never scrolls.
+
+   The search card holds the field at the top and unfolds, slowly, for the
+   answer beneath it. When a platform's evidence is opened the card grows
+   outward to both sides and the evidence takes the column beside the answer;
+   the field stays at the resting width and never moves. Get Specific is a
+   second card of the same width with a bar built like the field; it opens
+   the same slow way and grows outward into two columns. On a narrow screen
+   neither card can widen, so the extra content stacks. If a card still
+   cannot fit the window, its body scrolls inside the card. */
 
 type Phase =
   | { name: "idle" }
@@ -26,6 +30,24 @@ type Phase =
    step rather than a flicker. The sample answers instantly, so this is the
    whole wait. */
 const MIN_WAIT_MS = 1100;
+
+/* A card's body may scroll inside the card only once its opening has
+   finished, so no scrollbar appears while the row is still growing. The
+   slow opening is 900ms. */
+const SETTLE_MS = 1000;
+
+function useSettled(open: boolean): boolean {
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    if (!open) {
+      setSettled(false);
+      return;
+    }
+    const t = window.setTimeout(() => setSettled(true), SETTLE_MS);
+    return () => window.clearTimeout(t);
+  }, [open]);
+  return settled;
+}
 
 export function SearchCard() {
   const [query, setQuery] = useState("");
@@ -101,6 +123,8 @@ export function SearchCard() {
   };
 
   const open = phase.name !== "idle";
+  const answerSettled = useSettled(open);
+  const specificSettled = useSettled(specific);
   const result = phase.name === "done" && phase.response.kind === "result" ? phase.response.result : null;
   const view = pick ?? last;
   const analysis = result && view ? result.bySource.find((b) => b.source === view) : undefined;
@@ -108,9 +132,9 @@ export function SearchCard() {
   const wide = Boolean(pick && result);
 
   return (
-    <div>
-      <div className="mx-auto w-full max-w-[720px]">
-        <h1 className="m-0 mb-5 sm:mb-6 text-[clamp(24px,4.8vw,36px)] font-normal tracking-[-0.02em] leading-tight page-muted">
+    <div className="flex flex-col min-h-0 flex-1">
+      <div className="mx-auto w-full max-w-[720px] flex-none">
+        <h1 className="m-0 mb-3 text-[clamp(24px,4.8vw,36px)] font-normal tracking-[-0.02em] leading-tight page-muted">
           See what people think about
           <span className="sr-only">, for example {EXAMPLE_SUBJECTS.join(", ")}</span>
         </h1>
@@ -144,9 +168,14 @@ export function SearchCard() {
           </form>
         </div>
 
-        <div className="unfold" data-open={open ? "1" : undefined} id={answerId} aria-live="polite">
+        <div
+          className={"unfold unfold-slow" + (answerSettled ? " unfold-settled" : "")}
+          data-open={open ? "1" : undefined}
+          id={answerId}
+          aria-live="polite"
+        >
           <div>
-            <div className="px-2 pt-8 pb-3 sm:px-3">
+            <div className="px-[22px] pt-12 pb-4">
               {phase.name === "loading" ? <Loading subject={phase.subject} /> : null}
               {phase.name === "error" ? <ErrorNote subject={phase.subject} message={phase.message} /> : null}
               {phase.name === "done" ? (
@@ -162,7 +191,7 @@ export function SearchCard() {
                   {result ? (
                     <div className="unfold" data-open={pick ? "1" : undefined} id={panelId}>
                       <div>
-                        <div>
+                        <div className="px-1 pb-1">
                           {analysis && status ? (
                             <div key={view ?? ""} className="swap">
                               <PlatformEvidence analysis={analysis} status={status} />
@@ -179,29 +208,35 @@ export function SearchCard() {
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-[720px] mt-3">
-        <div className="pane morph" data-open={specific ? "1" : undefined}>
+      <section className="pane card p-3 sm:p-4 mt-3" data-wide={specific ? "1" : undefined} aria-label="Get Specific">
+        <div className="card-top">
           <button
             type="button"
-            className="morph-head"
+            className="bar"
             aria-expanded={specific}
             aria-controls={specificId}
             onClick={() => setSpecific((v) => !v)}
           >
-            Get Specific
-            <svg className="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-              <path d="M1.5 3.5L5 7l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <span>Get Specific</span>
+            <span className="bar-knob" aria-hidden="true">
+              <svg className="chev" viewBox="0 0 10 10" fill="none">
+                <path d="M1.5 3.5L5 7l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
           </button>
-          <div className="unfold" data-open={specific ? "1" : undefined} id={specificId}>
-            <div>
-              <div className="morph-body">
-                <GetSpecific result={result} value={refine} onChange={setRefine} />
-              </div>
+        </div>
+        <div
+          className={"unfold unfold-slow" + (specificSettled ? " unfold-settled" : "")}
+          data-open={specific ? "1" : undefined}
+          id={specificId}
+        >
+          <div>
+            <div className="px-[22px] pt-8 pb-4">
+              <GetSpecific result={result} value={refine} onChange={setRefine} />
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

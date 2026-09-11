@@ -56,7 +56,8 @@ export function GetSpecific({
   ).map((s) => s.name);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-x-10">
+      <div className="flex flex-col gap-5">
       <Row label="Platforms">
         <div className="flex flex-wrap gap-2">
           {SOURCES.map((s) => {
@@ -91,7 +92,7 @@ export function GetSpecific({
         />
         <div className="unfold" data-open={value.period === "custom" ? "1" : undefined}>
           <div>
-            <div className="pt-3 flex flex-wrap gap-3">
+            <div className="px-1 pt-3 pb-1 flex flex-wrap gap-3">
               <label className="datefield">
                 <span className="text-[12px] text-muted">From</span>
                 <input
@@ -120,6 +121,7 @@ export function GetSpecific({
           </div>
         </div>
       </Row>
+      </div>
 
       <Row label="Demographics">
         <div className="flex flex-col gap-3">
@@ -168,7 +170,7 @@ export function GetSpecific({
         </div>
       </Row>
 
-      <p className="m-0 text-[12px] leading-[1.55] text-faint">
+      <p className="m-0 text-[12px] leading-[1.55] text-faint lg:col-span-2">
         Selected: {listNames(chosen)}, {periodText(value)}, {demographicText(value)}. In this
         version the refinements preview a selection and do not reanalyse the sample. Once the
         sources are live, changing them will collect and analyse again.

@@ -90,3 +90,13 @@ The user supplied a photograph of X-ray posters on a wall (a LENSLI bag, a Comme
 | "mechanism of cool" orange | `#E4572E` | the single accent: BETA badge, search button, selected chips, focus |
 
 The picture is monochrome with one warm note, and the app follows that: orange appears only where something is chosen or needs to be found. Orange on charcoal is under the 4.5:1 floor for small type, so wherever orange has to be read it is lifted to `#F08A66`; as a fill it carries charcoal type. Negative marks use the lifted orange as well, on the X-ray logic that cool means fine and warm means flagged. The teal and lemon of the previous pass are gone.
+
+## Fifth pass, 11 September 2026: rules of the page
+
+Three rules the user set, which override anything above that conflicts:
+
+1. **The page never scrolls.** The app is one screen tall. Cards grow outward, not down; a card that still cannot fit the window scrolls inside itself, and only once its opening has finished. This reverses the third pass, where the page was made scrollable.
+2. **Nothing inside a card sits wider than the search box's text.** Every card body is inset 22px from the field's edge, so text and controls start where the typed subject starts.
+3. **Liquid glass is the core aesthetic.** The panes are slightly see-through (76%), with more blur and saturation so the ground's gradient and its two drifting lights show through them, and a brighter rim. The ground gradient runs from poster paper to the slate blue of the wall.
+
+Also in this pass: every expansion is slower, with the answer and Get Specific at 900ms out and 600ms back; Get Specific is a second card of the search card's width, with a bar built like the search field, opening the same way and spreading into two columns; the heading sits 12px above the card, the same as the gap between the cards; the answer has 48px above it; the platform buttons are 36px logo-only circles under their label; and a sentiment bar sits bottom left under the answer, in the user's own green, dark grey and red, with no figures printed.
