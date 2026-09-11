@@ -12,7 +12,7 @@
    Not verified against the live API yet: written from the API's published
    shapes and switched on only when both Reddit keys exist. */
 
-import type { SourceItem, PeriodId } from "../types";
+import type { SourceItem } from "../types";
 import { env, envInt } from "../env";
 import { getJson, inWindow, statusFor, tidy, type Collected, type CollectOptions, type Connector } from "./shared";
 
@@ -47,20 +47,6 @@ interface Comment {
   author?: string;
 }
 
-/* Reddit's own coarse time filter, chosen from the requested window. */
-export function redditTime(period: PeriodId | undefined, from?: Date): "week" | "month" | "year" | "all" {
-  if (period === "7d") return "week";
-  if (period === "30d") return "month";
-  if (period === "12m") return "year";
-  if (period === "custom" && from) {
-    const days = (Date.now() - from.getTime()) / 86_400_000;
-    if (days <= 7) return "week";
-    if (days <= 31) return "month";
-    if (days <= 366) return "year";
-  }
-  return "all";
-}
-
 async function token(signal: AbortSignal, agent: string): Promise<string> {
   const id = env("REDDIT_CLIENT_ID") ?? "";
   const secret = env("REDDIT_CLIENT_SECRET") ?? "";
@@ -81,7 +67,7 @@ async function token(signal: AbortSignal, agent: string): Promise<string> {
 
 const isoFromUtc = (s?: number) => (typeof s === "number" ? new Date(s * 1000).toISOString() : undefined);
 
-async function collect(opts: CollectOptions & { period?: PeriodId }): Promise<Collected> {
+async function collect(opts: CollectOptions): Promise<Collected> {
   const agent = env("REDDIT_USER_AGENT") ?? "web:what-are-people-saying:v1";
   const maxPosts = envInt("REDDIT_MAX_POSTS", 10, 1, 25);
   const perPost = envInt("REDDIT_COMMENTS_PER_POST", 12, 1, 50);
@@ -91,7 +77,7 @@ async function collect(opts: CollectOptions & { period?: PeriodId }): Promise<Co
   const search = new URL(`${API}/search`);
   search.searchParams.set("q", opts.subject);
   search.searchParams.set("sort", "relevance");
-  search.searchParams.set("t", redditTime(opts.period, opts.from));
+  search.searchParams.set("t", "month");
   search.searchParams.set("limit", String(maxPosts));
   search.searchParams.set("type", "link");
   search.searchParams.set("raw_json", "1");

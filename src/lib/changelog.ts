@@ -13,6 +13,13 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.9.2",
+    date: "11 September 2026",
+    items: [
+      ["removed", "Get Specific and all search filters. Enter a subject to search across the connected platforms."],
+    ],
+  },
+  {
     v: "0.9.1",
     date: "11 September 2026",
     items: [

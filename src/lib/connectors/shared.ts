@@ -1,12 +1,10 @@
 /* Helpers the three connectors share. Kept apart from the orchestrator so
    nothing imports in a circle. */
 
-import type { PeriodId, SourceId, SourceItem, SourceStatus } from "../types";
+import type { SourceId, SourceItem, SourceStatus } from "../types";
 
 export interface CollectOptions {
   subject: string;
-  /* The chosen period, for sources with their own coarse time filter. */
-  period?: PeriodId;
   /* Only items published in this window, when a source can filter by
      date. Undefined means no bound on that side. */
   from?: Date;

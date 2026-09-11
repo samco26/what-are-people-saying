@@ -16,8 +16,7 @@
    Positive, mixed and negative are the ice blue, the khaki and the orange
    of that same reference, as tints under dark type.
 
-   Motion shares one set of tokens. The two big openings, the answer and
-   Get Specific, are slow on purpose; other expansions are standard; hover,
+   Motion shares one set of tokens. The answer opening is slow on purpose; other expansions are standard; hover,
    press and colour are quick. Everything stops under reduced motion.
 
    The page never scrolls. The app is one screen tall; cards grow outward,
@@ -246,36 +245,10 @@ button {
   .card[data-wide="1"] .answer .unfold[data-open="1"] { transition: none; }
 }
 
-/* ---------- the morph ----------
-   Get Specific is a small glass pill under the search card, at the card's
-   left edge, that grows into its own panel in place.
-
-   Nothing about its layout animates. The panel is laid out at full size
-   from the start, absolutely positioned over whatever is beneath it, and
-   what animates is only the visible edge: a clip that starts as the
-   pill's outline and opens out to the panel's, plus the body fading in a
-   beat behind. Clip and opacity are the two things a browser can animate
-   without laying the page out again on every frame, which is what made
-   the earlier version, animating width, margin, corners and padding on a
-   blurred element, stutter. The controls inside no longer change size
-   while it opens either, so nothing re-measures itself mid-animation.
-
-   The wrapper holds the pill's 36px in the flow, so the page never moves.
-   Open, the panel covers the footer. Its height is capped to the window
-   from the script, and it scrolls inside itself once settled. The one
-   cost of clipping is the drop shadow, which a clip removes; the rim and
-   the blur carry the glass instead. */
-/* The two pills under the search card, Get Specific at its left edge and
-   How does this work at its right, each the header of a panel the width of
-   the card. The panel is laid out at full size from the start and sits over
-   whatever is beneath; only its visible edge animates, a clip that opens
-   out from the pill's own outline, so the panel visibly grows out of the
-   thing that was clicked and the pill never moves. The rows inside arrive
-   one beat after another, rising from below.
-
-   The wrapper keeps the pills' 36px in the flow, so the page never moves.
-   Open, a panel's height is capped to the window by the script and it
-   scrolls inside itself once settled. */
+/* The explanation pill stays at the search card's right edge. Its panel
+   is laid out at full size, with only its visible edge and content animated.
+   The wrapper preserves the pill's height; an open panel scrolls within
+   the available window once the opening animation has settled. */
 .morph-wrap {
   position: relative;
   width: 100%;
@@ -383,8 +356,7 @@ button {
   transition: opacity var(--durIn) var(--easeOut) 60ms, transform var(--durIn) var(--easeOut) 60ms;
 }
 
-/* The two big openings, the answer and Get Specific, take the slow pair and
-   let the content arrive a longer beat behind. */
+/* The answer takes the slow pair and lets the content arrive a longer beat behind. */
 .unfold-slow { transition: grid-template-rows var(--durSlowOut) var(--easeIn); }
 .unfold-slow[data-open="1"] { transition: grid-template-rows var(--durSlow) var(--easeOut); }
 .unfold-slow > div > * {
@@ -622,83 +594,6 @@ button {
 .beta:hover { background: var(--accentHover); }
 .beta:active { transform: scale(0.96); }
 
-/* A segmented control with a sliding highlight, measured in Pill.tsx. */
-.pill {
-  position: relative;
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 999px;
-  max-width: 100%;
-}
-.pill-thumb {
-  position: absolute;
-  left: 0;
-  top: 0;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.55);
-  box-shadow: inset 0 1px 0 var(--rimTop), 0 2px 6px rgba(20, 21, 24, 0.14);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform var(--durIn) var(--easeOut), width var(--durIn) var(--easeOut), height var(--durIn) var(--easeOut);
-}
-.pill-stop {
-  position: relative;
-  z-index: 1;
-  border: none;
-  background: transparent;
-  display: inline-flex;
-  align-items: center;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color var(--durMicro) ease;
-}
-.pill-stop[data-on="1"] { color: var(--ink); font-weight: 600; }
-.pill-stop:disabled { opacity: 0.45; cursor: not-allowed; }
-
-/* A toggle chip: platforms and demographics. Click to select, click again
-   to clear. */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted);
-  cursor: pointer;
-  transition: background var(--durMicro) ease, color var(--durMicro) ease, border-color var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
-}
-.chip:hover { background: rgba(255, 255, 255, 0.42); }
-.chip:active { transform: scale(0.97); }
-.chip[aria-pressed="true"] {
-  background: var(--accentBg);
-  border-color: var(--accentLine);
-  color: var(--ink);
-}
-.chip:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.chip img {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-  flex: 0 0 auto;
-  margin-left: -4px;
-  transition: filter var(--durMicro) ease, opacity var(--durMicro) ease;
-}
-.chip:not([aria-pressed="true"]) img { filter: grayscale(1); opacity: 0.7; }
-.chip small { font-size: 11px; color: var(--faint); font-weight: 500; }
-.chip[aria-pressed="true"] small { color: var(--muted); }
-
 /* A clickable example subject. */
 .example {
   display: inline-flex;
@@ -712,30 +607,6 @@ button {
 }
 .example:hover { background: rgba(255, 255, 255, 0.42); border-color: var(--accentLine); }
 .example:active { transform: scale(0.97); }
-
-/* A date field in the custom range. */
-.datefield {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1 1 160px;
-  min-width: 0;
-}
-.datefield input {
-  min-height: 40px;
-  padding: 0 12px;
-  border-radius: 12px;
-  background: var(--controlTint);
-  border: 1px solid var(--rim);
-  box-shadow: inset 0 1px 0 var(--rimTop);
-  color: var(--ink);
-  font-family: inherit;
-  font-size: 16px;
-  color-scheme: light;
-  transition: border-color var(--durMicro) ease;
-}
-.datefield input:focus { border-color: var(--accentLine); outline: none; }
-.datefield input:focus-visible { outline: 2.5px solid #c9781a; outline-offset: 2px; }
 
 /* ---------- result pieces ---------- */
 .verdict {
@@ -830,7 +701,7 @@ button {
   .unfold-slow > div > *, .unfold-slow[data-open="1"] > div > * { transition: none; }
   .card, .morph, .morph[data-open="1"], .morph-head, .morph-body, .morph[data-open="1"] .morph-body,
   .mrow, .morph[data-open="1"] .mrow,
-  .srcbtn, .sentbar span, .pill-thumb, .chev, .btn, .chip, .go, .beta, .example { transition: none; }
+  .srcbtn, .sentbar span, .chev, .btn, .go, .beta, .example { transition: none; }
   .rise, .swap, .scrim, .dialog { animation: none; }
   .dots span { animation: none; opacity: 0.7; }
 }

@@ -6,7 +6,7 @@ A personal, non-commercial web app that turns a controlled sample of online disc
 
 Milestones 3 and 5 of [PROJECT.md](PROJECT.md) are written: the Next.js, TypeScript and Tailwind scaffold, and the complete search, processing and result flow on clearly labelled sample data. What People Think is the name, formerly The General Consensus; the GitHub repository is `what-are-people-saying`.
 
-**The production build and TypeScript check pass with Next.js 15.5.25 on Node.js 24.** The built app has also been checked in desktop and mobile browsers: sample search, Get Specific and the no-live-search state work without browser runtime errors. API checks cover all six sample subjects, invalid requests and uncached responses. Live integrations remain unverified.
+**The production build and TypeScript check pass with Next.js 15.5.25 on Node.js 24.** The built app has also been checked in desktop and mobile browsers: sample search, platform evidence, the explanation panel and the no-live-search state work without browser runtime errors. API checks cover all six sample subjects, invalid requests and uncached responses. Live integrations remain unverified.
 
 The server-side analysis and the YouTube, X and Reddit connectors are written and switch on by keys; see Going live below. Without keys, every result the app shows is a fictional sample and is labelled as such on screen.
 
@@ -31,11 +31,12 @@ Next.js is pinned to the patched 15.5 release line. The PostCSS override keeps i
 
 ## What is implemented
 
+Search accepts only a subject. The Get Specific button and all platform, date and demographic refinement controls have been removed.
+
 - **Opening view.** The heading "See what people think about" above a single glass search box, with the six example subjects sweeping upward inside the empty box. Pressing Enter on an empty box searches the example showing. The rotation stops for reduced-motion preferences, while typing and while a result is on screen. The title returns to the initial view. A BETA badge top right opens the list of what changed in each version; the number comes from `src/lib/changelog.ts`.
 - **Search flow.** Submitting unfolds the card slowly beneath the field, which stays in place. A brief processing state gives way to one to three qualitative sentences, with a sentiment bar bottom left: green, dark grey and red in proportion, no figures. The page never scrolls; if the window is too short, the card's body scrolls inside the card once it has opened.
 - **Sentiment extracted from.** Under the answer, on the right, a round logo button for each platform. Opening one grows the card outward to both sides and shows that platform's evidence in a column beside the answer, with the search box staying put; below 1024px it stacks beneath. The page shows the platform's verdict and agreement, items analysed, confidence with reason, up to three positives and negatives with an explicit note when fewer are supported, and the threads, videos or posts it drew on. In this version the titles are fictional and unlinked, and say so. A platform that a live result reports unavailable would be disabled; every sample has all three.
-- **Get Specific.** A small glass pill at the search card's left edge that opens into a panel the card's width: the panel is laid out at full size and only its visible edge animates out from the pill, which stays put as the panel's header, so it never stutters and never moves away from where it was clicked. The rows inside arrive one after another. Platforms and Time period sit side by side above the demographics: platform chips with logos and a time period with a custom from-and-to date range on the left, demographics on the right as rows of chips that combine, age, gender and region. Click to select, click again to clear. It can be set before a search. The refinements preview a selection and say so; they do not reanalyse anything.
-- **How does this work.** The mirror of Get Specific at the search card's right edge: a pill that opens the same way into a short plain-English explanation of what the site does, what an answer means and what version one is.
+- **How does this work.** A glass pill at the search card's right edge that opens into a short plain-English explanation of what the site does, what an answer means and what version one is.
 - **Look.** The background is the user's own gradient image in `public/bg.avif`. Every card and control is frosted glass over it, with dark type. See DESIGN.md for the passes that led here.
 - **No live search state.** A subject that is not one of the six samples gets a truthful message and the example subjects to try, never an invented answer.
 - **Server route.** `POST /api/consensus` answers from the sample data. It exists so the browser already talks to the server the way it will when analysis and the connectors arrive, and so no key ever reaches the browser.
@@ -43,7 +44,7 @@ Next.js is pinned to the patched 15.5 release line. The PostCSS override keeps i
 
 ## Going live
 
-The live search is built and switches on by keys. With no keys, the app answers only the six example subjects, from labelled samples. With `ANTHROPIC_API_KEY` plus at least one source key, every search collects a bounded sample from the connected platforms, sends it to Claude once, and answers from that. A platform without its key is reported as unavailable in the answer rather than failing the search. Nothing collected is stored.
+The live search is built and switches on by keys. With no keys, the app answers only the six example subjects, from labelled samples. With `ANTHROPIC_API_KEY` plus at least one source key, every search collects a bounded sample from all connected platforms using the default past-30-day window (X is limited to its recent-search coverage), sends it to Claude once, and answers from that. A platform without its key is reported as unavailable in the answer rather than failing the search. Nothing collected is stored.
 
 **Not yet verified against any live service.** The connectors were written from each platform's published API shapes on a machine with no Node and no keys. The first search with a real key is the first real test, and small fixes should be expected then.
 
@@ -81,19 +82,17 @@ src/app/layout.tsx              page shell, metadata, the drifting ground
 src/app/page.tsx                mounts the app
 src/app/globals.css             tokens, the glass pane, the unfold, controls, reduced motion
 src/app/api/consensus/route.ts  POST: sample answer or the no-live-search response
-src/lib/types.ts                shared shapes: items, source status, per-platform analysis, result, refinements
+src/lib/types.ts                shared shapes: items, source status, per-platform analysis, result
 src/lib/sampleData.ts           the six fictional results, with each platform's own reading
 src/lib/subjects.ts             subject normalisation and sample lookup
 src/lib/labels.ts               the words for positive, mixed, negative, agreement and confidence
 src/lib/changelog.ts            the BETA number and what changed
 src/components/App.tsx          title, BETA badge, container, small print
 src/components/Changelog.tsx    the dialog behind the badge
-src/components/SearchCard.tsx   heading, field with rotating examples, processing state, the unfolding container, Get Specific
+src/components/SearchCard.tsx   heading, field with rotating examples, processing state, the unfolding container, explanation panel
 src/components/RotatingSubjects.tsx
 src/components/Answer.tsx       the answer, overall line, source notices, the platform buttons
 src/components/PlatformEvidence.tsx  one platform's verdict, confidence, themes and threads
-src/components/GetSpecific.tsx  refinements with the custom date range
-src/components/Pill.tsx         segmented control with a sliding highlight
 src/components/Logo.tsx         a platform's mark from public/logos
 public/logos/                   the X, YouTube and Reddit marks
 ```

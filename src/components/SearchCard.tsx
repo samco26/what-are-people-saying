@@ -2,23 +2,20 @@
 
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { EXAMPLE_SUBJECTS } from "@/lib/subjects";
-import { DEFAULT_REFINEMENTS, type ConsensusResponse, type Refinements, type SourceId } from "@/lib/types";
+import type { ConsensusResponse, SourceId } from "@/lib/types";
 import { RotatingSubjects } from "./RotatingSubjects";
 import { Answer } from "./Answer";
 import { PlatformEvidence } from "./PlatformEvidence";
-import { GetSpecific } from "./GetSpecific";
 import { HowItWorks } from "./HowItWorks";
 
-/* The heading, the search card, and the Get Specific card under it, on a
+/* The heading, the search card, and the explanation under it, on a
    page that never scrolls.
 
    The search card holds the field at the top and unfolds, slowly, for the
    answer beneath it. When a platform's evidence is opened the card grows
    outward to both sides and the evidence takes the column beside the answer;
-   the field stays at the resting width and never moves. Get Specific is a
-   second card of the same width with a bar built like the field; it opens
-   the same slow way and grows outward into two columns. On a narrow screen
-   neither card can widen, so the extra content stacks. If a card still
+   the field stays at the resting width and never moves. On a narrow screen
+   the extra content stacks. If a card still
    cannot fit the window, its body scrolls inside the card. */
 
 type Phase =
@@ -54,29 +51,21 @@ export function SearchCard() {
   const [query, setQuery] = useState("");
   const [phase, setPhase] = useState<Phase>({ name: "idle" });
   const [reduced, setReduced] = useState(false);
-  const [refine, setRefine] = useState<Refinements>(DEFAULT_REFINEMENTS);
-  const [specific, setSpecific] = useState(false);
-  /* "How does this work", the mirror of Get Specific. One panel at a time. */
   const [how, setHow] = useState(false);
   const [pick, setPick] = useState<SourceId | null>(null);
   /* The last platform shown stays rendered while its column closes. */
   const [last, setLast] = useState<SourceId | null>(null);
   const shown = useRef("");
   const run = useRef(0);
-  /* The refinements at the moment of a search, read through a ref so the
-     search function need not change every time a chip is clicked. */
-  const refineRef = useRef(refine);
-  refineRef.current = refine;
   const morphWrap = useRef<HTMLDivElement>(null);
-  /* How tall the Get Specific panel may be: the window below the pill, less
+  /* How tall the explanation panel may be: the window below the pill, less
      a margin. Measured when it opens and whenever the window changes. */
   const [avail, setAvail] = useState<number | null>(null);
   const answerId = useId();
-  const specificId = useId();
   const panelId = useId();
 
   useEffect(() => {
-    if (!specific && !how) return;
+    if (!how) return;
     const measure = () => {
       const el = morphWrap.current;
       if (!el) return;
@@ -85,7 +74,7 @@ export function SearchCard() {
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [specific, how]);
+  }, [how]);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -110,7 +99,7 @@ export function SearchCard() {
       const res = await fetch("/api/consensus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject: s, refinements: refineRef.current }),
+        body: JSON.stringify({ subject: s }),
       });
       if (!res.ok) {
         /* The route explains a failure in plain words when it can. */
@@ -155,7 +144,6 @@ export function SearchCard() {
 
   const open = phase.name !== "idle";
   const answerSettled = useSettled(open);
-  const specificSettled = useSettled(specific);
   const howSettled = useSettled(how);
   const howId = useId();
   const result = phase.name === "done" && phase.response.kind === "result" ? phase.response.result : null;
@@ -243,32 +231,6 @@ export function SearchCard() {
 
       <div className="morph-wrap" ref={morphWrap}>
         <section
-          className={"glass morph" + (specificSettled ? " morph-settled" : "")}
-          data-open={specific ? "1" : undefined}
-          aria-label="Get Specific"
-          style={{ maxHeight: avail ? `${avail}px` : undefined, zIndex: specific ? 2 : 1 }}
-        >
-          <button
-            type="button"
-            className="morph-head"
-            aria-expanded={specific}
-            aria-controls={specificId}
-            onClick={() => {
-              setSpecific((v) => !v);
-              setHow(false);
-            }}
-          >
-            Get Specific
-            <svg className="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-              <path d="M1.5 3.5L5 7l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-          <div className="morph-body px-[14px] pt-5 pb-2" id={specificId} aria-hidden={!specific}>
-            <GetSpecific result={result} value={refine} onChange={setRefine} />
-          </div>
-        </section>
-
-        <section
           className={"glass morph morph-right" + (howSettled ? " morph-settled" : "")}
           data-open={how ? "1" : undefined}
           aria-label="How does this work"
@@ -279,10 +241,7 @@ export function SearchCard() {
             className="morph-head"
             aria-expanded={how}
             aria-controls={howId}
-            onClick={() => {
-              setHow((v) => !v);
-              setSpecific(false);
-            }}
+            onClick={() => setHow((v) => !v)}
           >
             How does this work
             <svg className="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">

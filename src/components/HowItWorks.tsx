@@ -13,8 +13,7 @@ export function HowItWorks() {
       <p className="mrow m-0">
         The bar under the answer shows how the sample split between positive, neutral and
         negative. The three logos open each platform on its own: its verdict, what people liked
-        and did not, and the threads it drew on. Get Specific narrows the sample by platform and
-        time period.
+        and did not, and the threads it drew on.
       </p>
       <p className="mrow m-0">
         An answer describes the sample, not everyone. A positive result is not the same as

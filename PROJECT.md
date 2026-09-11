@@ -25,9 +25,8 @@ The default view prioritises the short answer. Keep supporting classification, c
 - Initially show a prominent search bar with the heading “See what people think about” and example subjects sweeping upward.
 - Submitting the search expands the same glass container smoothly downward. The search field stays in place at the top of that container.
 - Show the one-to-three-sentence answer inside the expanded container.
-- Put a Get Specific button at the bottom of the answer. It expands platform, time-period and audience-context refinements within the same card.
-- The latest design request adds simple refinements to the design scope. Complex filter builders remain excluded.
-- Demographic controls may be represented as a future, unavailable capability in the mockup. Demographic inference remains excluded; implementing demographic filtering would require a separate decision and reliable data.
+- Search accepts only a subject. No platform, time-period, audience or demographic refinement controls are offered.
+- Collect from all connected sources using the default recent window, while reporting unavailable sources.
 - Mobile and desktop are equally important.
 
 ## Sources and data
@@ -47,7 +46,7 @@ The default view prioritises the short answer. Keep supporting classification, c
 - User accounts.
 - Payments.
 - Instagram, TikTok, Facebook and LinkedIn.
-- Complicated date or source controls beyond the simple Get Specific panel.
+- User-configurable date, source, audience and demographic filters.
 - Permanent storage of social-media content.
 
 ## Technology

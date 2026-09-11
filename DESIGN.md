@@ -1,3 +1,13 @@
+# What People Think — design record
+
+## Current change: 0.9.2
+
+The Get Specific button and its entire function have been removed at the user's request: no refinement panel, platform/date selection or demographic controls. Searches take only a subject and use all connected sources with the default recent window. The answer, per-platform evidence and How does this work remain available on desktop and mobile.
+
+The earlier design notes below are historical; their references to Get Specific describe removed behaviour.
+
+## Earlier design decisions
+
 # What People Think — design direction
 
 Working title and first visual direction, supplied by the user on 11 September 2026. The mockup is a proposal for refinement, not an approved final design or a live application.
