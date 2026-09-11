@@ -63,6 +63,10 @@ export function SearchCard() {
   const [last, setLast] = useState<SourceId | null>(null);
   const shown = useRef("");
   const run = useRef(0);
+  /* The refinements at the moment of a search, read through a ref so the
+     search function need not change every time a chip is clicked. */
+  const refineRef = useRef(refine);
+  refineRef.current = refine;
   const morphWrap = useRef<HTMLDivElement>(null);
   /* How tall the Get Specific panel may be: the window below the pill, less
      a margin. Measured when it opens and whenever the window changes. */
@@ -106,9 +110,17 @@ export function SearchCard() {
       const res = await fetch("/api/consensus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject: s }),
+        body: JSON.stringify({ subject: s, refinements: refineRef.current }),
       });
-      if (!res.ok) throw new Error(`The server answered with status ${res.status}.`);
+      if (!res.ok) {
+        /* The route explains a failure in plain words when it can. */
+        let why = `The server answered with status ${res.status}.`;
+        try {
+          const j = (await res.json()) as { error?: unknown };
+          if (typeof j.error === "string" && j.error) why = j.error;
+        } catch {}
+        throw new Error(why);
+      }
       const response = (await res.json()) as ConsensusResponse;
       next = { name: "done", subject: s, response };
     } catch (err) {

@@ -171,9 +171,10 @@ export function GetSpecific({
       </Row>
 
       <p className="m-0 text-[12px] leading-[1.55] text-faint lg:col-span-2">
-        Selected: {listNames(chosen)}, {periodText(value)}, {demographicText(value)}. In this
-        version the refinements preview a selection and do not reanalyse the sample. Once the
-        sources are live, changing them will collect and analyse again.
+        Selected: {listNames(chosen)}, {periodText(value)}, {demographicText(value)}. Platforms and
+        the time period shape what a live search collects. The six example subjects are fixed
+        samples and ignore them. Demographics are recorded but not yet applied, because no
+        platform supplies that data.
       </p>
     </div>
   );

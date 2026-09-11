@@ -289,19 +289,22 @@ button {
 }
 .morph.morph-settled { overflow: auto; overscroll-behavior: contain; }
 /* The mirror: "How does this work" sits at the search card's right edge
-   and opens the same way, to the card's own width rather than the wide
-   one, with its pill at the top right. */
+   and opens the same way, outward to the same wide panel, its pill
+   travelling right to the panel's corner as the clip opens. */
 .morph-right {
-  left: var(--pillLeft);
-  right: var(--pillLeft);
   --pillW: 168px;
-  clip-path: inset(0 0 calc(100% - 36px) calc(100% - var(--pillW)) round 999px);
+  clip-path: inset(0 var(--pillLeft) calc(100% - 36px) calc(100% - var(--pillLeft) - var(--pillW)) round 999px);
 }
 .morph-right .morph-head {
   display: flex;
   width: var(--pillW);
   margin-left: auto;
+  transform: translateX(calc(-1 * var(--pillLeft)));
 }
+.morph-right[data-open="1"] .morph-head { transform: none; }
+/* The pill travels with the opening edge: it starts at the search card's
+   corner and slides to the panel's own corner as the clip opens, on a
+   transform, so the slide costs nothing to draw. */
 .morph-head {
   display: inline-flex;
   align-items: center;
@@ -309,7 +312,6 @@ button {
   width: 132px;
   height: 36px;
   padding: 0 14px;
-  margin-left: var(--pillLeft);
   border: none;
   border-radius: 999px;
   background: transparent;
@@ -319,11 +321,23 @@ button {
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
-  transition: background var(--durMicro) ease, box-shadow var(--durOut) var(--easeOut);
+  transform: translateX(var(--pillLeft));
+  transition:
+    transform var(--durSlowOut) var(--easeIn),
+    background var(--durMicro) ease,
+    box-shadow var(--durOut) var(--easeOut);
 }
 .morph-head:hover { background: var(--soft); }
-/* Open, the pill's own rim fades: the panel's rim takes over. */
-.morph[data-open="1"] .morph-head { box-shadow: inset 0 0 0 1px transparent; }
+/* Open, the pill sits in the panel's corner and its own rim fades: the
+   panel's rim takes over. */
+.morph[data-open="1"] .morph-head {
+  transform: none;
+  box-shadow: inset 0 0 0 1px transparent;
+  transition:
+    transform var(--durSlow) var(--easeOut),
+    background var(--durMicro) ease,
+    box-shadow var(--durOut) var(--easeOut);
+}
 .morph-body {
   opacity: 0;
   visibility: hidden;

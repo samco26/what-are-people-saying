@@ -8,7 +8,7 @@ Milestones 3 and 5 of [PROJECT.md](PROJECT.md) are written: the Next.js, TypeScr
 
 **This code has not yet been compiled or run with Next.js.** It was written on a machine without Node.js, so the first `npm install` and `npm run build` are the first real check. What has been done is the stand-in check in [tools/no-node-check](tools/no-node-check/README.md): every source file parses as TypeScript and JSX, and the app mounts and runs through every state in a browser with React and Tailwind loaded from a CDN. That is not a type check and not a build. Nothing below should be read as verified until a build has passed.
 
-Not built yet: server-side AI analysis, and the YouTube, X and Reddit connectors. Every result the app shows today is a fictional sample and is labelled as such on screen.
+The server-side analysis and the YouTube, X and Reddit connectors are written and switch on by keys; see Going live below. Without keys, every result the app shows is a fictional sample and is labelled as such on screen.
 
 ## Setup
 
@@ -38,6 +38,35 @@ npm run start      # serve the production build
 - **No live search state.** A subject that is not one of the six samples gets a truthful message and the example subjects to try, never an invented answer.
 - **Server route.** `POST /api/consensus` answers from the sample data. It exists so the browser already talks to the server the way it will when analysis and the connectors arrive, and so no key ever reaches the browser.
 - **Shared item format.** `src/lib/types.ts` fixes the item, source-status, per-platform analysis and result shapes every connector will convert to.
+
+## Going live
+
+The live search is built and switches on by keys. With no keys, the app answers only the six example subjects, from labelled samples. With `ANTHROPIC_API_KEY` plus at least one source key, every search collects a bounded sample from the connected platforms, sends it to Claude once, and answers from that. A platform without its key is reported as unavailable in the answer rather than failing the search. Nothing collected is stored.
+
+**Not yet verified against any live service.** The connectors were written from each platform's published API shapes on a machine with no Node and no keys. The first search with a real key is the first real test, and small fixes should be expected then.
+
+Where each key comes from, and what it costs:
+
+| Key | Where | Cost |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | console.anthropic.com | Per search, roughly 20,000 input tokens and 1,500 output: about 12 cents on `claude-opus-5` (the default), 5 cents on `claude-sonnet-5`, 3 cents on `claude-haiku-4-5`. Set `CONSENSUS_MODEL` to change. |
+| `YOUTUBE_API_KEY` | Google Cloud console, enable YouTube Data API v3, create an API key | Free. About 108 quota units a search against a free daily quota of 10,000, so roughly 90 searches a day. |
+| `X_BEARER_TOKEN` | developer.x.com, create a project and app, copy the Bearer token | Paid. X bills by posts read; `X_MAX_RESULTS` (default 50) and `X_DAILY_POST_BUDGET` cap it. Recent search covers seven days. |
+| `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_USER_AGENT` | reddit.com/prefs/apps, create a "script" app | Free within 100 calls a minute; a search uses about 12. |
+
+See `.env.example` for every setting with its default. Locally the keys go in `.env.local`; on Vercel they go in the project's Environment Variables. The route asks for a 60 second limit (`maxDuration`), which Vercel honours on its paid plans and caps lower on the free one.
+
+How a live search works, in `src/lib`:
+
+```
+env.ts                    which keys exist (never what they are)
+connectors/shared.ts      the connector contract and shared helpers
+connectors/index.ts       runs the requested connectors in parallel, each under a 9s timeout
+connectors/youtube.ts     video search plus top comments
+connectors/x.ts           recent search, with the spend controls
+connectors/reddit.ts      post search plus top comments, via OAuth
+analysis/analyse.ts       one Claude call with a fixed output shape; links come only from collected items
+```
 
 ## Sample subjects
 

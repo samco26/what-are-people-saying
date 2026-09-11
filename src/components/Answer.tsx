@@ -1,6 +1,13 @@
 "use client";
 
-import { SOURCES, type ConsensusResponse, type ConsensusResult, type SentimentSplit, type SourceId } from "@/lib/types";
+import {
+  SOURCES,
+  sourceName,
+  type ConsensusResponse,
+  type ConsensusResult,
+  type SentimentSplit,
+  type SourceId,
+} from "@/lib/types";
 import { Logo } from "./Logo";
 
 /* What the card shows once a search has answered: either the answer column,
@@ -40,6 +47,28 @@ export function Answer({
       </div>
     );
   }
+  if (response.kind === "insufficient") {
+    return (
+      <div className="rise">
+        <span className="label">Not enough to go on</span>
+        <p className="m-0 mt-2 text-[16px] leading-[1.55] text-ink">
+          The live search for <span className="font-semibold">&ldquo;{response.subject}&rdquo;</span> did not
+          find enough to describe.
+        </p>
+        <p className="m-0 mt-2 text-[14px] leading-[1.55] text-muted">{response.message}</p>
+        <ul className="list-none m-0 mt-4 p-0 flex flex-col gap-1.5">
+          {response.sources.map((s) => (
+            <li key={s.source} className="text-[13px] text-muted">
+              <span className="font-semibold text-ink">{sourceName(s.source)}:</span>{" "}
+              {s.availability === "unavailable"
+                ? `unavailable. ${s.note ?? ""}`
+                : `${s.itemsAnalysed} item${s.itemsAnalysed === 1 ? "" : "s"}${s.note ? `. ${s.note}` : ""}`}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
   return <Result result={response.result} pick={pick} onChoose={onChoose} panelId={panelId} />;
 }
 
@@ -60,8 +89,19 @@ function Result({
   return (
     <div className="rise">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-3">
-        <span className="label">Illustrative sample</span>
-        <span className="text-[12px] text-faint">Fictional result for design. No live search ran.</span>
+        {result.illustrative ? (
+          <>
+            <span className="label">Illustrative sample</span>
+            <span className="text-[12px] text-faint">Fictional result for design. No live search ran.</span>
+          </>
+        ) : (
+          <>
+            <span className="label">Live sample</span>
+            <span className="text-[12px] text-faint">
+              {result.sources.reduce((n, s) => n + s.itemsAnalysed, 0)} items read just now. Nothing is kept.
+            </span>
+          </>
+        )}
       </div>
 
       <p className="m-0 text-[17px] sm:text-[19px] leading-[1.55] text-ink">{result.summary}</p>

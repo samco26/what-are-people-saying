@@ -13,6 +13,15 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.8",
+    date: "11 September 2026",
+    items: [
+      ["new", "The live search is built and waits for its keys. Once they are set, a search collects a bounded sample from YouTube, X and Reddit, sends it to Claude once, and answers from that. Until then the six examples answer as before."],
+      ["new", "A search that finds too little says so, platform by platform, instead of guessing."],
+      ["changed", "Get Specific's pill travels to the panel's corner as it opens, and How does this work opens the same way to the same width."],
+    ],
+  },
+  {
     v: "0.7",
     date: "11 September 2026",
     items: [

@@ -114,13 +114,18 @@ export interface ConsensusResult {
   sources: SourceStatus[];
   /* One entry per platform that returned anything. */
   bySource: SourceAnalysis[];
-  /* True on every sample result. Live results will not carry this flag. */
-  illustrative: true;
+  /* True on every sample result, false on a live one. The screen labels
+     the two differently. */
+  illustrative: boolean;
 }
 
 export type ConsensusResponse =
   | { kind: "result"; result: ConsensusResult }
-  | { kind: "no-live-search"; subject: string; message: string; examples: string[] };
+  /* No live sources are connected and the subject is not one of the
+     samples. */
+  | { kind: "no-live-search"; subject: string; message: string; examples: string[] }
+  /* Live sources ran but too little came back to describe honestly. */
+  | { kind: "insufficient"; subject: string; message: string; sources: SourceStatus[] };
 
 /* The Get Specific refinements. They preview a selection in version one and
    will drive collection once sources are live. The demographic groups are

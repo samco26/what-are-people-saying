@@ -16,6 +16,13 @@ const FILES = [
   "src/lib/types.ts",
   "src/lib/sampleData.ts",
   "src/lib/subjects.ts",
+  "src/lib/env.ts",
+  "src/lib/connectors/shared.ts",
+  "src/lib/connectors/youtube.ts",
+  "src/lib/connectors/x.ts",
+  "src/lib/connectors/reddit.ts",
+  "src/lib/connectors/index.ts",
+  "src/lib/analysis/analyse.ts",
   "src/app/api/consensus/route.ts",
   "src/lib/changelog.ts",
   "src/lib/labels.ts",
@@ -93,6 +100,15 @@ async function main() {
     },
   };
   const cssStub = {};
+  /* A stand-in for any npm package the server files import (the Anthropic
+     SDK, zod): callable, constructible, and every property is itself. The
+     live path is never taken here, so nothing on it is ever really called
+     beyond module-level schema building. */
+  const stub = new Proxy(function () {}, {
+    get: (t, k) => (k === Symbol.toPrimitive ? () => "" : k === "__esModule" ? true : stub),
+    apply: () => stub,
+    construct: () => stub,
+  });
   function resolve(spec, from) {
     if (spec === "react") return React;
     if (spec === "react-dom") return ReactDOM;
@@ -102,8 +118,9 @@ async function main() {
     let path;
     if (spec.startsWith("@/")) path = "src/" + spec.slice(2);
     else if (spec.startsWith("./")) path = from.slice(0, from.lastIndexOf("/") + 1) + spec.slice(2);
-    else throw new Error("unknown import " + spec + " from " + from);
-    const key = FILES.find((f) => f === path + ".ts" || f === path + ".tsx" || f === path);
+    else if (spec.startsWith("../")) { const dir = from.slice(0, from.lastIndexOf("/")); path = dir.slice(0, dir.lastIndexOf("/") + 1) + spec.slice(3); }
+    else return stub;
+    const key = FILES.find((f) => f === path + ".ts" || f === path + ".tsx" || f === path || f === path + "/index.ts");
     if (!key) throw new Error("cannot resolve " + spec + " from " + from);
     return load(key);
   }

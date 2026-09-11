@@ -3,7 +3,7 @@
    is a labelled sample until the live sources and the analysis arrive. */
 export function HowItWorks() {
   return (
-    <div className="flex flex-col gap-4 text-[14px] leading-[1.55] text-ink">
+    <div className="flex flex-col gap-4 max-w-[68ch] text-[14px] leading-[1.55] text-ink">
       <p className="m-0">
         Type a subject. The General Consensus collects a small, bounded sample of what people
         are saying about it on YouTube, X and Reddit, reads it, and gives you one to three plain
@@ -12,8 +12,8 @@ export function HowItWorks() {
       <p className="m-0">
         The bar under the answer shows how the sample split between positive, neutral and
         negative. The three logos open each platform on its own: its verdict, what people liked
-        and did not, and the threads it drew on. Get Specific narrows the sample by platform,
-        time period and audience.
+        and did not, and the threads it drew on. Get Specific narrows the sample by platform and
+        time period.
       </p>
       <p className="m-0">
         An answer describes the sample, not everyone. A positive result is not the same as
