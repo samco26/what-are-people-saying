@@ -51,6 +51,8 @@ export interface SourceItem {
   url?: string;
   publishedAt?: string;
   engagement?: number;
+  /* Links an opinion to its context without counting that context as a vote. */
+  parentId?: string;
 }
 
 export type Verdict = "positive" | "mixed" | "negative";
@@ -93,7 +95,7 @@ export interface SourceAnalysis {
 }
 
 /* The share of the sample that read as positive, neutral and negative.
-   Fractions that sum to one. Drawn as a bar, never printed as figures. */
+   Estimated fractions that sum to one, shown as rounded percentages. */
 export interface SentimentSplit {
   positive: number;
   neutral: number;
@@ -102,6 +104,8 @@ export interface SentimentSplit {
 
 export interface ConsensusResult {
   subject: string;
+  /* Actual collection bounds, supplied by the server for live searches. */
+  window?: { from: string; to: string; months: number };
   /* One to three qualitative sentences. The default view shows only this. */
   summary: string;
   sentiment: SentimentSplit;

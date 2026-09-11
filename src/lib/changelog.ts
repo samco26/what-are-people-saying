@@ -13,6 +13,18 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.9.3",
+    date: "12 September 2026",
+    items: [
+      ["changed", "Answers lead with what people think. The count shows opinions read in the last month, with percentages above the opinion bar."],
+      ["changed", "YouTube reads up to 30 top-ranked comments from each of the 10 most-viewed matching recent videos. All collected opinions reach the AI."],
+      ["changed", "Less duplicate AI output when one platform is available, lighter YouTube responses, and no artificial loading delay."],
+      ["new", "Rotating examples mix today's BBC News topics with niche interests. News loads separately and evergreen examples remain if it is unavailable."],
+      ["changed", "Live evidence links open the actual comments. Source coverage explains missing platforms or comments."],
+      ["removed", "The Live sample label and Nothing is kept line above the answer."],
+    ],
+  },
+  {
     v: "0.9.2",
     date: "11 September 2026",
     items: [

@@ -64,29 +64,41 @@ export async function POST(request: Request) {
     return NextResponse.json(response, noStore);
   }
 
+  const to = new Date();
+  const from = new Date(to.getTime() - 30 * 86_400_000);
+  const collectionStarted = performance.now();
   const { items, statuses } = await collectAll(SOURCES.map((source) => source.id), {
     subject,
-    from: new Date(Date.now() - 30 * 86_400_000),
+    from,
+    to,
   });
+  const collectionMs = performance.now() - collectionStarted;
+  const opinionCount = items.filter((item) => item.kind !== "video").length;
 
   const minItems = Number.parseInt(process.env.MIN_ITEMS ?? "", 10) || MIN_ITEMS_DEFAULT;
-  if (items.length < minItems) {
+  if (opinionCount < minItems) {
     const response: ConsensusResponse = {
       kind: "insufficient",
       subject,
       message:
-        items.length === 0
+        opinionCount === 0
           ? "Nothing came back from the platforms that could be reached, so there is nothing to describe."
-          : `Only ${items.length} item${items.length === 1 ? "" : "s"} came back, which is too few to describe honestly.`,
+          : `Only ${opinionCount} opinion${opinionCount === 1 ? "" : "s"} came back, which is too few to describe honestly.`,
       sources: statuses,
     };
     return NextResponse.json(response, noStore);
   }
 
   try {
+    const analysisStarted = performance.now();
     const result = await analyse(subject, items, statuses);
+    const analysisMs = performance.now() - analysisStarted;
+    result.window = { from: from.toISOString(), to: to.toISOString(), months: 1 };
     const response: ConsensusResponse = { kind: "result", result };
-    return NextResponse.json(response, noStore);
+    return NextResponse.json(response, { headers: {
+      ...noStore.headers,
+      "Server-Timing": `collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}`,
+    } });
   } catch (err) {
     const message = err instanceof Error ? err.message : "The analysis failed.";
     return NextResponse.json({ error: message }, { status: 502, ...noStore });

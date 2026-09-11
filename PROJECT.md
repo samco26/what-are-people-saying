@@ -23,6 +23,7 @@ The default view prioritises the short answer. Keep supporting classification, c
 ## Search interaction
 
 - Initially show a prominent search bar with the heading “See what people think about” and example subjects sweeping upward.
+- Mix daily news subjects with niche evergreen examples in that rotation. News suggestions load independently, are grounded in dated publisher headlines, and fall back to evergreen examples when unavailable.
 - Submitting the search expands the same glass container smoothly downward. The search field stays in place at the top of that container.
 - Show the one-to-three-sentence answer inside the expanded container.
 - Search accepts only a subject. No platform, time-period, audience or demographic refinement controls are offered.
@@ -36,6 +37,7 @@ The default view prioritises the short answer. Keep supporting classification, c
 - Support partial success: an unavailable source must not prevent analysis of sufficient evidence from other sources.
 - Source access and credentials are separate integration milestones; a source displayed in a mockup is not a claim of working access.
 - Use bounded collection limits. Exact limits will be set during integration.
+- YouTube reads up to 30 top-ranked comments from each of the 10 most-viewed matching videos in the default recent window. Video metadata is context, not an opinion count. All collected opinions must reach analysis.
 - Do not permanently store social-media content.
 - Clearly label all fictional examples and simulated results used in design and development.
 - Supporting links in live results must come from collected source material.

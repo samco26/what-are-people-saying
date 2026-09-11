@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "What People Think: one clear statement of what a sample of online discussion thinks about a subject.",
   "scripts": {
+    "test": "node --import ./tests/register-typescript.mjs --test tests/*.test.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

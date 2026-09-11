@@ -554,13 +554,16 @@ button {
 .srcbtn img { width: 20px; height: 20px; object-fit: contain; }
 .srcbtn:disabled img { filter: grayscale(1); }
 
-/* The sentiment bar: one horizontal rectangle, the height of the platform
-   buttons, split into positive, neutral and negative in proportion. No
-   figures on it; the split is in its accessible label. */
+/* Label columns stay readable even when one segment is very small. */
+.sentiment { width: 220px; max-width: 100%; }
+.sent-labels { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 7px; }
+.sent-labels > span { font-size: 12px; }
+.sent-key { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; }
+.sent-label-name { display: block; font-size: 10px; color: var(--muted); margin-top: 2px; }
 .sentbar {
   display: flex;
   height: 36px;
-  width: min(220px, 100%);
+  width: 100%;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: inset 0 0 0 1px var(--rim), 0 4px 14px rgba(20, 21, 24, 0.12);

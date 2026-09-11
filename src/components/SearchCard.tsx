@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { EXAMPLE_SUBJECTS } from "@/lib/subjects";
+import { EVERGREEN_SUBJECTS, type SuggestionsResponse } from "@/lib/suggestions";
 import type { ConsensusResponse, SourceId } from "@/lib/types";
 import { RotatingSubjects } from "./RotatingSubjects";
 import { Answer } from "./Answer";
@@ -24,11 +24,6 @@ type Phase =
   | { name: "done"; subject: string; response: ConsensusResponse }
   | { name: "error"; subject: string; message: string };
 
-/* The processing state is shown for at least this long so it reads as a
-   step rather than a flicker. The sample answers instantly, so this is the
-   whole wait. */
-const MIN_WAIT_MS = 1100;
-
 /* A card's body may scroll inside the card only once its opening has
    finished, so no scrollbar appears while the row is still growing. The
    slow opening is 900ms. */
@@ -48,6 +43,7 @@ function useSettled(open: boolean): boolean {
 }
 
 export function SearchCard() {
+  const [examples, setExamples] = useState(EVERGREEN_SUBJECTS);
   const [query, setQuery] = useState("");
   const [phase, setPhase] = useState<Phase>({ name: "idle" });
   const [reduced, setReduced] = useState(false);
@@ -63,6 +59,25 @@ export function SearchCard() {
   const [avail, setAvail] = useState<number | null>(null);
   const answerId = useId();
   const panelId = useId();
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const refresh = async () => {
+      try {
+        const response = await fetch("/api/subjects", { signal: controller.signal, cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json() as SuggestionsResponse;
+        if (Array.isArray(data.subjects) && data.subjects.length && data.subjects.every((subject) => typeof subject === "string" && subject.length <= 80)) {
+          setExamples(data.subjects);
+        }
+      } catch { /* Search and evergreen examples work even if news is unavailable. */ }
+    };
+    void refresh();
+    const timer = window.setInterval(() => { if (document.visibilityState === "visible") void refresh(); }, 15 * 60_000);
+    const onVisible = () => { if (document.visibilityState === "visible") void refresh(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { controller.abort(); window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
+  }, []);
 
   useEffect(() => {
     if (!how) return;
@@ -92,7 +107,6 @@ export function SearchCard() {
     setPick(null);
     setLast(null);
     setPhase({ name: "loading", subject: s });
-    const started = Date.now();
 
     let next: Phase;
     try {
@@ -120,8 +134,6 @@ export function SearchCard() {
       };
     }
 
-    const wait = MIN_WAIT_MS - (Date.now() - started);
-    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
     /* A newer search has started in the meantime: drop this one. */
     if (id !== run.current) return;
     setPhase(next);
@@ -157,7 +169,7 @@ export function SearchCard() {
       <div className="mx-auto w-full max-w-[720px] flex-none">
         <h1 className="m-0 mb-3 text-[clamp(24px,4.8vw,36px)] font-normal tracking-[-0.02em] leading-tight page-muted">
           See what people think about
-          <span className="sr-only">, for example {EXAMPLE_SUBJECTS.join(", ")}</span>
+          <span className="sr-only">, for example {examples.join(", ")}</span>
         </h1>
       </div>
 
@@ -178,7 +190,7 @@ export function SearchCard() {
             />
             {query === "" ? (
               <span className="ghost">
-                <RotatingSubjects subjects={EXAMPLE_SUBJECTS} paused={reduced || open} onShow={onShow} />
+                <RotatingSubjects subjects={examples} paused={reduced || open} onShow={onShow} />
               </span>
             ) : null}
             <button type="submit" className="go" disabled={phase.name === "loading"} aria-label="Search">

@@ -18,7 +18,7 @@ export function PlatformEvidence({ analysis, status }: { analysis: SourceAnalysi
         </span>
         <span className={`verdict verdict-${analysis.verdict}`}>{VERDICT_TEXT[analysis.verdict]}</span>
         <span className="text-[13px] text-muted">
-          {AGREEMENT_TEXT[analysis.agreement]}, {status.itemsAnalysed} items
+          {AGREEMENT_TEXT[analysis.agreement]}, {status.itemsAnalysed} opinions
         </span>
       </div>
 
@@ -37,13 +37,13 @@ export function PlatformEvidence({ analysis, status }: { analysis: SourceAnalysi
         <ul className="list-none m-0 p-0 flex flex-col">
           {analysis.threads.map((th, i) => (
             <li key={i} className="thread">
-              {th.title}
+              {th.url && !th.fictional ? <a href={th.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{th.title}</a> : th.title}
             </li>
           ))}
         </ul>
-        <p className="m-0 text-[12px] leading-[1.5] text-faint">
-          Fictional titles for this prototype, so nothing is linked. Live results will link to the real thread.
-        </p>
+        {analysis.threads.some((thread) => thread.fictional) && (
+          <p className="m-0 text-[12px] leading-[1.5] text-faint">Fictional titles for this prototype, so nothing is linked.</p>
+        )}
       </div>
     </div>
   );

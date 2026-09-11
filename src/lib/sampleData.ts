@@ -33,7 +33,7 @@ export const SAMPLES: SampleEntry[] = [
       subject: "the weather in Tuscany",
       sentiment: { positive: 0.66, neutral: 0.22, negative: 0.12 },
       summary:
-        "People in this sample are warm about Tuscany's weather, with spring and early autumn described again and again as the time to go. The one steady complaint is July and August, which several travellers found hotter and stickier than they expected.",
+        "Tuscany's weather draws warm reactions, with spring and early autumn described again and again as the time to go. The one steady complaint is July and August, which several travellers found hotter and stickier than they expected.",
       verdict: "positive",
       agreement: "moderate",
       confidence: {
@@ -120,7 +120,7 @@ export const SAMPLES: SampleEntry[] = [
       subject: "the newest ChatGPT model",
       sentiment: { positive: 0.41, neutral: 0.19, negative: 0.4 },
       summary:
-        "Opinion in this sample is split. Developers and heavy users are mostly pleased with speed and coding help, while a loud share of everyday users say the tone has changed for the worse and that usage limits arrive too quickly. Nobody agrees on whether it is a big step or a small one.",
+        "Opinion on the newest ChatGPT model is split. Developers and heavy users are mostly pleased with speed and coding help, while a loud share of everyday users say the tone has changed for the worse and that usage limits arrive too quickly. Nobody agrees on whether it is a big step or a small one.",
       verdict: "mixed",
       agreement: "weak",
       confidence: {
@@ -209,7 +209,7 @@ export const SAMPLES: SampleEntry[] = [
       subject: "cinema",
       sentiment: { positive: 0.38, neutral: 0.34, negative: 0.28 },
       summary:
-        "This subject is broad, and the sample scatters across ticket prices, streaming and the experience of the big screen, so the picture is only loosely formed. Where people do agree, it is that seeing a film in a full room is still worth it and that the price of doing so is the main thing keeping them home.",
+        "Cinema still has a strong pull for the experience of seeing a film in a full room, while ticket prices are the main thing keeping people home. Opinions on streaming and the big screen vary widely, so there is little agreement beyond that.",
       verdict: "mixed",
       agreement: "weak",
       confidence: {
@@ -289,7 +289,7 @@ export const SAMPLES: SampleEntry[] = [
       subject: "the Keychron K2",
       sentiment: { positive: 0.78, neutral: 0.14, negative: 0.08 },
       summary:
-        "The sample is clearly positive about the Keychron K2, and unusually consistent. It is recommended over and over as the sensible first mechanical keyboard, especially for Mac users, with the main reservations being its height and the stock keycaps rather than anything about how it types.",
+        "Enthusiasm for the Keychron K2 is strong and unusually consistent. It is recommended over and over as the sensible first mechanical keyboard, especially for Mac users, with the main reservations being its height and the stock keycaps rather than anything about how it types.",
       verdict: "positive",
       agreement: "strong",
       confidence: {
@@ -378,7 +378,7 @@ export const SAMPLES: SampleEntry[] = [
       subject: "living in Melbourne",
       sentiment: { positive: 0.47, neutral: 0.18, negative: 0.35 },
       summary:
-        "People in this sample love living in Melbourne and complain about it in the same breath. Food, coffee, culture and the sense that there is always something on are praised almost without exception, while rent, the weather and the commute from the affordable suburbs are the three things that wear people down.",
+        "Living in Melbourne inspires affection and frustration in the same breath. Food, coffee, culture and the sense that there is always something on are praised almost without exception, while rent, the weather and the commute from the affordable suburbs are the three things that wear people down.",
       verdict: "mixed",
       agreement: "moderate",
       confidence: {
@@ -465,7 +465,7 @@ export const SAMPLES: SampleEntry[] = [
       subject: "vinyl records",
       sentiment: { positive: 0.68, neutral: 0.2, negative: 0.12 },
       summary:
-        "The sample is fond of vinyl and honest about why: the ritual, the artwork and the community matter more to people than any claim about sound. The complaints are practical rather than passionate, with the price of new pressings the one thing nearly everyone grumbles about.",
+        "Affection for vinyl centres on the ritual, the artwork and the community more than any claim about sound. The complaints are practical rather than passionate, with the price of new pressings the one thing nearly everyone grumbles about.",
       verdict: "positive",
       agreement: "moderate",
       confidence: {

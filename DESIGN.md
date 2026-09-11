@@ -1,6 +1,12 @@
 # What People Think — design record
 
-## Current change: 0.9.2
+## Current change: 0.9.3
+
+Refining the existing screen from the user's screenshot: direct opinion-first prose, a single quiet “N opinions read from the last 1 month” line, and no Live sample or Nothing is kept wording above the answer. Positive, neutral and negative percentages sit above the existing bar, in three labelled columns so tiny segments cannot make the labels overlap. Fictional results keep their explicit label. Source coverage remains expandable.
+
+The existing rotating example treatment now alternates current news subjects with niche evergreen interests, including “the weather in Tuscany in August”. It remains a prompt to search, not a claim that a result is available. News loads in the background. The user requested these refinements to the approved interface; no new screen or visual direction is introduced.
+
+## Previous change: 0.9.2
 
 The Get Specific button and its entire function have been removed at the user's request: no refinement panel, platform/date selection or demographic controls. Searches take only a subject and use all connected sources with the default recent window. The answer, per-platform evidence and How does this work remain available on desktop and mobile.
 

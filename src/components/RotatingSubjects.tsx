@@ -32,7 +32,7 @@ export function RotatingSubjects({
     return () => window.clearInterval(timer);
   }, [rotating, subjects.length]);
 
-  const text = subjects[index] ?? "";
+  const text = subjects[index % subjects.length] ?? "";
 
   useEffect(() => {
     if (onShow) onShow(text);

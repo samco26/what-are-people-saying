@@ -11,19 +11,23 @@ export function HowItWorks() {
         sentences on where opinion sits.
       </p>
       <p className="mrow m-0">
-        The bar under the answer shows how the sample split between positive, neutral and
+        The percentages above the bar estimate how the relevant opinions split between positive, neutral and
         negative. The three logos open each platform on its own: its verdict, what people liked
         and did not, and the threads it drew on.
       </p>
       <p className="mrow m-0">
         An answer describes the sample, not everyone. A positive result is not the same as
         strong agreement, and when the evidence is thin it says so rather than forcing a
-        verdict. Nothing collected is kept.
+        verdict. Video titles provide context and are not counted as opinions. YouTube reads up to
+        30 top-ranked comments from each of the 10 most-viewed matching videos published in the
+        last 30 days. Source coverage explains any missing comments or platforms.
       </p>
       <p className="mrow m-0 text-[13px] text-faint">
-        This is version one. The six example subjects answer from fictional samples written for
-        design, and are labelled as such. Live sources and analysis switch on as their keys
-        arrive.
+        The rotating examples mix niche interests with subjects from today’s{" "}
+        <a href="https://www.bbc.com/news" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">BBC News</a>
+        {" "}headlines, using Melbourne’s calendar day. If news is unavailable, evergreen examples remain.
+        Suggestions are ideas to search, not a promise that enough discussion will be available.
+        When live search is disconnected, only the six built-in fictional samples can return a result, clearly labelled.
       </p>
     </div>
   );
