@@ -4,7 +4,7 @@ Last audited: 12 September 2026 (Australia/Melbourne).
 
 ## Where we are
 
-**The website is built and deployed. Milestones 1–5 are complete; milestone 6 (verified AI analysis) is next.** The analysis backend has been converted completely from Anthropic/Claude to OpenAI's Responses API and passes local type, build and sample-mode checks. A successful paid OpenAI request has not yet been made, so phase 6 is not complete. The three source connectors also have code but still require live verification.
+**The website is built and deployed. Milestones 1–5 are complete; milestones 6–7 now have a successful live search, with quality and cost checks still open.** The analysis backend has been converted completely from Anthropic/Claude to OpenAI's Responses API and passes local type, build and sample-mode checks. A controlled production query now returns a live OpenAI answer from 160 YouTube opinions. This verifies the working path, while detailed evidence-quality and cost checks remain open; X and Reddit still require access/integration work.
 
 Use the ten milestones in [PROJECT.md](PROJECT.md) as the stable numbering. Completion is based on evidence, not the app's BETA version number.
 
@@ -17,15 +17,15 @@ Use the ten milestones in [PROJECT.md](PROJECT.md) as the stable numbering. Comp
 | 3 | Build the Next.js, TypeScript and Tailwind foundation | Complete | App pages, components, server route, TypeScript and Tailwind configuration exist. Production builds pass. |
 | 4 | Connect GitHub to Vercel and deploy | Complete | Vercel's GitHub deployment record reported success for `ba269f2` on 11 September 2026. User also confirmed the site is live. |
 | 5 | Complete search/loading/result flow with labelled sample data | Complete — sample mode | Six fictional samples, processing/result/error states and unknown-subject fallback are implemented. Desktop/mobile and route checks are recorded in README.md. Sample and unknown-subject API requests passed again after the OpenAI conversion. |
-| 6 | Integrate server-side AI analysis | OpenAI code verified locally; paid live test next | `src/lib/analysis/analyse.ts` uses the OpenAI Responses API, GPT-5.6 Luna by default, Zod Structured Outputs and `store: false`. TypeScript and the production build pass. Complete this phase only after a controlled request with synthetic evidence verifies account/model access, output quality, errors and measured cost. |
-| 7 | Integrate YouTube | Written; live verification pending | Separate video/comment connector exists. Complete when an authorized request retrieves real relevant comments, preserves their links and yields a grounded answer; test disabled comments, quota errors and insufficient evidence. |
+| 6 | Integrate server-side AI analysis | Live response verified; quality/cost checks pending | `src/lib/analysis/analyse.ts` uses the OpenAI Responses API, GPT-5.6 Luna by default, Zod Structured Outputs and `store: false`. TypeScript and the production build pass. Complete this phase only after a controlled request with synthetic evidence verifies account/model access, output quality, errors and measured cost. |
+| 7 | Integrate YouTube | Live collection verified; quality/edge cases pending | Separate video/comment connector exists. Complete when an authorized request retrieves real relevant comments, preserves their links and yields a grounded answer; test disabled comments, quota errors and insufficient evidence. |
 | 8 | Integrate X with collection and spending controls | Written; live verification pending | Recent-post search and per-request limits exist. The daily counter is only per server process, not a reliable whole-app spending cap. Verify access, actual charges, enforceable limits and reply coverage before completion. |
 | 9 | Integrate Reddit when access is available | Written; access/live verification pending | OAuth, post search and comment collection exist. Confirm permitted access and demonstrate a successful authenticated search with real evidence. |
 | 10 | Refine UI and test privately before public availability | In progress | Substantial visual refinement and sample-mode checks are done. Still needs live-result quality checks, failure/partial-source tests, abuse/cost protections and a controlled user trial. |
 
 ## Immediate next checkpoint
 
-Create an OpenAI API key without committing or sharing it, set it privately for a controlled environment, and run one synthetic-evidence request. Then verify YouTube separately. Do not enable unrestricted public live searches until a search limit and spending protection are in place.
+Review the live answer against its collected evidence, measure actual API cost, and verify the remaining source failure cases. Do not enable unrestricted public live searches until a search limit and spending protection are in place.
 
 ## Technology actually in the project
 
@@ -40,7 +40,7 @@ Create an OpenAI API key without committing or sharing it, set it privately for 
 
 ## Latest verification
 
-BETA 0.9.4 adds 3/12/36-month collection with a 50-opinion expansion threshold, keeps earlier evidence, and reuses per-request source responses. Sixteen mocked tests pass, covering escalation, stopping, deduplication, retained evidence after failure, calendar boundaries and recent comments on older videos. X collection volume is unchanged; its recent endpoint is not repeated during date expansion. The production build also passes. Deployment and a real niche-query result remain to be verified for this checkpoint.
+BETA 0.9.4 adds 3/12/36-month collection with a 50-opinion expansion threshold, keeps earlier evidence, and reuses per-request source responses. Sixteen mocked tests pass, covering escalation, stopping, deduplication, retained evidence after failure, calendar boundaries and recent comments on older videos. X collection volume is unchanged; its recent endpoint is not repeated during date expansion. The production build also passes. Vercel confirmed deployment of `1a2539b`. The production Mercury Marine query returned a result with 160 YouTube opinions from 3 months in 5.9 seconds (collection 1.101 seconds; analysis 4.275 seconds). X returned HTTP 400 and Reddit was unconnected. This is one measured query, not a latency guarantee; 12/36-month fallback paths are verified with mocks.
 
 The BETA 0.9.3 search and daily-example work has been combined with the OpenAI migration. Both consensus and news-topic selection now use the Responses API with `store: false`. Ten mocked tests, TypeScript and the production build pass. GitHub/Vercel confirmed production deployment `6403248138` for commit `a39030b` succeeded on 12 September 2026. The live homepage returned HTTP 200 with BETA 0.9.3 and the new niche example; `/api/subjects` returned HTTP 200 with six news topics and six evergreen examples. This verifies deployment and live news suggestions, not the paid consensus/YouTube analysis or its speed; those milestone acceptance checks remain open.
 
@@ -50,7 +50,7 @@ The BETA 0.9.3 search and daily-example work has been combined with the OpenAI m
 - Production server unknown-subject request: passed and returned the truthful no-live-search state.
 - Dependency audit: zero known vulnerabilities.
 - No Anthropic or Claude references remain in active project files or the dependency lock.
-- No OpenAI or source credentials were read, created or used.
+- No credentials were read or created locally. The controlled live query used the production server’s configured keys.
 
 ## Keeping this live
 

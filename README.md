@@ -4,7 +4,7 @@ A personal, non-commercial app that reads a bounded selection of online discussi
 
 ## Current checkpoint: BETA 0.9.4
 
-Deployed to production on 12 September 2026: Vercel confirmed commit `a39030b` succeeded. The live homepage serves BETA 0.9.3, and the daily-suggestions endpoint returned six news topics interleaved with six niche examples. The revised paid consensus/YouTube path and its latency remain unverified against live services.
+Deployed BETA 0.9.4 on 12 September 2026: Vercel confirmed commit `1a2539b` succeeded. A live search for “mercury marine boat engines in australia” returned 160 YouTube opinions from the last 3 months in 5.9 seconds, including 1.101 seconds for collection and 4.275 seconds for analysis. X returned HTTP 400 and Reddit was unconnected. Twelve-month and three-year fallback paths pass mocked tests; one live measurement is not a general speed guarantee.
 
 The interface, server-side OpenAI analysis and YouTube/X/Reddit connectors are implemented. The user has observed a live result on the deployed site. This workspace has no live API keys, so the revised collection and AI paths are checked with simulated service responses; live response quality and latency still need verification after deployment.
 
@@ -66,7 +66,7 @@ Sparse searches can take longer than dense ones because they try broader windows
 
 The existing parallel collection is retained. YouTube responses request only fields used by analysis, omitting thumbnails and unrelated metadata. When only one platform has opinions, OpenAI generates its reading once and the server uses it for both the overall answer and platform evidence. Short numeric evidence references replace long source IDs. The artificial 1.1-second minimum loading wait has been removed.
 
-These changes reduce unnecessary work without dropping collected opinions or switching to a smaller model. They do **not** establish a measured live speedup: collecting more text can offset savings. Successful live responses expose `Server-Timing` durations for `collection` and `analysis`, making the remaining delay measurable without logging subjects, credentials or content. The consensus route requests a 60-second hosting limit.
+These changes reduce unnecessary work without dropping selected opinions or changing the configured model. The measured niche query above verifies one live response time, not a before/after speedup: collecting more text can offset savings. Successful live responses expose `Server-Timing` durations for `collection` and `analysis`, making the remaining delay measurable without logging subjects, credentials or content. The consensus route requests a 60-second hosting limit.
 
 ## Daily example subjects
 
@@ -81,7 +81,7 @@ Suggestions load independently of searches. Only the public news suggestions and
 - `npm test`: mocked YouTube collection, parallel requests, complete AI input, one-source and multi-source schemas, citation validation, partial failures, time windows, rounding, dated news parsing, topic grounding and news fallback.
 - `npm run typecheck` and `npm run build`: required before a checkpoint is committed.
 - Browser checks cover desktop/mobile search, labelled samples, the revised live-result layout using an explicitly fictional fixture, evidence links, source coverage, asynchronous suggestions, Enter-to-search, overflow and runtime errors.
-- The public BBC feed format was checked directly, and production returned six AI-selected news topics after deployment. The revised live YouTube/OpenAI consensus search has not been exercised with real credentials in this workspace. Mocked checks do not verify real consensus phrasing, provider permissions or speed.
+- The public BBC feed format was checked directly, and production returned six AI-selected news topics after deployment. The revised live YouTube/OpenAI path succeeded on one controlled production query; its detailed evidence quality and billed cost have not been audited. Mocked checks do not verify real consensus phrasing, provider permissions or speed.
 - Popular videos and top-ranked comments are a popularity-biased selection. Even the widest window can miss discussion, and a bounded selection is not exhaustive. Fewer than 300 opinions is expected where coverage is limited. Suggestions can be broader than the available evidence.
 - The news rotation uses one publisher across several categories, not a comprehensive trend ranking.
 - The glass effect needs `backdrop-filter`; smaller windows scroll within the card.
