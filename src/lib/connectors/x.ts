@@ -1,40 +1,30 @@
-/* X, through the v2 recent search with an app Bearer token.
+/* Official X full-archive search. Try 3, 12 and 36 months independently
+   of other sources, widening only after an empty response. Stop at the
+   first nonempty response: at most 20 paid post reads in total.
 
-   One call: recent posts matching the subject, retweets excluded, English
-   only. Recent search reaches back seven days, so an earlier time window
-   is clamped to that and the status says so.
+   The daily reservation is per server instance, not a whole-app spending
+   cap. No posts are persisted; memoization lasts only for this request. */
 
-   Spend controls, because X bills by posts read: X_MAX_RESULTS (10 to 20,
-   default 20) is the most one search reads, and X_DAILY_POST_BUDGET
-   (default 1000) is a best-effort daily ceiling kept in this process's
-   memory. On a serverless host that memory is per instance, so the ceiling
-   is a guard rail rather than a hard cap; set a billing-cycle spending
-   limit in the X developer console for a whole-app cap.
-
-   Live empty and nonempty searches were verified on 12 September 2026.
-   Billed cost still needs reconciliation. Enabled only when
-   X_BEARER_TOKEN exists. */
-
-import type { SourceItem } from "../types";
+import { setTimeout as delay } from "node:timers/promises";
+import type { SourceItem, SearchWindow } from "../types";
 import { env, envInt } from "../env";
-import { getJson, statusFor, tidy, type Collected, type CollectOptions, type Connector } from "./shared";
+import { SEARCH_MONTHS, monthsBefore } from "../searchWindow";
+import { getJson, getOnce, reasonFor, statusFor, tidy, type Collected, type CollectOptions, type Connector } from "./shared";
 
-const API = "https://api.x.com/2/tweets/search/recent";
-const RECENT_DAYS = 7;
+const API = "https://api.x.com/2/tweets/search/all";
 const END_TIME_SAFETY_MS = 15_000;
+// Archive requests are limited to one per second. Keep fallback calls apart.
+const FALLBACK_DELAY_MS = 1050;
 
-interface RecentSearchResponse {
+interface SearchResponse {
   data?: Array<{
     id: string;
     text: string;
     created_at?: string;
-    author_id?: string;
-    public_metrics?: { like_count?: number; retweet_count?: number; reply_count?: number };
+    public_metrics?: { like_count?: number; retweet_count?: number };
   }>;
-  meta?: { result_count?: number };
 }
 
-/* The day's spend, per process. */
 let budgetDay = "";
 let spentToday = 0;
 
@@ -50,62 +40,67 @@ function spend(n: number): boolean {
   return true;
 }
 
-async function collect(opts: CollectOptions): Promise<Collected> {
+async function collectArchive(opts: CollectOptions, to: Date): Promise<Collected> {
   const token = env("X_BEARER_TOKEN") ?? "";
   // Enforce the agreed US$0.10 post-read budget even with an older env value.
   const max = envInt("X_MAX_RESULTS", 20, 10, 20);
-
   if (!spend(max)) {
     return {
-      items: [],
+      items: [], canExpand: false,
       status: { source: "x", availability: "unavailable", itemsAnalysed: 0, note: "Today's reading budget for X is used up." },
     };
   }
 
-  const earliest = new Date(Date.now() - RECENT_DAYS * 24 * 3600 * 1000 + 60_000);
-  let clamped = false;
-  let from = opts.from;
-  if (from && from < earliest) {
-    from = earliest;
-    clamped = true;
+  let completedWindow: SearchWindow | undefined;
+  for (const months of SEARCH_MONTHS) {
+    try {
+      if (completedWindow) await delay(FALLBACK_DELAY_MS, undefined, { signal: opts.signal });
+      opts.signal.throwIfAborted();
+      const from = monthsBefore(to, months);
+      const url = new URL(API);
+      url.searchParams.set("query", `"${opts.subject.replace(/"/g, "")}" -is:retweet lang:en`);
+      url.searchParams.set("max_results", String(max));
+      url.searchParams.set("tweet.fields", "created_at,public_metrics");
+      url.searchParams.set("start_time", from.toISOString());
+      // For present-time searches let X apply its indexing-safe default.
+      if (to.getTime() <= Date.now() - END_TIME_SAFETY_MS) url.searchParams.set("end_time", to.toISOString());
+      const res = await getJson<SearchResponse>(url.toString(), {
+        signal: opts.signal,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      completedWindow = { from: from.toISOString(), to: to.toISOString(), months };
+      const items: SourceItem[] = (res.data ?? []).map((p) => ({
+        id: `x:post:${p.id}`, source: "x", kind: "post", text: tidy(p.text),
+        url: `https://x.com/i/status/${p.id}`, publishedAt: p.created_at,
+        engagement: (p.public_metrics?.like_count ?? 0) + (p.public_metrics?.retweet_count ?? 0),
+      }));
+      const period = months === 36 ? "3 years" : `${months} months`;
+      const note = items.length
+        ? `Read ${items.length} of up to ${max} X posts from the last ${period}.`
+        : `No matching X posts were found in the last ${period}.`;
+      if (items.length || months === 36) {
+        return { items, canExpand: false, status: { ...statusFor("x", items.length, max), note, window: completedWindow } };
+      }
+      // No posts were returned (or billed), so the next window can still read max.
+    } catch (error) {
+      return {
+        items: [], canExpand: false,
+        status: {
+          source: "x", availability: "unavailable", itemsAnalysed: 0,
+          note: `X archive search could not complete for the last ${months === 36 ? "3 years" : `${months} months`}. ${reasonFor(error, opts.signal.aborted)}`,
+          window: completedWindow,
+        },
+      };
+    }
   }
-
-  const url = new URL(API);
-  url.searchParams.set("query", `"${opts.subject.replace(/"/g, "")}" -is:retweet lang:en`);
-  url.searchParams.set("max_results", String(max));
-  url.searchParams.set("tweet.fields", "created_at,public_metrics,author_id");
-  if (from) url.searchParams.set("start_time", from.toISOString());
-  /* X rejects an end_time less than ten seconds before it receives the
-     request. For a search ending now, omitting it uses X's safe default. */
-  if (opts.to && opts.to.getTime() <= Date.now() - END_TIME_SAFETY_MS) {
-    url.searchParams.set("end_time", opts.to.toISOString());
-  }
-
-  const res = await getJson<RecentSearchResponse>(url.toString(), {
-    signal: opts.signal,
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  const items: SourceItem[] = (res.data ?? []).map((p) => ({
-    id: `x:post:${p.id}`,
-    source: "x",
-    kind: "post",
-    text: tidy(p.text),
-    url: `https://x.com/i/status/${p.id}`,
-    publishedAt: p.created_at,
-    engagement: (p.public_metrics?.like_count ?? 0) + (p.public_metrics?.retweet_count ?? 0),
-  }));
-
-  const note = items.length === 0
-    ? (clamped ? "No matching X posts were found in the last seven days." : "No matching X posts were found in this search window.")
-    : (clamped ? "X only searches the last seven days, so the time period was narrowed to that." : undefined);
-  const status = statusFor("x", items.length, max, note);
-  if (note && status.availability === "ok") status.note = note;
-  return { items, status };
+  throw new Error("X search windows are not configured.");
 }
 
 export const x: Connector = {
   id: "x",
   configured: () => Boolean(env("X_BEARER_TOKEN")),
-  collect,
+  collect: (opts) => {
+    const to = opts.to ?? new Date();
+    return getOnce(`x:archive:${opts.subject}:${to.toISOString()}`, opts, () => collectArchive(opts, to));
+  },
 };

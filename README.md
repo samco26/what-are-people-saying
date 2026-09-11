@@ -34,7 +34,7 @@ Put credentials in `.env.local` locally or Vercel's Environment Variables. Never
 | `OPENAI_API_KEY` | Required for live consensus and AI-selected news suggestions. |
 | `CONSENSUS_MODEL` | Defaults to `gpt-5.6-luna`; the current model is retained for these changes. |
 | `YOUTUBE_API_KEY` | YouTube Data API v3 access. Collection is fixed at 10 videos × 30 comments. |
-| `X_BEARER_TOKEN` | X recent search access. |
+| `X_BEARER_TOKEN` | X full-archive search access (pay-per-use or Enterprise). |
 | `X_MAX_RESULTS` | Default 20; bounded to 10–20 posts per query, including older environment overrides. Up to US$0.10 in post-read charges at US$0.005 per post, excluding AI. |
 | `X_DAILY_POST_BUDGET` | Default 1,000; best-effort per-process budget, not a global billing cap. |
 | `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_USER_AGENT` | Reddit OAuth and an identifying user agent. |
@@ -47,9 +47,9 @@ Without an AI key plus at least one source key, only six built-in fictional subj
 
 ## Collection and analysis
 
-`POST /api/consensus` accepts `{ "subject": "..." }`. It starts with the preceding 3 calendar months, expands to 12 months and then 36 months if fewer than 50 opinions have been collected, and reports the final window. Fifty is a collection threshold, not a claim of confidence or relevance; the model still checks the evidence. Earlier findings are kept and deduplicated. X can search only the last seven days and reports that restriction. There are no user-facing source, date or demographic filters.
+`POST /api/consensus` accepts `{ "subject": "..." }`. YouTube/Reddit start with the preceding 3 calendar months and expand to 12 months and then 36 months if fewer than 50 total opinions have been collected. Fifty is a collection threshold, not a claim of confidence or relevance; the model still checks the evidence. Earlier findings are kept and deduplicated. X independently searches 3, 12 and 36 months using its full archive, expanding only on empty responses and stopping at the first matches. The answer and AI input include the widest completed search window, and X's source coverage states its own window. There are no user-facing source, date or demographic filters.
 
-- Each source has its own connector and returns a shared format with an explicit availability status. Sources run in parallel with a nine-second limit each per pass. Access failures and X recent search are not retried during expansion.
+- Each source has its own connector and returns a shared format with an explicit availability status. Sources run in parallel with a nine-second limit each per pass. X's complete fallback sequence shares one nine-second limit. Access failures are not retried; X archive failures explicitly report the incomplete window.
 - YouTube asks for the **10 highest-viewed matching videos regardless of upload date**, then requests relevance-ranked top-level comments in parallel. When fewer than 30 comments qualify in the window, it also checks the 30 latest comments. At most **30 unique opinions per video** are selected, retaining previously selected recent opinions when widening the window. “Top” means the API's relevance ranking, not a guaranteed global ordering by likes. Fewer videos, disabled comments, timeouts or fewer in-window comments produce an explicit shortfall, not invented replacements.
 - Video titles/descriptions provide context. Only comments count as YouTube opinions. Parent references connect each comment to its video. YouTube comment text is preserved in full; X and Reddit retain their existing 600-character per-entry limit.
 - **All collected entries reach OpenAI.** The former 220-entry cutoff and preference for shorter entries have been removed. At the default limits this is up to 300 YouTube comments, 20 X posts and 130 Reddit posts/comments per pass (deduplicated across up to three passes), plus 10 YouTube context entries.
@@ -62,9 +62,9 @@ YouTube needs one video search and up to two comment-list requests per video: 11
 
 ## Response speed
 
-Sparse searches can take longer than dense ones because they try broader windows. YouTube search/comment responses and Reddit tokens/comment responses are reused in request memory, avoiding redundant reads. No social content is cached across searches. X makes one search request for up to 20 posts, with no additional reply requests or pagination. It is not repeated when other sources expand their time windows.
+Sparse searches can take longer than dense ones because they try broader windows. YouTube search/comment responses and Reddit tokens/comment responses are reused in request memory, avoiding redundant reads. No social content is cached across searches. X makes up to three archive requests, at least 1.05 seconds apart after empty responses, and stops at the first nonempty response. Therefore at most one response contains paid posts: up to 20 total, with no extra reply requests or pagination. Its daily budget reserves 20 posts once for the complete search, not once per date window. The result is memoized within the request and is not fetched again when other sources expand.
 
-X omits `end_time` for searches ending near the current instant, allowing the API to apply its indexing-safe default. Historical end times are preserved. An accepted empty response explicitly reports no matching posts. X currently quotes the entire subject as an exact phrase, so long natural-language queries can return no matches even when related discussion exists. No third-party X provider is configured.
+X omits `end_time` for searches ending near the current instant, allowing the API to apply its indexing-safe default. Historical end times are preserved. An accepted empty response explicitly reports no matching posts over three years. X currently quotes the entire subject as an exact phrase, so long natural-language queries can return no matches even when related discussion exists. No third-party X provider is configured.
 
 The existing parallel collection is retained. YouTube responses request only fields used by analysis, omitting thumbnails and unrelated metadata. When only one platform has opinions, OpenAI generates its reading once and the server uses it for both the overall answer and platform evidence. Short numeric evidence references replace long source IDs. The artificial 1.1-second minimum loading wait has been removed.
 

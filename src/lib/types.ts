@@ -32,6 +32,12 @@ export function sourceName(id: SourceId): string {
    to say rather than hide. */
 export type SourceAvailability = "ok" | "partial" | "unavailable";
 
+export interface SearchWindow {
+  from: string;
+  to: string;
+  months: number;
+}
+
 export interface SourceStatus {
   source: SourceId;
   availability: SourceAvailability;
@@ -39,6 +45,8 @@ export interface SourceStatus {
   itemsAnalysed: number;
   /* A plain-English reason when the source is partial or unavailable. */
   note?: string;
+  /* Actual bounds when a source expands independently of the others. */
+  window?: SearchWindow;
 }
 
 /* One collected item, whatever platform it came from. */
@@ -105,7 +113,7 @@ export interface SentimentSplit {
 export interface ConsensusResult {
   subject: string;
   /* Actual collection bounds, supplied by the server for live searches. */
-  window?: { from: string; to: string; months: number };
+  window?: SearchWindow;
   /* One to three qualitative sentences. The default view shows only this. */
   summary: string;
   sentiment: SentimentSplit;

@@ -16,6 +16,20 @@ test('50 opinions stop after three months; one calendar window reaches analysis'
  assert.equal(calls,1); assert.equal(result.window.months,3);
 });
 
+test('an independent X expansion reaches the answer window even with abundant YouTube evidence', async () => {
+ const result = await collectAdaptive('test', ['youtube', 'x'], to, async () => ({
+  items: [...Array.from({length:50}, (_,i)=>opinion(String(i))), opinion('older-x', 'x')],
+  expandable: ['youtube'],
+  statuses: [
+   {source:'youtube', availability:'ok', itemsAnalysed:50},
+   {source:'x', availability:'partial', itemsAnalysed:1, window:{from:monthsBefore(to,36).toISOString(),to:to.toISOString(),months:36}},
+  ],
+ }));
+ assert.equal(result.window.months,36);
+ assert.equal(result.window.from,'2023-09-12T00:00:00.000Z');
+ assert.equal(result.statuses.find(s=>s.source==='x').window.months,36);
+});
+
 test('sparse results expand, preserve previous opinions and deduplicate', async () => {
  const windows=[]; let firstMemo;
  const result=await collectAdaptive('test',['youtube'],to,async(sources,opts)=>{

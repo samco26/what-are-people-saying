@@ -1,19 +1,9 @@
 import { collectAll } from "./index";
 import type { SourceId, SourceItem, SourceStatus } from "../types";
+import { SEARCH_MONTHS, monthsBefore } from "../searchWindow";
 
-export const SEARCH_MONTHS = [3, 12, 36] as const;
+export { SEARCH_MONTHS, monthsBefore } from "../searchWindow";
 export const EXPAND_BELOW = 50;
-
-/* Preserve the day where possible, clamping month ends instead of overflowing. */
-export function monthsBefore(to: Date, months: number): Date {
-  const from = new Date(to);
-  const day = from.getUTCDate();
-  from.setUTCDate(1);
-  from.setUTCMonth(from.getUTCMonth() - months);
-  const last = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + 1, 0)).getUTCDate();
-  from.setUTCDate(Math.min(day, last));
-  return from;
-}
 
 export async function collectAdaptive(
   subject: string, sources: SourceId[], to = new Date(),
@@ -34,9 +24,11 @@ export async function collectAdaptive(
     for (const status of batch.statuses) statuses.set(status.source, status);
     const count = [...items.values()].filter((item) => item.kind !== "video").length;
     if (count >= EXPAND_BELOW) break;
-    // X recent search cannot reach further back. Access failures are not retried.
+    // X handles its own empty-result fallback. Access failures are not retried.
     active = batch.expandable;
   }
+  // Include independently expanded source windows in the answer and AI input.
+  months = Math.max(months, ...[...statuses.values()].map((status) => status.window?.months ?? 0));
   return {
     items: [...items.values()],
     statuses: sources.map((source) => {

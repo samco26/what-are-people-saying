@@ -37,7 +37,7 @@ The default view prioritises the short answer. Keep supporting classification, c
 - Support partial success: an unavailable source must not prevent analysis of sufficient evidence from other sources.
 - Source access and credentials are separate integration milestones; a source displayed in a mockup is not a claim of working access.
 - Use bounded collection limits. Exact limits will be set during integration.
-- X reads up to 20 posts in one recent-search request per query, with no additional reply reads. At US$0.005 per returned post this limits X post-read charges to US$0.10 per query, excluding AI.
+- X independently searches the official archive for 3 months, then 12 months and 3 years only when its previous response is empty. It stops at the first matching window and reads at most 20 posts total, with no pagination or additional reply reads. At US$0.005 per returned post this limits X post-read charges to US$0.10 per query, excluding AI.
 - YouTube reads up to 30 top-ranked comments from each of the 10 most-viewed matching videos, allowing older videos with in-window comments. Video metadata is context, not an opinion count. All collected opinions must reach analysis.
 - Do not permanently store social-media content.
 - Clearly label all fictional examples and simulated results used in design and development.
