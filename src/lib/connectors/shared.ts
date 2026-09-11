@@ -10,11 +10,15 @@ export interface CollectOptions {
   from?: Date;
   to?: Date;
   signal: AbortSignal;
+  /* Request-local only: reused while expanding the same search, never persisted. */
+  memo?: Map<string, Promise<unknown>>;
+  previousItems?: SourceItem[];
 }
 
 export interface Collected {
   items: SourceItem[];
   status: SourceStatus;
+  canExpand?: boolean;
 }
 
 export interface Connector {
@@ -39,10 +43,20 @@ export async function getJson<T>(url: string, init: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
+export function getOnce<T>(key: string, opts: CollectOptions, read: () => Promise<T>): Promise<T> {
+  if (!opts.memo) return read();
+  const existing = opts.memo.get(key);
+  if (existing) return existing as Promise<T>;
+  const pending = read();
+  opts.memo.set(key, pending);
+  return pending;
+}
+
 /* A plain-English reason for the answer, never the raw error. */
 export function reasonFor(err: unknown, timedOut: boolean): string {
   if (timedOut) return "Did not respond in time.";
   if (err instanceof HttpError) {
+    if (err.status === 402) return "Payment is required by this source. Check its API credits and billing settings.";
     if (err.status === 401 || err.status === 403) return "Access was refused. The key or its permissions may be wrong.";
     if (err.status === 429) return "The request limit was reached for now.";
     return `The service answered with an error (${err.status}).`;

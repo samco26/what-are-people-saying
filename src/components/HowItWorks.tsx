@@ -19,8 +19,9 @@ export function HowItWorks() {
         An answer describes the sample, not everyone. A positive result is not the same as
         strong agreement, and when the evidence is thin it says so rather than forcing a
         verdict. Video titles provide context and are not counted as opinions. YouTube reads up to
-        30 top-ranked comments from each of the 10 most-viewed matching videos published in the
-        last 30 days. Source coverage explains any missing comments or platforms.
+        30 comments from each of the 10 most-viewed matching videos, including older videos with
+        recent discussion. Searches start with the last 3 months and widen to 12 months, then
+        3 years if fewer than 50 opinions are collected. The answer shows the window used. Source coverage explains any missing comments or platforms.
       </p>
       <p className="mrow m-0 text-[13px] text-faint">
         The rotating examples mix niche interests with subjects from today’s{" "}

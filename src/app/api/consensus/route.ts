@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { EXAMPLE_SUBJECTS, findSample } from "@/lib/subjects";
 import { liveEnabled } from "@/lib/env";
-import { collectAll } from "@/lib/connectors";
+import { collectAdaptive } from "@/lib/connectors/adaptive";
 import { analyse } from "@/lib/analysis/analyse";
 import { SOURCES, type ConsensusResponse } from "@/lib/types";
 
@@ -65,13 +65,8 @@ export async function POST(request: Request) {
   }
 
   const to = new Date();
-  const from = new Date(to.getTime() - 30 * 86_400_000);
   const collectionStarted = performance.now();
-  const { items, statuses } = await collectAll(SOURCES.map((source) => source.id), {
-    subject,
-    from,
-    to,
-  });
+  const { items, statuses, window } = await collectAdaptive(subject, SOURCES.map((source) => source.id), to);
   const collectionMs = performance.now() - collectionStarted;
   const opinionCount = items.filter((item) => item.kind !== "video").length;
 
@@ -85,15 +80,16 @@ export async function POST(request: Request) {
           ? "Nothing came back from the platforms that could be reached, so there is nothing to describe."
           : `Only ${opinionCount} opinion${opinionCount === 1 ? "" : "s"} came back, which is too few to describe honestly.`,
       sources: statuses,
+      window,
     };
     return NextResponse.json(response, noStore);
   }
 
   try {
     const analysisStarted = performance.now();
-    const result = await analyse(subject, items, statuses);
+    const result = await analyse(subject, items, statuses, window);
     const analysisMs = performance.now() - analysisStarted;
-    result.window = { from: from.toISOString(), to: to.toISOString(), months: 1 };
+    result.window = window;
     const response: ConsensusResponse = { kind: "result", result };
     return NextResponse.json(response, { headers: {
       ...noStore.headers,

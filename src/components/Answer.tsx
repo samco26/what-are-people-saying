@@ -53,7 +53,7 @@ export function Answer({
       <div className="rise">
         <span className="label">Not enough to go on</span>
         <p className="m-0 mt-2 text-[16px] leading-[1.55] text-ink">
-          The live search for <span className="font-semibold">&ldquo;{response.subject}&rdquo;</span> did not
+          The search over the last {response.window?.months === 36 ? "3 years" : `${response.window?.months ?? 3} months`} for <span className="font-semibold">&ldquo;{response.subject}&rdquo;</span> did not
           find enough to describe.
         </p>
         <p className="m-0 mt-2 text-[14px] leading-[1.55] text-muted">{response.message}</p>
@@ -98,7 +98,7 @@ function Result({
         ) : (
           <span className="text-[12px] text-faint">
             {result.sources.reduce((n, s) => n + s.itemsAnalysed, 0)} opinions read
-            {result.window ? ` from the last ${result.window.months} month${result.window.months === 1 ? "" : "s"}` : ""}
+            {result.window ? ` from the last ${result.window.months === 36 ? "3 years" : `${result.window.months} month${result.window.months === 1 ? "" : "s"}`}` : ""}
           </span>
         )}
       </div>

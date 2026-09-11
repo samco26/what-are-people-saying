@@ -40,6 +40,8 @@ Create an OpenAI API key without committing or sharing it, set it privately for 
 
 ## Latest verification
 
+BETA 0.9.4 adds 3/12/36-month collection with a 50-opinion expansion threshold, keeps earlier evidence, and reuses per-request source responses. Sixteen mocked tests pass, covering escalation, stopping, deduplication, retained evidence after failure, calendar boundaries and recent comments on older videos. X collection volume is unchanged; its recent endpoint is not repeated during date expansion. The production build also passes. Deployment and a real niche-query result remain to be verified for this checkpoint.
+
 The BETA 0.9.3 search and daily-example work has been combined with the OpenAI migration. Both consensus and news-topic selection now use the Responses API with `store: false`. Ten mocked tests, TypeScript and the production build pass. GitHub/Vercel confirmed production deployment `6403248138` for commit `a39030b` succeeded on 12 September 2026. The live homepage returned HTTP 200 with BETA 0.9.3 and the new niche example; `/api/subjects` returned HTTP 200 with six news topics and six evergreen examples. This verifies deployment and live news suggestions, not the paid consensus/YouTube analysis or its speed; those milestone acceptance checks remain open.
 
 - `npm run typecheck`: passed.

@@ -29,12 +29,13 @@ export function connectorConfigured(id: SourceId): boolean {
 export async function collectAll(
   sources: SourceId[],
   opts: Omit<CollectOptions, "signal">,
-): Promise<{ items: SourceItem[]; statuses: SourceStatus[] }> {
+): Promise<{ items: SourceItem[]; statuses: SourceStatus[]; expandable: SourceId[] }> {
   const runs = sources.map(async (id): Promise<Collected> => {
     const c = CONNECTORS[id];
     if (!c.configured()) {
       return {
         items: [],
+        canExpand: false,
         status: { source: id, availability: "unavailable", itemsAnalysed: 0, note: "Not connected yet." },
       };
     }
@@ -45,6 +46,7 @@ export async function collectAll(
     } catch (err) {
       return {
         items: [],
+        canExpand: false,
         status: {
           source: id,
           availability: "unavailable",
@@ -61,5 +63,6 @@ export async function collectAll(
   return {
     items: results.flatMap((r) => r.items),
     statuses: results.map((r) => r.status),
+    expandable: results.filter((r) => r.canExpand !== false && r.status.source !== "x").map((r) => r.status.source),
   };
 }

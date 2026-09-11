@@ -26,7 +26,7 @@ test("YouTube fetches 10 by views and 30 top comments per video concurrently, pr
     if (url.pathname.endsWith("/search")) {
       assert.equal(url.searchParams.get("maxResults"), "10");
       assert.equal(url.searchParams.get("order"), "viewCount");
-      assert.equal(url.searchParams.get("publishedAfter"), opts().from.toISOString());
+      assert.equal(url.searchParams.get("publishedAfter"), null);
       assert.equal(url.searchParams.get("publishedBefore"), opts().to.toISOString());
       assert.ok(url.searchParams.get("fields"));
       return json(videos);

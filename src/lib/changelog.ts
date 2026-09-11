@@ -13,6 +13,15 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.9.4",
+    date: "12 September 2026",
+    items: [
+      ["changed", "Searches start with 3 months of discussion, then widen to 12 months and 3 years when fewer than 50 opinions are found. The answer shows the period used."],
+      ["changed", "Older YouTube videos can contribute recent comments. Earlier opinions are retained and duplicates removed when the search expands."],
+      ["changed", "Source responses are reused within a search to avoid repeated collection. X payment errors now explain that API billing needs attention."],
+    ],
+  },
+  {
     v: "0.9.3",
     date: "12 September 2026",
     items: [

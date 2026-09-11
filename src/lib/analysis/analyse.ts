@@ -52,6 +52,7 @@ Rules:
 - Lead immediately with the substantive opinion about the subject: for example, "Excitement for the foldable design is substantial, especially around..." Do not open with "The sample", "This sample", source coverage, or a description of your analysis. Put sampling limitations in confidence and platform details. If evidence is insufficient or split, say so plainly.
 - Subject names, announcements, specifications and release status in comments are claims, not independently verified facts. Do not rename the searched product or turn rumours into confirmed announcements. Never introduce facts from memory.
 - Positives and negatives are the themes people actually raise, up to three each, each with a title of a few words and a detail sentence. If the sample supports fewer than three, give fewer. Never invent a theme to fill a slot.
+- Use the entry dates to distinguish older and newer reactions. Do not combine different product generations or describe historical opinions as current. Explain dated or mixed-generation evidence in confidence.
 - Confidence is about the evidence: how much there is, who it comes from, how consistent it is. Say why in one sentence.
 - sentiment is an estimate of the share of relevant opinions that read as positive, neutral and negative, as fractions summing to 1. Video titles and descriptions are context only, never opinions or votes. Likes indicate engagement, not additional votes. A parent reference links a comment to its video context.
 - For each platform that has opinions, give its own reading, and list in drawnFrom the numeric references of four to eight representative opinions, most representative first. Only references from that platform. When there is one platform the overall reading IS its reading; return it once using the supplied schema.
@@ -71,7 +72,7 @@ function formatItems(items: SourceItem[]): string {
     .join("\n");
 }
 
-export async function analyse(subject: string, items: SourceItem[], statuses: SourceStatus[]): Promise<ConsensusResult> {
+export async function analyse(subject: string, items: SourceItem[], statuses: SourceStatus[], window?: ConsensusResult["window"]): Promise<ConsensusResult> {
   const client = new OpenAI({ apiKey: env("OPENAI_API_KEY") });
   const model = env("CONSENSUS_MODEL") ?? DEFAULT_MODEL;
   // Connectors bound collection. Never silently discard already-collected opinions.
@@ -83,7 +84,7 @@ export async function analyse(subject: string, items: SourceItem[], statuses: So
   const response = await client.responses.parse({
     model,
     instructions: `${SYSTEM}\n${UNTRUSTED_RULE}`,
-    input: `Subject: ${JSON.stringify(subject)}\nPlatforms with opinions: ${[...seen].join(", ")}\n\n${sample.length} discussion and context entries (JSON lines):\n${formatItems(sample)}`,
+    input: `Subject: ${JSON.stringify(subject)}\nOpinion window: ${window ? `${window.from} to ${window.to} (${window.months} months)` : "as dated in entries"}\nPlatforms with opinions: ${[...seen].join(", ")}\n\n${sample.length} discussion and context entries (JSON lines):\n${formatItems(sample)}`,
     max_output_tokens: 6000,
     reasoning: { effort: "none" },
     text: { format },

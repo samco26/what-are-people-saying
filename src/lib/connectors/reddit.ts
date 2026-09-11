@@ -14,7 +14,7 @@
 
 import type { SourceItem } from "../types";
 import { env, envInt } from "../env";
-import { getJson, inWindow, statusFor, tidy, type Collected, type CollectOptions, type Connector } from "./shared";
+import { getJson, getOnce, inWindow, statusFor, tidy, type Collected, type CollectOptions, type Connector } from "./shared";
 
 const AUTH = "https://www.reddit.com/api/v1/access_token";
 const API = "https://oauth.reddit.com";
@@ -71,18 +71,18 @@ async function collect(opts: CollectOptions): Promise<Collected> {
   const agent = env("REDDIT_USER_AGENT") ?? "web:what-are-people-saying:v1";
   const maxPosts = envInt("REDDIT_MAX_POSTS", 10, 1, 25);
   const perPost = envInt("REDDIT_COMMENTS_PER_POST", 12, 1, 50);
-  const bearer = await token(opts.signal, agent);
+  const bearer = await getOnce("reddit:token", opts, () => token(opts.signal, agent));
   const headers = { Authorization: `bearer ${bearer}`, "User-Agent": agent };
 
   const search = new URL(`${API}/search`);
   search.searchParams.set("q", opts.subject);
   search.searchParams.set("sort", "relevance");
-  search.searchParams.set("t", "month");
+  search.searchParams.set("t", opts.from && opts.to && opts.to.getTime() - opts.from.getTime() <= 366 * 86_400_000 ? "year" : "all");
   search.searchParams.set("limit", String(maxPosts));
   search.searchParams.set("type", "link");
   search.searchParams.set("raw_json", "1");
 
-  const found = await getJson<Listing<Post>>(search.toString(), { signal: opts.signal, headers });
+  const found = await getOnce(search.toString(), opts, () => getJson<Listing<Post>>(search.toString(), { signal: opts.signal, headers }));
   const posts = (found.data?.children ?? [])
     .map((c) => c.data)
     .filter((p): p is Post => Boolean(p && p.id && p.title))
@@ -106,7 +106,7 @@ async function collect(opts: CollectOptions): Promise<Collected> {
     url.searchParams.set("depth", "1");
     url.searchParams.set("raw_json", "1");
     try {
-      const res = await getJson<Array<Listing<Comment>>>(url.toString(), { signal: opts.signal, headers });
+      const res = await getOnce(url.toString(), opts, () => getJson<Array<Listing<Comment>>>(url.toString(), { signal: opts.signal, headers }));
       const listing = res[1];
       return (listing?.data?.children ?? [])
         .filter((c) => c.kind === "t1" && c.data?.body && c.data.id)

@@ -27,7 +27,7 @@ The default view prioritises the short answer. Keep supporting classification, c
 - Submitting the search expands the same glass container smoothly downward. The search field stays in place at the top of that container.
 - Show the one-to-three-sentence answer inside the expanded container.
 - Search accepts only a subject. No platform, time-period, audience or demographic refinement controls are offered.
-- Collect from all connected sources using the default recent window, while reporting unavailable sources.
+- Collect from all connected sources using 3 months initially, then 12 months and 3 years when fewer than 50 opinions are collected. Retain and deduplicate earlier findings, report the actual window, and respect source-specific coverage limits.
 - Mobile and desktop are equally important.
 
 ## Sources and data
@@ -37,7 +37,7 @@ The default view prioritises the short answer. Keep supporting classification, c
 - Support partial success: an unavailable source must not prevent analysis of sufficient evidence from other sources.
 - Source access and credentials are separate integration milestones; a source displayed in a mockup is not a claim of working access.
 - Use bounded collection limits. Exact limits will be set during integration.
-- YouTube reads up to 30 top-ranked comments from each of the 10 most-viewed matching videos in the default recent window. Video metadata is context, not an opinion count. All collected opinions must reach analysis.
+- YouTube reads up to 30 top-ranked comments from each of the 10 most-viewed matching videos, allowing older videos with in-window comments. Video metadata is context, not an opinion count. All collected opinions must reach analysis.
 - Do not permanently store social-media content.
 - Clearly label all fictional examples and simulated results used in design and development.
 - Supporting links in live results must come from collected source material.

@@ -129,4 +129,4 @@ export type ConsensusResponse =
      samples. */
   | { kind: "no-live-search"; subject: string; message: string; examples: string[] }
   /* Live sources ran but too little came back to describe honestly. */
-  | { kind: "insufficient"; subject: string; message: string; sources: SourceStatus[] };
+  | { kind: "insufficient"; subject: string; message: string; sources: SourceStatus[]; window?: ConsensusResult["window"] };

@@ -2,13 +2,13 @@
 
 A personal, non-commercial app that reads a bounded selection of online discussion about a subject and returns a short opinion summary, estimated sentiment percentages and supporting evidence.
 
-## Current checkpoint: BETA 0.9.3
+## Current checkpoint: BETA 0.9.4
 
 Deployed to production on 12 September 2026: Vercel confirmed commit `a39030b` succeeded. The live homepage serves BETA 0.9.3, and the daily-suggestions endpoint returned six news topics interleaved with six niche examples. The revised paid consensus/YouTube path and its latency remain unverified against live services.
 
 The interface, server-side OpenAI analysis and YouTube/X/Reddit connectors are implemented. The user has observed a live result on the deployed site. This workspace has no live API keys, so the revised collection and AI paths are checked with simulated service responses; live response quality and latency still need verification after deployment.
 
-Searches now lead with the opinion itself, display **N opinions read from the last 1 month**, and show labelled positive/neutral/negative percentages above the bar. Live results do not say “Live sample” or “Nothing is kept”. Fictional results retain their explicit label. Source coverage explains missing platforms or comments, and live evidence links open the actual collected comments.
+Searches now lead with the opinion itself, display **N opinions read from the last 3 months / 12 months / 3 years**, and show labelled positive/neutral/negative percentages above the bar. Live results do not say “Live sample” or “Nothing is kept”. Fictional results retain their explicit label. Source coverage explains missing platforms or comments, and live evidence links open the actual collected comments.
 
 The search field rotates a mix of current news subjects and niche interests, such as “the weather in Tuscany in August”, “silent mechanical keyboards” and “growing tomatoes on a balcony”. Suggestions demonstrate possible searches; they do not guarantee sufficient evidence.
 
@@ -47,20 +47,22 @@ Without an AI key plus at least one source key, only six built-in fictional subj
 
 ## Collection and analysis
 
-`POST /api/consensus` accepts `{ "subject": "..." }`. It uses the preceding 30 days, with explicit start and end timestamps. X can search only the last seven days and reports that restriction. There are no user-facing source, date or demographic filters.
+`POST /api/consensus` accepts `{ "subject": "..." }`. It starts with the preceding 3 calendar months, expands to 12 months and then 36 months if fewer than 50 opinions have been collected, and reports the final window. Fifty is a collection threshold, not a claim of confidence or relevance; the model still checks the evidence. Earlier findings are kept and deduplicated. X can search only the last seven days and reports that restriction. There are no user-facing source, date or demographic filters.
 
-- Each source has its own connector and returns a shared format with an explicit availability status. Sources run in parallel with a nine-second limit each.
-- YouTube asks for the **10 highest-viewed matching videos published in the window**, then requests **30 relevance-ranked top-level comments from each** in parallel. “Top” means the API's relevance ranking, not a guaranteed global ordering by likes. Fewer videos, disabled comments, timeouts or fewer in-window comments produce an explicit shortfall, not invented replacements.
+- Each source has its own connector and returns a shared format with an explicit availability status. Sources run in parallel with a nine-second limit each per pass. Access failures and X recent search are not retried during expansion.
+- YouTube asks for the **10 highest-viewed matching videos regardless of upload date**, then requests relevance-ranked top-level comments in parallel. When fewer than 30 comments qualify in the window, it also checks the 30 latest comments. At most **30 unique opinions per video** are selected, retaining previously selected recent opinions when widening the window. “Top” means the API's relevance ranking, not a guaranteed global ordering by likes. Fewer videos, disabled comments, timeouts or fewer in-window comments produce an explicit shortfall, not invented replacements.
 - Video titles/descriptions provide context. Only comments count as YouTube opinions. Parent references connect each comment to its video. YouTube comment text is preserved in full; X and Reddit retain their existing 600-character per-entry limit.
-- **All collected entries reach OpenAI.** The former 220-entry cutoff and preference for shorter entries have been removed. At the default limits this is up to 300 YouTube comments, 50 X posts and 130 Reddit posts/comments, plus 10 YouTube context entries.
+- **All collected entries reach OpenAI.** The former 220-entry cutoff and preference for shorter entries have been removed. At the default limits this is up to 300 YouTube comments, 50 X posts and 130 Reddit posts/comments per pass (deduplicated across up to three passes), plus 10 YouTube context entries.
 - OpenAI is instructed to lead with the substantive opinion, ignore spam and irrelevant material, distinguish claims from verified facts, and treat collected text as untrusted data. It must acknowledge thin evidence rather than invent themes.
 - Percentages are AI estimates across relevant opinions, not audited per-comment classifications or population polling. Likes are not extra votes. Rounded display values add to 100.
 - Representative links are resolved from numeric references into the collected evidence, constrained to the correct platform. The model cannot invent a source URL.
 - Social-media content lives only for a request and is never permanently stored. Search responses and connector requests use `no-store`; OpenAI requests use `store: false`.
 
-YouTube normally needs 11 requests: one search (100 quota units) and ten comment lists (one unit each), about 110 units total. AI cost depends on the collected text and generated output; the larger sample can cost more than the previous version.
+YouTube needs one video search and up to two comment-list requests per video: 11–21 requests, about 110–120 quota units. Successful and failed responses are memoized only within the request, so widening the date window does not repeat these reads. Reddit searches use the nearest supported year/all filter, then apply exact dates locally. AI cost depends on the collected text and generated output; the larger sample can cost more than the previous version.
 
 ## Response speed
+
+Sparse searches can take longer than dense ones because they try broader windows. YouTube search/comment responses and Reddit tokens/comment responses are reused in request memory, avoiding redundant reads. No social content is cached across searches. X remains at its existing default of 50 posts for this release; increasing its paid scope and adding conversation replies is a separate decision.
 
 The existing parallel collection is retained. YouTube responses request only fields used by analysis, omitting thumbnails and unrelated metadata. When only one platform has opinions, OpenAI generates its reading once and the server uses it for both the overall answer and platform evidence. Short numeric evidence references replace long source IDs. The artificial 1.1-second minimum loading wait has been removed.
 
@@ -80,7 +82,7 @@ Suggestions load independently of searches. Only the public news suggestions and
 - `npm run typecheck` and `npm run build`: required before a checkpoint is committed.
 - Browser checks cover desktop/mobile search, labelled samples, the revised live-result layout using an explicitly fictional fixture, evidence links, source coverage, asynchronous suggestions, Enter-to-search, overflow and runtime errors.
 - The public BBC feed format was checked directly, and production returned six AI-selected news topics after deployment. The revised live YouTube/OpenAI consensus search has not been exercised with real credentials in this workspace. Mocked checks do not verify real consensus phrasing, provider permissions or speed.
-- Popular videos and top-ranked comments are a popularity-biased selection. A short date window can miss relevant discussion of niche or older subjects. Fewer than 300 opinions is expected where coverage is limited. Suggestions can be broader than the available evidence.
+- Popular videos and top-ranked comments are a popularity-biased selection. Even the widest window can miss discussion, and a bounded selection is not exhaustive. Fewer than 300 opinions is expected where coverage is limited. Suggestions can be broader than the available evidence.
 - The news rotation uses one publisher across several categories, not a comprehensive trend ranking.
 - The glass effect needs `backdrop-filter`; smaller windows scroll within the card.
 
@@ -89,7 +91,7 @@ Suggestions load independently of searches. Only the public news suggestions and
 ```text
 src/app/api/consensus/route.ts     search and collection window
 src/app/api/subjects/route.ts      cached daily news suggestions
-src/lib/connectors/               separate YouTube, X and Reddit integrations
+src/lib/connectors/               separate source integrations and adaptive date windows
 src/lib/analysis/analyse.ts        grounded OpenAI analysis and evidence mapping
 src/lib/newsSubjects.ts           dated RSS headlines and grounded topic selection
 src/lib/suggestions.ts            evergreen examples and interleaving
