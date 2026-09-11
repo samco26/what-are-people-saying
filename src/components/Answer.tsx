@@ -31,7 +31,7 @@ export function Answer({
         <ul className="list-none m-0 mt-4 p-0 flex flex-wrap gap-2">
           {response.examples.map((s) => (
             <li key={s}>
-              <button type="button" className="example" onClick={() => onPick(s)}>
+              <button type="button" className="example ctl" onClick={() => onPick(s)}>
                 {s}
               </button>
             </li>
@@ -67,7 +67,10 @@ function Result({
       <p className="m-0 text-[17px] sm:text-[19px] leading-[1.55] text-ink">{result.summary}</p>
 
       <div className="mt-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-        <SentimentBar split={result.sentiment} />
+        <div className="flex flex-col items-start gap-2">
+          <span className="label">Overall opinion</span>
+          <SentimentBar split={result.sentiment} />
+        </div>
 
         <div className="flex flex-col items-start sm:items-end gap-2">
           <span className="label">Sentiment extracted from</span>
@@ -79,7 +82,7 @@ function Result({
                 <button
                   key={s.id}
                   type="button"
-                  className="srcbtn"
+                  className="srcbtn ctl"
                   aria-label={off ? `${s.name}, unavailable for this sample` : `What ${s.name} users said`}
                   aria-expanded={pick === s.id}
                   aria-controls={panelId}

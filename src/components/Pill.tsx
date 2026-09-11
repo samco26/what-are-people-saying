@@ -67,7 +67,7 @@ export function Pill<T extends string>({
   });
 
   return (
-    <div ref={track} role="radiogroup" aria-label={label} className="pill">
+    <div ref={track} role="radiogroup" aria-label={label} className="pill ctl">
       <span ref={thumb} aria-hidden="true" className="pill-thumb" />
       {stops.map((s) => {
         const on = s.id === value;

@@ -100,3 +100,11 @@ Three rules the user set, which override anything above that conflicts:
 3. **Liquid glass is the core aesthetic.** The panes are slightly see-through (76%), with more blur and saturation so the ground's gradient and its two drifting lights show through them, and a brighter rim. The ground gradient runs from poster paper to the slate blue of the wall.
 
 Also in this pass: every expansion is slower, with the answer and Get Specific at 900ms out and 600ms back; Get Specific is a second card of the search card's width, with a bar built like the search field, opening the same way and spreading into two columns; the heading sits 12px above the card, the same as the gap between the cards; the answer has 48px above it; the platform buttons are 36px logo-only circles under their label; and a sentiment bar sits bottom left under the answer, in the user's own green, dark grey and red, with no figures printed.
+
+## Sixth pass, 11 September 2026: frosted glass on the sunset
+
+- **The ground is the user's image.** `public/bg.avif`, a 10 KB gradient from slate blue at the top through cream to warm orange at the foot. The drifting lights are off; the image is not painted over.
+- **Frosted glass everywhere.** The user supplied three liquid-glass references (a menu over a black-sand beach, iOS-style controls over autumn trees, a pale glass pill). Every card and every control is now the same recipe: a pale white tint at 24% (30% on controls) over a heavy blur with saturation, a sheen off the top left, a rim brightest along the top edge, and a soft drop. The charcoal smoked glass of the fourth and fifth passes is gone, and so type on glass is dark now: `#1A1B1E`, with hairlines in the same dark at 12%. The orange stays a solid fill for the badge and the search button, with a white edge so it sits in the same material.
+- **Verdict chips** are tints of the ice blue, the khaki and the orange under dark type, so they read on pale glass.
+- **Get Specific** is back to the small pill at the search card's left edge, as the user asked, and grows in place into the full-width panel: width, corners and padding animate on the slow pair, and on a wide screen it grows outward to 1180px in two columns.
+- **Overall opinion** is the title above the sentiment bar, matching "Sentiment extracted from" above the logos.

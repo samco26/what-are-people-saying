@@ -140,9 +140,9 @@ export function SearchCard() {
         </h1>
       </div>
 
-      <section className="pane card p-3 sm:p-4" data-wide={wide ? "1" : undefined} aria-label="Search">
+      <section className="glass pane card p-3 sm:p-4" data-wide={wide ? "1" : undefined} aria-label="Search">
         <div className="card-top">
-          <form onSubmit={onSubmit} role="search" className="field">
+          <form onSubmit={onSubmit} role="search" className="field ctl">
             <input
               type="text"
               value={query}
@@ -208,30 +208,26 @@ export function SearchCard() {
         </div>
       </section>
 
-      <section className="pane card p-3 sm:p-4 mt-3" data-wide={specific ? "1" : undefined} aria-label="Get Specific">
-        <div className="card-top">
-          <button
-            type="button"
-            className="bar"
-            aria-expanded={specific}
-            aria-controls={specificId}
-            onClick={() => setSpecific((v) => !v)}
-          >
-            <span>Get Specific</span>
-            <span className="bar-knob" aria-hidden="true">
-              <svg className="chev" viewBox="0 0 10 10" fill="none">
-                <path d="M1.5 3.5L5 7l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-          </button>
-        </div>
+      <section className="glass morph mt-3" data-open={specific ? "1" : undefined} aria-label="Get Specific">
+        <button
+          type="button"
+          className="morph-head"
+          aria-expanded={specific}
+          aria-controls={specificId}
+          onClick={() => setSpecific((v) => !v)}
+        >
+          Get Specific
+          <svg className="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M1.5 3.5L5 7l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
         <div
           className={"unfold unfold-slow" + (specificSettled ? " unfold-settled" : "")}
           data-open={specific ? "1" : undefined}
           id={specificId}
         >
           <div>
-            <div className="px-[22px] pt-8 pb-4">
+            <div className="px-[14px] pt-5 pb-2">
               <GetSpecific result={result} value={refine} onChange={setRefine} />
             </div>
           </div>

@@ -13,6 +13,16 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.6",
+    date: "11 September 2026",
+    items: [
+      ["changed", "The background is the sunset gradient image, slate blue down to orange."],
+      ["changed", "Every card and every button is frosted glass now: see-through, blurred, with a bright edge. Text on the glass is dark."],
+      ["changed", "Get Specific is back to the small pill under the search card, and grows into the full panel from there."],
+      ["new", "An Overall opinion title above the sentiment bar."],
+    ],
+  },
+  {
     v: "0.5",
     date: "11 September 2026",
     items: [

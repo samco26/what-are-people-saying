@@ -24,7 +24,7 @@ export function Changelog({ onClose }: { onClose: () => void }) {
         if (box.current && !box.current.contains(e.target as Node)) onClose();
       }}
     >
-      <div ref={box} role="dialog" aria-modal="true" aria-label="What changed" className="pane pane-small dialog">
+      <div ref={box} role="dialog" aria-modal="true" aria-label="What changed" className="glass pane pane-small dialog">
         <div className="flex items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
             <span className="beta" aria-hidden="true">BETA {CHANGELOG[0].v}</span>

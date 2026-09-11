@@ -30,6 +30,7 @@ while ($l.IsListening) {
     if ($ext -eq '.js') { $ct = 'text/javascript; charset=utf-8' }
     if ($ext -eq '.png') { $ct = 'image/png' }
     if ($ext -eq '.svg') { $ct = 'image/svg+xml' }
+    if ($ext -eq '.avif') { $ct = 'image/avif' }
     $res.ContentType = $ct
     $res.StatusCode = 200
   } else {

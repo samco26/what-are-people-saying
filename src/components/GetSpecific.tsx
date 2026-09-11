@@ -68,7 +68,7 @@ export function GetSpecific({
               <button
                 key={s.id}
                 type="button"
-                className="chip"
+                className="chip ctl"
                 aria-pressed={on}
                 disabled={off}
                 title={off ? `${s.name} is unavailable for this sample` : undefined}
@@ -130,7 +130,7 @@ export function GetSpecific({
               <button
                 key={a.id}
                 type="button"
-                className="chip"
+                className="chip ctl"
                 aria-pressed={value.ages.includes(a.id)}
                 onClick={() => onChange((v) => ({ ...v, ages: toggleIn(v.ages, a.id) }))}
               >
@@ -143,7 +143,7 @@ export function GetSpecific({
               <button
                 key={g.id}
                 type="button"
-                className="chip"
+                className="chip ctl"
                 aria-pressed={value.genders.includes(g.id)}
                 onClick={() => onChange((v) => ({ ...v, genders: toggleIn(v.genders, g.id) }))}
               >
@@ -156,7 +156,7 @@ export function GetSpecific({
               <button
                 key={r.id}
                 type="button"
-                className="chip"
+                className="chip ctl"
                 aria-pressed={value.regions.includes(r.id)}
                 aria-label={r.label}
                 title={r.label}

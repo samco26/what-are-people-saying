@@ -4,73 +4,69 @@
 
 /* The General Consensus: global stylesheet.
 
-   The palette is read off the user's reference on 11 September 2026: a wall
-   of X-ray posters. Poster paper and cool grey for the page, the slate blue
-   of the wall for type on it, the black of the Issey Miyake poster for the
-   glass surfaces, the CREARE bag's ice blue and the collar's khaki for the
-   two quiet marks, and the one warm note in the whole picture, the orange of
-   "mechanism of cool", as the single accent. The values are estimated by
-   eye, not measured. Every colour is a variable so it changes in one place.
+   Liquid glass is the core aesthetic. Every card and every button is a
+   sheet of frosted glass: the ground behind it blurred and saturated, a
+   pale tint laid over, a bright rim where the top edge catches the light,
+   and a soft drop beneath. The ground is the user's own gradient image,
+   public/bg.avif, a sunset from slate blue to warm orange, so the glass
+   takes on whatever is behind it and type on it is dark.
 
-   Every surface is a pane of smoked charcoal glass: blur the ground, put its
-   colour back, tint the pane, then light the rim. Type on the page is slate;
-   type on a pane is paper.
+   The accent is the orange read off the X-ray poster reference (see
+   DESIGN.md), kept for the badge, the search button, selection and focus.
+   Positive, mixed and negative are the ice blue, the khaki and the orange
+   of that same reference, as tints under dark type.
 
-   Motion shares one set of tokens. Entering eases out and takes a little
-   longer; leaving eases in and is quicker, so the interface feels responsive
-   rather than sluggish. Nothing loops except the example subjects and the
-   ground lights, and both stop under reduced motion. */
+   Motion shares one set of tokens. The two big openings, the answer and
+   Get Specific, are slow on purpose; other expansions are standard; hover,
+   press and colour are quick. Everything stops under reduced motion.
+
+   The page never scrolls. The app is one screen tall; cards grow outward,
+   and a card that still cannot fit the window scrolls inside itself. */
 
 :root {
-  --paper: #eceae4;
-  --wall: #d6d7d3;
-  --slate: #4e5b70;
   --charcoal: #141518;
+  --slate: #4e5b70;
   --ice: #b9c4da;
   --khaki: #b5a688;
   --orange: #e4572e;
 
-  /* The page. */
-  --bg: #e6e5e0;
+  /* The page: the image's middle tone until it loads, dark type on it. */
+  --bg: #d9d3c8;
   --pageInk: #1a1b1e;
-  --pageMuted: var(--slate);
-  --pageFaint: #76808f;
-  --pageLine: rgba(78, 91, 112, 0.18);
-  --pageSoft: rgba(78, 91, 112, 0.12);
+  --pageMuted: #2b3340;
+  --pageFaint: #3f4652;
+  --pageSoft: rgba(255, 255, 255, 0.28);
 
-  /* On a pane. */
-  --ink: var(--paper);
-  --muted: rgba(236, 234, 228, 0.74);
-  --faint: rgba(236, 234, 228, 0.55);
-  --line: rgba(236, 234, 228, 0.14);
-  --soft: rgba(236, 234, 228, 0.08);
-  --softer: rgba(236, 234, 228, 0.045);
+  /* On glass: dark type, hairlines in the same dark. */
+  --ink: #1a1b1e;
+  --muted: rgba(26, 27, 30, 0.72);
+  --faint: rgba(26, 27, 30, 0.55);
+  --line: rgba(26, 27, 30, 0.12);
+  --soft: rgba(255, 255, 255, 0.3);
+  --softer: rgba(255, 255, 255, 0.18);
 
-  /* The pane: smoked charcoal, slightly see-through. 76% is as thin as it
-     can go over the palest part of the ground with paper type still clearing
-     4.5:1; the blur and the saturation are what make the ground read as a
-     picture behind the glass rather than a stain on it. */
-  --pane: rgba(20, 21, 24, 0.76);
-  --paneBlur: blur(26px) saturate(1.5) brightness(1.02);
-  --e3: 0 25px 50px rgba(20, 21, 24, 0.28);
+  /* The glass. A card is a pale tint over a heavy blur; a control is the
+     same at a lighter blur. The rim is white where the top edge catches
+     the light and fades down the sides. */
+  --glassTint: rgba(255, 255, 255, 0.24);
+  --glassBlur: blur(24px) saturate(1.6);
+  --controlTint: rgba(255, 255, 255, 0.3);
+  --controlBlur: blur(14px) saturate(1.5);
+  --rim: rgba(255, 255, 255, 0.55);
+  --rimTop: rgba(255, 255, 255, 0.85);
+  --drop: 0 20px 50px rgba(20, 21, 24, 0.2);
 
-  /* The accent. Orange on charcoal is under the floor for small type, so
-     where it has to be read it is lifted; as a fill it takes charcoal type. */
   --accent: var(--orange);
-  --accentInk: var(--charcoal);
-  --accentLift: #f08a66;
-  --accentBg: rgba(228, 87, 46, 0.22);
-  --accentLine: rgba(240, 138, 102, 0.55);
+  --accentInk: #ffffff;
+  --accentBg: rgba(228, 87, 46, 0.26);
+  --accentLine: rgba(228, 87, 46, 0.6);
 
-  /* Verdict colours, used on the platform pages. X-ray logic: cool means
-     fine, warm means flagged. Positive is the ice blue, mixed the khaki,
-     negative the lifted orange. */
-  --up: var(--ice);
-  --upBg: rgba(185, 196, 218, 0.16);
-  --mixed: #cdbf9d;
-  --mixedBg: rgba(181, 166, 136, 0.2);
-  --neg: var(--accentLift);
-  --negBg: rgba(228, 87, 46, 0.18);
+  --up: #1f5d4c;
+  --upBg: rgba(185, 196, 218, 0.55);
+  --mixed: #5c4d2c;
+  --mixedBg: rgba(181, 166, 136, 0.5);
+  --neg: #8a2f16;
+  --negBg: rgba(228, 87, 46, 0.3);
 
   --radius: 30px;
 
@@ -79,10 +75,7 @@
   --cardRest: 720px;
   --cardWide: 1180px;
 
-  /* Motion tokens. Expansions are slow on purpose: the two big ones, the
-     answer opening and Get Specific opening, take the slow pair; every
-     other expansion takes the standard pair; hover, press and colour take
-     the micro one. */
+  /* Motion tokens. */
   --easeOut: cubic-bezier(0.2, 0.7, 0.3, 1);
   --easeIn: cubic-bezier(0.4, 0, 0.7, 0.2);
   --durSlow: 900ms;
@@ -91,15 +84,12 @@
   --durOut: 360ms;
   --durMicro: 180ms;
 
-  /* The sentiment bar: the user's own three colours, green, dark grey and
-     red, kept for the bar alone. */
+  /* The sentiment bar: the user's own three colours, kept for the bar. */
   --sentPos: #5ba56f;
   --sentNeu: #4a4b50;
   --sentNeg: #d9503f;
 }
 
-/* The page never scrolls. The app is one screen tall; cards grow outward,
-   and a card that still cannot fit scrolls inside itself. */
 html {
   background: var(--bg);
   color-scheme: light;
@@ -107,11 +97,15 @@ html {
   overflow: hidden;
 }
 
+/* The body paints nothing: the ground is a fixed layer at z-index -1, and
+   an opaque body background would be drawn over it, because block
+   backgrounds paint after negative layers. The fallback colour lives on
+   html, which paints first. */
 body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: var(--bg);
+  background: transparent;
   color: var(--pageInk);
   font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -128,14 +122,10 @@ button {
   outline: 2.5px solid var(--orange);
   outline-offset: 2px;
 }
-.pane :focus-visible {
-  outline-color: var(--accentLift);
-}
 
 ::-webkit-scrollbar { width: 9px; height: 9px; }
-::-webkit-scrollbar-thumb { background: rgba(78, 91, 112, 0.28); border-radius: 9px; }
+::-webkit-scrollbar-thumb { background: rgba(26, 27, 30, 0.25); border-radius: 9px; }
 ::-webkit-scrollbar-track { background: transparent; }
-.pane ::-webkit-scrollbar-thumb { background: rgba(236, 234, 228, 0.2); }
 
 /* Type on the page, outside any pane. */
 .page-ink { color: var(--pageInk); }
@@ -143,91 +133,72 @@ button {
 .page-faint { color: var(--pageFaint); }
 
 /* ---------- the ground ----------
-   Poster paper into cool grey, as a gradient, with a slate light top right
-   and a khaki light bottom left drifting very slowly: the wall and the wood
-   in the reference. They are what the panes blur. */
+   The user's gradient image. It is what the glass blurs. */
 .ground {
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  overflow: hidden;
-  background: linear-gradient(160deg, #f3f2ed 0%, #e6e5e0 34%, #d3d5d4 62%, #b9bfc8 100%);
+  background: var(--bg) url("/bg.avif") center / cover no-repeat;
 }
-.ground::before,
-.ground::after {
-  content: "";
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  will-change: transform;
-}
-.ground::before {
-  width: 72vmax;
-  height: 72vmax;
-  right: -22vmax;
-  top: -30vmax;
-  background: radial-gradient(closest-side, rgba(78, 91, 112, 0.46), rgba(78, 91, 112, 0));
-  animation: drift1 46s ease-in-out infinite alternate;
-}
-.ground::after {
-  width: 80vmax;
-  height: 80vmax;
-  left: -34vmax;
-  bottom: -42vmax;
-  background: radial-gradient(closest-side, rgba(181, 166, 136, 0.5), rgba(181, 166, 136, 0));
-  animation: drift2 58s ease-in-out infinite alternate;
-}
-@keyframes drift1 { from { transform: translate(0, 0); } to { transform: translate(-8vmax, 6vmax); } }
-@keyframes drift2 { from { transform: translate(0, 0); } to { transform: translate(10vmax, -7vmax); } }
 
-/* ---------- the pane ----------
-   isolation:isolate so the sheen can be drawn behind the pane's own content.
-   ::before is the tint, light at the top left fading to nothing and a little
-   shadow gathering at the bottom. ::after is the rim: only the outermost pixel
-   is painted, so no type ever sits under it. */
-.pane {
+/* ---------- glass ----------
+   One recipe for every surface. isolation:isolate so the sheen can be
+   drawn behind the surface's own content; ::before is the sheen, a soft
+   light off the top left; ::after is the rim, painted on the outermost
+   pixel only, brightest along the top. */
+.glass {
   position: relative;
   isolation: isolate;
-  border-radius: var(--radius);
-  background: var(--pane);
-  -webkit-backdrop-filter: var(--paneBlur);
-  backdrop-filter: var(--paneBlur);
-  box-shadow: var(--e3);
+  background: var(--glassTint);
+  -webkit-backdrop-filter: var(--glassBlur);
+  backdrop-filter: var(--glassBlur);
+  box-shadow: var(--drop);
   color: var(--ink);
 }
-.pane::before {
+.glass::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
   z-index: -1;
-  background:
-    linear-gradient(146deg, rgba(236, 234, 228, 0.14) 0%, rgba(236, 234, 228, 0.04) 30%, rgba(236, 234, 228, 0) 58%),
-    linear-gradient(0deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0) 44%);
+  background: linear-gradient(146deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.1) 38%, rgba(255, 255, 255, 0) 64%);
 }
-.pane::after {
+.glass::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
   box-shadow:
-    inset 0 1px 0 rgba(236, 234, 228, 0.42),
-    inset 0 0 0 1px rgba(236, 234, 228, 0.11),
-    inset 0 -1px 0 rgba(236, 234, 228, 0.16);
+    inset 0 1px 0 var(--rimTop),
+    inset 0 0 0 1px var(--rim),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.35);
+}
+.pane {
+  border-radius: var(--radius);
 }
 .pane-small { border-radius: 24px; }
 @supports not ((-webkit-backdrop-filter: blur(2px)) or (backdrop-filter: blur(2px))) {
-  .pane { background: #1a1b1f; }
+  .glass { background: rgba(255, 255, 255, 0.82); }
 }
 
-/* A smaller surface inside a pane: a platform's evidence page. */
+/* A control is glass too, at a lighter blur. */
+.ctl {
+  background: var(--controlTint);
+  -webkit-backdrop-filter: var(--controlBlur);
+  backdrop-filter: var(--controlBlur);
+  border: 1px solid var(--rim);
+  box-shadow: inset 0 1px 0 var(--rimTop), 0 4px 14px rgba(20, 21, 24, 0.1);
+  color: var(--ink);
+}
+
+/* A smaller surface inside a card: a platform's evidence page. */
 .inset {
   border-radius: 22px;
   background: var(--softer);
-  box-shadow: inset 0 0 0 1px var(--line), inset 0 1px 0 rgba(236, 234, 228, 0.07);
+  box-shadow: inset 0 0 0 1px var(--rim), inset 0 1px 0 var(--rimTop);
 }
 
 /* ---------- the card ----------
@@ -252,7 +223,8 @@ button {
   margin: 0 auto;
   flex: 0 0 auto;
 }
-.card > .unfold { flex: 0 1 auto; min-height: 0; }
+.card > .unfold,
+.morph > .unfold { flex: 0 1 auto; min-height: 0; }
 /* Once open and settled, a card's body may scroll inside the card if the
    window is too short for it. Never during the opening, so no scrollbar
    flashes while the row is still growing. */
@@ -266,66 +238,71 @@ button {
 @media (min-width: 1024px) {
   .card[data-wide="1"] { max-width: var(--cardWide); }
   .card[data-wide="1"] .answer { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  /* On a wide screen the side column appears with the card; the height
-     animation is only for the stacked layout. */
   .card[data-wide="1"] .answer .unfold,
   .card[data-wide="1"] .answer .unfold[data-open="1"] { transition: none; }
 }
 
-/* ---------- the bar ----------
-   Get Specific is a second card under the search card, the same width,
-   with a bar at the top built like the search field: text where the
-   subject goes and a round control where the search button is. Clicking
-   the bar unfolds the panel beneath it, the same slow way the answer opens
-   under the search box. */
-.bar {
-  width: 100%;
+/* ---------- the morph ----------
+   Get Specific is a small glass pill under the search card, at the card's
+   left edge, that grows into its own panel in place: width, corners and
+   padding all animate on the slow pair and the body unfolds inside. Open,
+   it is the width of the search card, and on a wide screen it grows
+   outward like the search card does, into two columns. */
+.morph {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 6px 6px 6px 22px;
+  flex-direction: column;
+  min-height: 0;
+  flex: 0 1 auto;
+  width: 100%;
+  max-width: 132px;
+  margin-left: max(0px, calc(50% - (var(--cardRest) / 2)));
+  padding: 0;
+  overflow: hidden;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(236, 234, 228, 0.06);
-  box-shadow: inset 0 1px 0 rgba(236, 234, 228, 0.08);
-  color: var(--ink);
-  font-size: 17px;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color var(--durMicro) ease, background var(--durMicro) ease;
+  transition:
+    max-width var(--durSlow) var(--easeOut),
+    margin-left var(--durSlow) var(--easeOut),
+    border-radius var(--durSlow) var(--easeOut),
+    padding var(--durSlow) var(--easeOut);
 }
-.bar:hover,
-.bar[aria-expanded="true"] {
-  border-color: var(--accentLine);
-  background: rgba(236, 234, 228, 0.08);
+.morph[data-open="1"] {
+  max-width: var(--cardRest);
+  border-radius: 24px;
+  padding: 8px 8px 12px;
 }
-.bar-knob {
-  flex: 0 0 auto;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  border: 1px solid var(--line);
+@media (min-width: 1024px) {
+  .morph[data-open="1"] {
+    max-width: var(--cardWide);
+    margin-left: max(0px, calc(50% - (var(--cardWide) / 2)));
+  }
+}
+.morph-head {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  background: var(--soft);
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
   color: var(--ink);
-  transition: background var(--durMicro) ease, border-color var(--durMicro) ease;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  transition: background var(--durMicro) ease;
 }
-.bar[aria-expanded="true"] .bar-knob {
-  background: var(--accent);
-  border-color: transparent;
-  color: var(--accentInk);
-}
-.bar-knob .chev { width: 14px; height: 14px; }
+.morph-head:hover { background: var(--soft); }
 
 /* ---------- the unfold ----------
    A container grows by animating a grid row from 0fr to 1fr, the one way
    CSS can animate to an unknown height. Opening eases out over the longer
-   duration and the content fades up a beat behind; closing eases in, quicker,
-   with the content leaving first. The inner wrapper has 4px of side padding
-   so focus rings are not clipped by its overflow. */
+   duration and the content fades up a beat behind; closing eases in,
+   quicker, with the content leaving first. The content element carries its
+   own padding through its classes; nothing is set here, so those classes
+   are never overridden. */
 .unfold {
   display: grid;
   grid-template-rows: 0fr;
@@ -336,8 +313,6 @@ button {
   transition: grid-template-rows var(--durIn) var(--easeOut);
 }
 .unfold > div { min-height: 0; overflow: hidden; }
-/* The content element carries its own padding through its classes; nothing
-   is set here so those classes are never overridden. */
 .unfold > div > * {
   opacity: 0;
   transform: translateY(6px);
@@ -375,9 +350,9 @@ button {
 }
 
 /* ---------- the rotating subject ----------
-   One subject at a time inside the search box, arriving from below, standing,
-   and leaving upward. Keyed on the subject so the animation restarts each
-   time. Paused, it simply stands. */
+   One subject at a time inside the search box, arriving from below,
+   standing, and leaving upward. Keyed on the subject so the animation
+   restarts each time. Paused, it simply stands. */
 .ghost {
   position: absolute;
   left: 22px;
@@ -429,14 +404,11 @@ button {
   gap: 10px;
   padding: 6px 6px 6px 22px;
   border-radius: 999px;
-  background: rgba(236, 234, 228, 0.06);
-  border: 1px solid var(--line);
-  box-shadow: inset 0 1px 0 rgba(236, 234, 228, 0.08);
   transition: border-color var(--durMicro) ease, background var(--durMicro) ease;
 }
 .field:focus-within {
   border-color: var(--accentLine);
-  background: rgba(236, 234, 228, 0.08);
+  background: rgba(255, 255, 255, 0.4);
 }
 .field input {
   flex: 1 1 auto;
@@ -450,26 +422,28 @@ button {
   color: var(--ink);
   padding: 12px 0;
 }
+.field input::placeholder { color: var(--faint); }
 .go {
   flex: 0 0 auto;
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--accent);
   color: var(--accentInk);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 6px 16px rgba(228, 87, 46, 0.35);
   cursor: pointer;
   transition: background var(--durMicro) var(--easeOut), transform var(--durMicro) var(--easeOut), opacity var(--durMicro) var(--easeOut);
 }
 .go:hover { background: #ea6a44; }
 .go:active { transform: scale(0.94); }
 .go:disabled {
-  background: transparent;
+  background: var(--controlTint);
   color: var(--faint);
-  border-color: var(--line);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
@@ -481,15 +455,12 @@ button {
   min-height: 44px;
   padding: 0 18px;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--soft);
-  color: var(--ink);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: background var(--durMicro) ease, border-color var(--durMicro) ease, color var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
 }
-.btn:hover { background: rgba(236, 234, 228, 0.12); }
+.btn:hover { background: rgba(255, 255, 255, 0.42); }
 .btn:active { transform: scale(0.97); }
 .btn[aria-expanded="true"],
 .btn[aria-pressed="true"] {
@@ -504,6 +475,9 @@ button {
 .btn-quiet {
   background: transparent;
   border-color: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   color: var(--muted);
   font-weight: 500;
 }
@@ -524,8 +498,7 @@ button {
 
 /* The chevron on a disclosure button turns as it opens. */
 .chev { transition: transform var(--durMicro) var(--easeOut); }
-[aria-expanded="true"] > .chev,
-.bar[aria-expanded="true"] .chev { transform: rotate(180deg); }
+[aria-expanded="true"] > .chev { transform: rotate(180deg); }
 
 /* A platform button under an answer: the logo alone, in a 36px circle. The
    name is the accessible label and the tooltip. */
@@ -534,15 +507,13 @@ button {
   height: 36px;
   padding: 0;
   border-radius: 50%;
-  border: 1px solid var(--line);
-  background: var(--soft);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: background var(--durMicro) ease, border-color var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
 }
-.srcbtn:hover { background: rgba(236, 234, 228, 0.12); }
+.srcbtn:hover { background: rgba(255, 255, 255, 0.42); }
 .srcbtn:active { transform: scale(0.94); }
 .srcbtn[aria-expanded="true"] {
   background: var(--accentBg);
@@ -561,7 +532,7 @@ button {
   width: min(220px, 100%);
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: inset 0 0 0 1px var(--line);
+  box-shadow: inset 0 0 0 1px var(--rim), 0 4px 14px rgba(20, 21, 24, 0.12);
 }
 .sentbar span {
   display: block;
@@ -579,9 +550,10 @@ button {
   height: 24px;
   padding: 0 10px;
   border-radius: 999px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.5);
   background: var(--accent);
   color: var(--accentInk);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 12px rgba(228, 87, 46, 0.3);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -591,9 +563,7 @@ button {
 .beta:hover { background: #ea6a44; }
 .beta:active { transform: scale(0.96); }
 
-/* A segmented control with a sliding highlight, measured in Pill.tsx. The
-   highlight is the ice blue: the quiet selected state, with the orange kept
-   for the chips. */
+/* A segmented control with a sliding highlight, measured in Pill.tsx. */
 .pill {
   position: relative;
   display: inline-flex;
@@ -602,7 +572,6 @@ button {
   gap: 2px;
   padding: 3px;
   border-radius: 999px;
-  background: var(--soft);
   max-width: 100%;
 }
 .pill-thumb {
@@ -610,8 +579,8 @@ button {
   left: 0;
   top: 0;
   border-radius: 999px;
-  background: rgba(185, 196, 218, 0.2);
-  box-shadow: inset 0 1px 0 rgba(236, 234, 228, 0.22), 0 1px 2px rgba(0, 0, 0, 0.26);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 1px 0 var(--rimTop), 0 2px 6px rgba(20, 21, 24, 0.14);
   opacity: 0;
   pointer-events: none;
   transition: transform var(--durIn) var(--easeOut), width var(--durIn) var(--easeOut), height var(--durIn) var(--easeOut);
@@ -645,14 +614,13 @@ button {
   min-height: 40px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--softer);
-  color: var(--muted);
   font-size: 13px;
   font-weight: 500;
+  color: var(--muted);
   cursor: pointer;
   transition: background var(--durMicro) ease, color var(--durMicro) ease, border-color var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
 }
+.chip:hover { background: rgba(255, 255, 255, 0.42); }
 .chip:active { transform: scale(0.97); }
 .chip[aria-pressed="true"] {
   background: var(--accentBg);
@@ -679,14 +647,11 @@ button {
   min-height: 40px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--ink);
   font-size: 14px;
   cursor: pointer;
   transition: background var(--durMicro) ease, border-color var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
 }
-.example:hover { background: var(--soft); border-color: var(--accentLine); }
+.example:hover { background: rgba(255, 255, 255, 0.42); border-color: var(--accentLine); }
 .example:active { transform: scale(0.97); }
 
 /* A date field in the custom range. */
@@ -701,16 +666,17 @@ button {
   min-height: 40px;
   padding: 0 12px;
   border-radius: 12px;
-  background: var(--softer);
-  border: 1px solid var(--line);
+  background: var(--controlTint);
+  border: 1px solid var(--rim);
+  box-shadow: inset 0 1px 0 var(--rimTop);
   color: var(--ink);
   font-family: inherit;
   font-size: 16px;
-  color-scheme: dark;
+  color-scheme: light;
   transition: border-color var(--durMicro) ease;
 }
 .datefield input:focus { border-color: var(--accentLine); outline: none; }
-.datefield input:focus-visible { outline: 2.5px solid var(--accentLift); outline-offset: 2px; }
+.datefield input:focus-visible { outline: 2.5px solid var(--orange); outline-offset: 2px; }
 
 /* ---------- result pieces ---------- */
 .verdict {
@@ -761,9 +727,9 @@ button {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(20, 21, 24, 0.46);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  background: rgba(20, 21, 24, 0.32);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -790,21 +756,20 @@ button {
   flex: 0 0 auto;
   margin-top: 7px;
 }
-.dot-new { background: var(--up); }
-.dot-changed { background: var(--mixed); }
-.dot-removed { background: var(--neg); }
+.dot-new { background: var(--sentPos); }
+.dot-changed { background: var(--khaki); }
+.dot-removed { background: var(--orange); }
 
 /* ---------- reduced motion ----------
    Everything that loops is stopped outright rather than shortened: an
    infinite loop at a 1ms duration is a strobe, not a stop. State changes
    still happen, instantly. */
 @media (prefers-reduced-motion: reduce) {
-  .ground::before, .ground::after { animation: none; }
   .sweep { animation: none; opacity: 1; transform: none; }
   .unfold, .unfold[data-open="1"], .unfold-slow, .unfold-slow[data-open="1"] { transition: none; }
   .unfold > div > *, .unfold[data-open="1"] > div > *,
   .unfold-slow > div > *, .unfold-slow[data-open="1"] > div > * { transition: none; }
-  .card, .bar, .bar-knob, .srcbtn, .sentbar span, .pill-thumb, .chev, .btn, .chip, .go, .beta, .example { transition: none; }
+  .card, .morph, .morph-head, .srcbtn, .sentbar span, .pill-thumb, .chev, .btn, .chip, .go, .beta, .example { transition: none; }
   .rise, .swap, .scrim, .dialog { animation: none; }
   .dots span { animation: none; opacity: 0.7; }
 }
