@@ -31,15 +31,45 @@ export class HttpError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    public readonly detail?: string,
   ) {
     super(message);
+  }
+}
+
+/* Keep only the provider's short, documented error explanation. Never copy
+   request URLs, headers or credentials into the error shown by the app. */
+function responseDetail(body: string): string | undefined {
+  try {
+    const parsed = JSON.parse(body) as {
+      title?: unknown;
+      detail?: unknown;
+      error?: { message?: unknown };
+      errors?: Array<{ message?: unknown; detail?: unknown }>;
+    };
+    const candidates = [
+      parsed.detail,
+      parsed.error?.message,
+      parsed.errors?.[0]?.detail,
+      parsed.errors?.[0]?.message,
+      parsed.title,
+    ];
+    const detail = candidates.find((value): value is string => typeof value === "string" && value.trim().length > 0);
+    return detail ? tidy(detail, 300) : undefined;
+  } catch {
+    return undefined;
   }
 }
 
 /* A fetch that turns non-2xx into HttpError and parses JSON. */
 export async function getJson<T>(url: string, init: RequestInit): Promise<T> {
   const res = await fetch(url, { ...init, cache: "no-store" });
-  if (!res.ok) throw new HttpError(res.status, `${res.status} from ${new URL(url).host}`);
+  if (!res.ok) {
+    const detail = responseDetail(await res.text());
+    const host = new URL(url).host;
+    console.error("Connector request failed", { host, status: res.status, detail });
+    throw new HttpError(res.status, `${res.status} from ${host}`, detail);
+  }
   return (await res.json()) as T;
 }
 
@@ -59,6 +89,7 @@ export function reasonFor(err: unknown, timedOut: boolean): string {
     if (err.status === 402) return "Payment is required by this source. Check its API credits and billing settings.";
     if (err.status === 401 || err.status === 403) return "Access was refused. The key or its permissions may be wrong.";
     if (err.status === 429) return "The request limit was reached for now.";
+    if (err.status === 400 && err.detail) return `The request was rejected: ${err.detail}`;
     return `The service answered with an error (${err.status}).`;
   }
   return "Could not be reached.";
