@@ -7,6 +7,7 @@ import { RotatingSubjects } from "./RotatingSubjects";
 import { Answer } from "./Answer";
 import { PlatformEvidence } from "./PlatformEvidence";
 import { GetSpecific } from "./GetSpecific";
+import { HowItWorks } from "./HowItWorks";
 
 /* The heading, the search card, and the Get Specific card under it, on a
    page that never scrolls.
@@ -55,14 +56,32 @@ export function SearchCard() {
   const [reduced, setReduced] = useState(false);
   const [refine, setRefine] = useState<Refinements>(DEFAULT_REFINEMENTS);
   const [specific, setSpecific] = useState(false);
+  /* "How does this work", the mirror of Get Specific. One panel at a time. */
+  const [how, setHow] = useState(false);
   const [pick, setPick] = useState<SourceId | null>(null);
   /* The last platform shown stays rendered while its column closes. */
   const [last, setLast] = useState<SourceId | null>(null);
   const shown = useRef("");
   const run = useRef(0);
+  const morphWrap = useRef<HTMLDivElement>(null);
+  /* How tall the Get Specific panel may be: the window below the pill, less
+     a margin. Measured when it opens and whenever the window changes. */
+  const [avail, setAvail] = useState<number | null>(null);
   const answerId = useId();
   const specificId = useId();
   const panelId = useId();
+
+  useEffect(() => {
+    if (!specific && !how) return;
+    const measure = () => {
+      const el = morphWrap.current;
+      if (!el) return;
+      setAvail(Math.max(160, window.innerHeight - el.getBoundingClientRect().top - 20));
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [specific, how]);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -125,6 +144,8 @@ export function SearchCard() {
   const open = phase.name !== "idle";
   const answerSettled = useSettled(open);
   const specificSettled = useSettled(specific);
+  const howSettled = useSettled(how);
+  const howId = useId();
   const result = phase.name === "done" && phase.response.kind === "result" ? phase.response.result : null;
   const view = pick ?? last;
   const analysis = result && view ? result.bySource.find((b) => b.source === view) : undefined;
@@ -208,31 +229,59 @@ export function SearchCard() {
         </div>
       </section>
 
-      <section className="glass morph mt-3" data-open={specific ? "1" : undefined} aria-label="Get Specific">
-        <button
-          type="button"
-          className="morph-head"
-          aria-expanded={specific}
-          aria-controls={specificId}
-          onClick={() => setSpecific((v) => !v)}
-        >
-          Get Specific
-          <svg className="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-            <path d="M1.5 3.5L5 7l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <div
-          className={"unfold unfold-slow" + (specificSettled ? " unfold-settled" : "")}
+      <div className="morph-wrap mt-3" ref={morphWrap}>
+        <section
+          className={"glass morph" + (specificSettled ? " morph-settled" : "")}
           data-open={specific ? "1" : undefined}
-          id={specificId}
+          aria-label="Get Specific"
+          style={{ maxHeight: avail ? `${avail}px` : undefined, zIndex: specific ? 2 : 1 }}
         >
-          <div>
-            <div className="px-[14px] pt-5 pb-2">
-              <GetSpecific result={result} value={refine} onChange={setRefine} />
-            </div>
+          <button
+            type="button"
+            className="morph-head"
+            aria-expanded={specific}
+            aria-controls={specificId}
+            onClick={() => {
+              setSpecific((v) => !v);
+              setHow(false);
+            }}
+          >
+            Get Specific
+            <svg className="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+              <path d="M1.5 3.5L5 7l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <div className="morph-body px-[14px] pt-5 pb-2" id={specificId} aria-hidden={!specific}>
+            <GetSpecific result={result} value={refine} onChange={setRefine} />
           </div>
-        </div>
-      </section>
+        </section>
+
+        <section
+          className={"glass morph morph-right" + (howSettled ? " morph-settled" : "")}
+          data-open={how ? "1" : undefined}
+          aria-label="How does this work"
+          style={{ maxHeight: avail ? `${avail}px` : undefined, zIndex: how ? 2 : 1 }}
+        >
+          <button
+            type="button"
+            className="morph-head"
+            aria-expanded={how}
+            aria-controls={howId}
+            onClick={() => {
+              setHow((v) => !v);
+              setSpecific(false);
+            }}
+          >
+            How does this work
+            <svg className="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+              <path d="M1.5 3.5L5 7l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <div className="morph-body px-[14px] pt-5 pb-3" id={howId} aria-hidden={!how}>
+            <HowItWorks />
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

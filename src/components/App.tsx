@@ -40,11 +40,6 @@ export function App() {
         <SearchCard key={session} />
       </main>
 
-      <footer className="flex-none w-full max-w-[720px] mx-auto pt-4 text-[12px] leading-relaxed page-faint">
-        A personal, non-commercial project. Every result shown in this version is an
-        illustrative sample, clearly marked, and no social media content is stored.
-      </footer>
-
       {log ? <Changelog onClose={() => setLog(false)} /> : null}
     </div>
   );

@@ -56,10 +56,14 @@
   --rimTop: rgba(255, 255, 255, 0.85);
   --drop: 0 20px 50px rgba(20, 21, 24, 0.2);
 
-  --accent: var(--orange);
-  --accentInk: #ffffff;
-  --accentBg: rgba(228, 87, 46, 0.26);
-  --accentLine: rgba(228, 87, 46, 0.6);
+  /* The accent is the golden orange at the foot of the background image,
+     read by eye. Too light for white type, so it carries dark type. */
+  --accent: #f2a33a;
+  --accentHover: #f6b24e;
+  --accentInk: #1a1b1e;
+  --accentBg: rgba(242, 163, 58, 0.34);
+  --accentLine: rgba(242, 163, 58, 0.75);
+  --accentGlow: rgba(242, 163, 58, 0.35);
 
   --up: #1f5d4c;
   --upBg: rgba(185, 196, 218, 0.55);
@@ -119,7 +123,7 @@ button {
 }
 
 :focus-visible {
-  outline: 2.5px solid var(--orange);
+  outline: 2.5px solid #c9781a;
   outline-offset: 2px;
 }
 
@@ -244,57 +248,92 @@ button {
 
 /* ---------- the morph ----------
    Get Specific is a small glass pill under the search card, at the card's
-   left edge, that grows into its own panel in place: width, corners and
-   padding all animate on the slow pair and the body unfolds inside. Open,
-   it is the width of the search card, and on a wide screen it grows
-   outward like the search card does, into two columns. */
+   left edge, that grows into its own panel in place.
+
+   Nothing about its layout animates. The panel is laid out at full size
+   from the start, absolutely positioned over whatever is beneath it, and
+   what animates is only the visible edge: a clip that starts as the
+   pill's outline and opens out to the panel's, plus the body fading in a
+   beat behind. Clip and opacity are the two things a browser can animate
+   without laying the page out again on every frame, which is what made
+   the earlier version, animating width, margin, corners and padding on a
+   blurred element, stutter. The controls inside no longer change size
+   while it opens either, so nothing re-measures itself mid-animation.
+
+   The wrapper holds the pill's 36px in the flow, so the page never moves.
+   Open, the panel covers the footer. Its height is capped to the window
+   from the script, and it scrolls inside itself once settled. The one
+   cost of clipping is the drop shadow, which a clip removes; the rim and
+   the blur carry the glass instead. */
+.morph-wrap {
+  position: relative;
+  height: 36px;
+  flex: 0 0 auto;
+  z-index: 10;
+}
 .morph {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  flex: 0 1 auto;
-  width: 100%;
-  max-width: 132px;
-  margin-left: max(0px, calc(50% - (var(--cardRest) / 2)));
-  padding: 0;
-  overflow: hidden;
-  border-radius: 999px;
-  transition:
-    max-width var(--durSlow) var(--easeOut),
-    margin-left var(--durSlow) var(--easeOut),
-    border-radius var(--durSlow) var(--easeOut),
-    padding var(--durSlow) var(--easeOut);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-radius: 24px;
+  padding: 0 8px 12px;
+  box-shadow: none;
+  --pillLeft: max(0px, calc(50% - (var(--cardRest) / 2)));
+  clip-path: inset(0 calc(100% - var(--pillLeft) - 132px) calc(100% - 36px) var(--pillLeft) round 999px);
+  transition: clip-path var(--durSlowOut) var(--easeIn);
 }
 .morph[data-open="1"] {
-  max-width: var(--cardRest);
-  border-radius: 24px;
-  padding: 8px 8px 12px;
+  clip-path: inset(0 0 0 0 round 24px);
+  transition: clip-path var(--durSlow) var(--easeOut);
 }
-@media (min-width: 1024px) {
-  .morph[data-open="1"] {
-    max-width: var(--cardWide);
-    margin-left: max(0px, calc(50% - (var(--cardWide) / 2)));
-  }
+.morph.morph-settled { overflow: auto; overscroll-behavior: contain; }
+/* The mirror: "How does this work" sits at the search card's right edge
+   and opens the same way, to the card's own width rather than the wide
+   one, with its pill at the top right. */
+.morph-right {
+  left: var(--pillLeft);
+  right: var(--pillLeft);
+  --pillW: 168px;
+  clip-path: inset(0 0 calc(100% - 36px) calc(100% - var(--pillW)) round 999px);
+}
+.morph-right .morph-head {
+  display: flex;
+  width: var(--pillW);
+  margin-left: auto;
 }
 .morph-head {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  width: 132px;
   height: 36px;
   padding: 0 14px;
+  margin-left: var(--pillLeft);
   border: none;
   border-radius: 999px;
   background: transparent;
+  box-shadow: inset 0 1px 0 var(--rimTop), inset 0 0 0 1px var(--rim);
   color: var(--ink);
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
-  flex: 0 0 auto;
-  align-self: flex-start;
-  transition: background var(--durMicro) ease;
+  transition: background var(--durMicro) ease, box-shadow var(--durOut) var(--easeOut);
 }
 .morph-head:hover { background: var(--soft); }
+/* Open, the pill's own rim fades: the panel's rim takes over. */
+.morph[data-open="1"] .morph-head { box-shadow: inset 0 0 0 1px transparent; }
+.morph-body {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--durOut) var(--easeIn), visibility 0s linear var(--durOut);
+}
+.morph[data-open="1"] .morph-body {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 600ms var(--easeOut) 250ms, visibility 0s;
+}
 
 /* ---------- the unfold ----------
    A container grows by animating a grid row from 0fr to 1fr, the one way
@@ -434,11 +473,11 @@ button {
   justify-content: center;
   background: var(--accent);
   color: var(--accentInk);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 6px 16px rgba(228, 87, 46, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 6px 16px var(--accentGlow);
   cursor: pointer;
   transition: background var(--durMicro) var(--easeOut), transform var(--durMicro) var(--easeOut), opacity var(--durMicro) var(--easeOut);
 }
-.go:hover { background: #ea6a44; }
+.go:hover { background: var(--accentHover); }
 .go:active { transform: scale(0.94); }
 .go:disabled {
   background: var(--controlTint);
@@ -553,14 +592,14 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.5);
   background: var(--accent);
   color: var(--accentInk);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 12px rgba(228, 87, 46, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 4px 12px var(--accentGlow);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
   cursor: pointer;
   transition: background var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
 }
-.beta:hover { background: #ea6a44; }
+.beta:hover { background: var(--accentHover); }
 .beta:active { transform: scale(0.96); }
 
 /* A segmented control with a sliding highlight, measured in Pill.tsx. */
@@ -676,7 +715,7 @@ button {
   transition: border-color var(--durMicro) ease;
 }
 .datefield input:focus { border-color: var(--accentLine); outline: none; }
-.datefield input:focus-visible { outline: 2.5px solid var(--orange); outline-offset: 2px; }
+.datefield input:focus-visible { outline: 2.5px solid #c9781a; outline-offset: 2px; }
 
 /* ---------- result pieces ---------- */
 .verdict {
@@ -769,7 +808,8 @@ button {
   .unfold, .unfold[data-open="1"], .unfold-slow, .unfold-slow[data-open="1"] { transition: none; }
   .unfold > div > *, .unfold[data-open="1"] > div > *,
   .unfold-slow > div > *, .unfold-slow[data-open="1"] > div > * { transition: none; }
-  .card, .morph, .morph-head, .srcbtn, .sentbar span, .pill-thumb, .chev, .btn, .chip, .go, .beta, .example { transition: none; }
+  .card, .morph, .morph[data-open="1"], .morph-head, .morph-body, .morph[data-open="1"] .morph-body,
+  .srcbtn, .sentbar span, .pill-thumb, .chev, .btn, .chip, .go, .beta, .example { transition: none; }
   .rise, .swap, .scrim, .dialog { animation: none; }
   .dots span { animation: none; opacity: 0.7; }
 }

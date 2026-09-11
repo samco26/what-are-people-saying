@@ -13,6 +13,17 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.7",
+    date: "11 September 2026",
+    items: [
+      ["changed", "Get Specific opens smoothly. Only its visible edge animates now, from the pill's outline out to the panel's, instead of the panel changing shape as it grows."],
+      ["changed", "A platform's evidence is simpler: its verdict on one line, a line on confidence, what people liked and did not as short lists, and the titles it drew on."],
+      ["changed", "The accent is the golden orange from the foot of the background, on the badge, the search button and anything selected."],
+      ["new", "How does this work, under the search card on the right, mirroring Get Specific, with a short explanation."],
+      ["removed", "The small print at the foot of the page."],
+    ],
+  },
+  {
     v: "0.6",
     date: "11 September 2026",
     items: [
