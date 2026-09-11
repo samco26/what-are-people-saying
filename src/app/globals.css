@@ -4,11 +4,17 @@
 
 /* The General Consensus: global stylesheet.
 
-   Two colours, teal green and lemon chiffon, and their tints and shades.
-   The page is a lemon cream gradient. Every surface on it is a pane of
-   smoked teal glass: blur the ground, put its colour back, tint the pane,
-   then light the rim. Type on the page is deep teal; type on a pane is
-   lemon. Every colour is a variable so it changes in one place.
+   The palette is read off the user's reference on 11 September 2026: a wall
+   of X-ray posters. Poster paper and cool grey for the page, the slate blue
+   of the wall for type on it, the black of the Issey Miyake poster for the
+   glass surfaces, the CREARE bag's ice blue and the collar's khaki for the
+   two quiet marks, and the one warm note in the whole picture, the orange of
+   "mechanism of cool", as the single accent. The values are estimated by
+   eye, not measured. Every colour is a variable so it changes in one place.
+
+   Every surface is a pane of smoked charcoal glass: blur the ground, put its
+   colour back, tint the pane, then light the rim. Type on the page is slate;
+   type on a pane is paper.
 
    Motion shares one set of tokens. Entering eases out and takes a little
    longer; leaving eases in and is quicker, so the interface feels responsive
@@ -16,46 +22,54 @@
    ground lights, and both stop under reduced motion. */
 
 :root {
-  --teal: #3d8d7a;
-  --lemon: #fffacd;
+  --paper: #eceae4;
+  --wall: #d6d7d3;
+  --slate: #4e5b70;
+  --charcoal: #141518;
+  --ice: #b9c4da;
+  --khaki: #b5a688;
+  --orange: #e4572e;
 
   /* The page. */
-  --bg: var(--lemon);
-  --pageInk: #163b33;
-  --pageMuted: #2f6455;
-  --pageFaint: #5c8a7c;
-  --pageLine: rgba(22, 59, 51, 0.16);
-  --pageSoft: rgba(61, 141, 122, 0.12);
+  --bg: #e6e5e0;
+  --pageInk: #1a1b1e;
+  --pageMuted: var(--slate);
+  --pageFaint: #76808f;
+  --pageLine: rgba(78, 91, 112, 0.18);
+  --pageSoft: rgba(78, 91, 112, 0.12);
 
   /* On a pane. */
-  --ink: var(--lemon);
-  --muted: rgba(255, 250, 205, 0.78);
-  --faint: rgba(255, 250, 205, 0.58);
-  --line: rgba(255, 250, 205, 0.14);
-  --soft: rgba(255, 250, 205, 0.08);
-  --softer: rgba(255, 250, 205, 0.045);
+  --ink: var(--paper);
+  --muted: rgba(236, 234, 228, 0.74);
+  --faint: rgba(236, 234, 228, 0.55);
+  --line: rgba(236, 234, 228, 0.14);
+  --soft: rgba(236, 234, 228, 0.08);
+  --softer: rgba(236, 234, 228, 0.045);
 
-  /* The pane: smoked teal. Over a light ground it has to be dense enough
-     for lemon type to clear 4.5:1, so the ground shows through as a glow
-     rather than a picture. */
-  --pane: rgba(14, 46, 40, 0.86);
-  --paneBlur: blur(20px) saturate(1.4);
-  --e3: 0 25px 50px rgba(22, 59, 51, 0.22);
+  /* The pane: smoked charcoal, dense enough over a light ground for paper
+     type to clear 4.5:1, so the ground shows through as a glow rather than a
+     picture. */
+  --pane: rgba(20, 21, 24, 0.88);
+  --paneBlur: blur(20px) saturate(1.2);
+  --e3: 0 25px 50px rgba(20, 21, 24, 0.28);
 
-  --accent: var(--teal);
-  --accentInk: var(--lemon);
-  --accentLift: #86cdb8;
-  --accentBg: rgba(61, 141, 122, 0.34);
+  /* The accent. Orange on charcoal is under the floor for small type, so
+     where it has to be read it is lifted; as a fill it takes charcoal type. */
+  --accent: var(--orange);
+  --accentInk: var(--charcoal);
+  --accentLift: #f08a66;
+  --accentBg: rgba(228, 87, 46, 0.22);
+  --accentLine: rgba(240, 138, 102, 0.55);
 
-  /* Verdict colours, used on the platform pages. Positive is a tint of the
-     teal, mixed is the lemon, and negative is the one colour outside the
-     pair: a muted clay, kept for negative marks only. */
-  --up: #8ed9c1;
-  --upBg: rgba(61, 141, 122, 0.3);
-  --mixed: var(--lemon);
-  --mixedBg: rgba(255, 250, 205, 0.16);
-  --neg: #f2b59f;
-  --negBg: rgba(242, 181, 159, 0.16);
+  /* Verdict colours, used on the platform pages. X-ray logic: cool means
+     fine, warm means flagged. Positive is the ice blue, mixed the khaki,
+     negative the lifted orange. */
+  --up: var(--ice);
+  --upBg: rgba(185, 196, 218, 0.16);
+  --mixed: #cdbf9d;
+  --mixedBg: rgba(181, 166, 136, 0.2);
+  --neg: var(--accentLift);
+  --negBg: rgba(228, 87, 46, 0.18);
 
   --radius: 30px;
 
@@ -95,7 +109,7 @@ button {
 }
 
 :focus-visible {
-  outline: 2.5px solid var(--teal);
+  outline: 2.5px solid var(--orange);
   outline-offset: 2px;
 }
 .pane :focus-visible {
@@ -103,9 +117,9 @@ button {
 }
 
 ::-webkit-scrollbar { width: 9px; height: 9px; }
-::-webkit-scrollbar-thumb { background: rgba(22, 59, 51, 0.22); border-radius: 9px; }
+::-webkit-scrollbar-thumb { background: rgba(78, 91, 112, 0.28); border-radius: 9px; }
 ::-webkit-scrollbar-track { background: transparent; }
-.pane ::-webkit-scrollbar-thumb { background: rgba(255, 250, 205, 0.2); }
+.pane ::-webkit-scrollbar-thumb { background: rgba(236, 234, 228, 0.2); }
 
 /* Type on the page, outside any pane. */
 .page-ink { color: var(--pageInk); }
@@ -113,15 +127,16 @@ button {
 .page-faint { color: var(--pageFaint); }
 
 /* ---------- the ground ----------
-   Lemon cream, as a gradient rather than a flat colour, with a teal light
-   top right and a warmer lemon light bottom left drifting very slowly. */
+   Poster paper into cool grey, as a gradient, with a slate light top right
+   and a khaki light bottom left drifting very slowly: the wall and the wood
+   in the reference. They are what the panes blur. */
 .ground {
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
   overflow: hidden;
-  background: linear-gradient(160deg, #fffde9 0%, #fffacd 42%, #f9f1b8 76%, #f1e6a6 100%);
+  background: linear-gradient(160deg, #efeee9 0%, #e6e5e0 40%, #d9dad7 74%, #cdd0d2 100%);
 }
 .ground::before,
 .ground::after {
@@ -136,7 +151,7 @@ button {
   height: 72vmax;
   right: -22vmax;
   top: -30vmax;
-  background: radial-gradient(closest-side, rgba(61, 141, 122, 0.26), rgba(61, 141, 122, 0));
+  background: radial-gradient(closest-side, rgba(78, 91, 112, 0.34), rgba(78, 91, 112, 0));
   animation: drift1 46s ease-in-out infinite alternate;
 }
 .ground::after {
@@ -144,7 +159,7 @@ button {
   height: 80vmax;
   left: -34vmax;
   bottom: -42vmax;
-  background: radial-gradient(closest-side, rgba(255, 236, 140, 0.55), rgba(255, 236, 140, 0));
+  background: radial-gradient(closest-side, rgba(181, 166, 136, 0.5), rgba(181, 166, 136, 0));
   animation: drift2 58s ease-in-out infinite alternate;
 }
 @keyframes drift1 { from { transform: translate(0, 0); } to { transform: translate(-8vmax, 6vmax); } }
@@ -173,8 +188,8 @@ button {
   pointer-events: none;
   z-index: -1;
   background:
-    linear-gradient(146deg, rgba(255, 250, 205, 0.14) 0%, rgba(255, 250, 205, 0.04) 30%, rgba(255, 250, 205, 0) 58%),
-    linear-gradient(0deg, rgba(5, 25, 20, 0.22) 0%, rgba(5, 25, 20, 0) 44%);
+    linear-gradient(146deg, rgba(236, 234, 228, 0.14) 0%, rgba(236, 234, 228, 0.04) 30%, rgba(236, 234, 228, 0) 58%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0) 44%);
 }
 .pane::after {
   content: "";
@@ -183,20 +198,20 @@ button {
   border-radius: inherit;
   pointer-events: none;
   box-shadow:
-    inset 0 1px 0 rgba(255, 250, 205, 0.34),
-    inset 0 0 0 1px rgba(255, 250, 205, 0.09),
-    inset 0 -1px 0 rgba(255, 250, 205, 0.14);
+    inset 0 1px 0 rgba(236, 234, 228, 0.32),
+    inset 0 0 0 1px rgba(236, 234, 228, 0.09),
+    inset 0 -1px 0 rgba(236, 234, 228, 0.12);
 }
 .pane-small { border-radius: 24px; }
 @supports not ((-webkit-backdrop-filter: blur(2px)) or (backdrop-filter: blur(2px))) {
-  .pane { background: #12332c; }
+  .pane { background: #1a1b1f; }
 }
 
 /* A smaller surface inside a pane: a platform's evidence page. */
 .inset {
   border-radius: 22px;
   background: var(--softer);
-  box-shadow: inset 0 0 0 1px var(--line), inset 0 1px 0 rgba(255, 250, 205, 0.07);
+  box-shadow: inset 0 0 0 1px var(--line), inset 0 1px 0 rgba(236, 234, 228, 0.07);
 }
 
 /* ---------- the card ----------
@@ -368,14 +383,14 @@ button {
   gap: 10px;
   padding: 6px 6px 6px 22px;
   border-radius: 999px;
-  background: rgba(255, 250, 205, 0.06);
+  background: rgba(236, 234, 228, 0.06);
   border: 1px solid var(--line);
-  box-shadow: inset 0 1px 0 rgba(255, 250, 205, 0.08);
+  box-shadow: inset 0 1px 0 rgba(236, 234, 228, 0.08);
   transition: border-color var(--durMicro) ease, background var(--durMicro) ease;
 }
 .field:focus-within {
-  border-color: rgba(134, 205, 184, 0.6);
-  background: rgba(255, 250, 205, 0.08);
+  border-color: var(--accentLine);
+  background: rgba(236, 234, 228, 0.08);
 }
 .field input {
   flex: 1 1 auto;
@@ -403,7 +418,7 @@ button {
   cursor: pointer;
   transition: background var(--durMicro) var(--easeOut), transform var(--durMicro) var(--easeOut), opacity var(--durMicro) var(--easeOut);
 }
-.go:hover { background: #46a08b; }
+.go:hover { background: #ea6a44; }
 .go:active { transform: scale(0.94); }
 .go:disabled {
   background: transparent;
@@ -428,12 +443,12 @@ button {
   cursor: pointer;
   transition: background var(--durMicro) ease, border-color var(--durMicro) ease, color var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
 }
-.btn:hover { background: rgba(255, 250, 205, 0.12); }
+.btn:hover { background: rgba(236, 234, 228, 0.12); }
 .btn:active { transform: scale(0.97); }
 .btn[aria-expanded="true"],
 .btn[aria-pressed="true"] {
   background: var(--accentBg);
-  border-color: rgba(134, 205, 184, 0.5);
+  border-color: var(--accentLine);
 }
 .btn:disabled {
   opacity: 0.5;
@@ -481,10 +496,12 @@ button {
   cursor: pointer;
   transition: background var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
 }
-.beta:hover { background: #46a08b; }
+.beta:hover { background: #ea6a44; }
 .beta:active { transform: scale(0.96); }
 
-/* A segmented control with a sliding highlight, measured in Pill.tsx. */
+/* A segmented control with a sliding highlight, measured in Pill.tsx. The
+   highlight is the ice blue: the quiet selected state, with the orange kept
+   for the chips. */
 .pill {
   position: relative;
   display: inline-flex;
@@ -501,8 +518,8 @@ button {
   left: 0;
   top: 0;
   border-radius: 999px;
-  background: var(--accentBg);
-  box-shadow: inset 0 1px 0 rgba(255, 250, 205, 0.22), 0 1px 2px rgba(0, 0, 0, 0.26);
+  background: rgba(185, 196, 218, 0.2);
+  box-shadow: inset 0 1px 0 rgba(236, 234, 228, 0.22), 0 1px 2px rgba(0, 0, 0, 0.26);
   opacity: 0;
   pointer-events: none;
   transition: transform var(--durIn) var(--easeOut), width var(--durIn) var(--easeOut), height var(--durIn) var(--easeOut);
@@ -547,7 +564,7 @@ button {
 .chip:active { transform: scale(0.97); }
 .chip[aria-pressed="true"] {
   background: var(--accentBg);
-  border-color: rgba(134, 205, 184, 0.5);
+  border-color: var(--accentLine);
   color: var(--ink);
 }
 .chip:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -577,7 +594,7 @@ button {
   cursor: pointer;
   transition: background var(--durMicro) ease, border-color var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
 }
-.example:hover { background: var(--soft); border-color: rgba(134, 205, 184, 0.5); }
+.example:hover { background: var(--soft); border-color: var(--accentLine); }
 .example:active { transform: scale(0.97); }
 
 /* A date field in the custom range. */
@@ -600,7 +617,7 @@ button {
   color-scheme: dark;
   transition: border-color var(--durMicro) ease;
 }
-.datefield input:focus { border-color: rgba(134, 205, 184, 0.6); outline: none; }
+.datefield input:focus { border-color: var(--accentLine); outline: none; }
 .datefield input:focus-visible { outline: 2.5px solid var(--accentLift); outline-offset: 2px; }
 
 /* ---------- result pieces ---------- */
@@ -652,7 +669,7 @@ button {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(22, 59, 51, 0.42);
+  background: rgba(20, 21, 24, 0.46);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   display: flex;

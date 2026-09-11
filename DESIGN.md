@@ -74,3 +74,19 @@ Changes the user asked for after seeing the first preview, all implemented:
 - **Demographics replace audience.** Three rows of chips, age, gender and region, any number selected at once, click to select and click again to clear. The explanatory paragraph under the heading is gone at the user's request; the summary line at the foot of the panel still says the selection is a preview.
 - **Removed.** The overall sentiment pill and its line under the answer, and the unavailable or partial source notes. X is available on every example with an evidence page of its own.
 - **Spacing.** The answer sits further below the search box.
+
+## Fourth pass, 11 September 2026: the X-ray palette
+
+The user supplied a photograph of X-ray posters on a wall (a LENSLI bag, a Comme des Garçons shirt, an Issey Miyake Men poster, a CREARE "mechanism of cool" poster) and asked for the palette to be extracted from it. Read by eye rather than measured:
+
+| In the picture | Hex | Role in the app |
+|---|---|---|
+| Poster paper | `#ECEAE4` | type on the glass, the top of the page gradient |
+| Cool grey wall | `#D6D7D3` | the bottom of the page gradient |
+| Slate blue wall | `#4E5B70` | type on the page, the cool drifting light |
+| Issey Miyake black | `#141518` | the glass surfaces, at 88% |
+| CREARE ice blue | `#B9C4DA` | positive marks, the selected stop in the time control |
+| Collar and wood khaki | `#B5A688` | mixed marks, the warm drifting light |
+| "mechanism of cool" orange | `#E4572E` | the single accent: BETA badge, search button, selected chips, focus |
+
+The picture is monochrome with one warm note, and the app follows that: orange appears only where something is chosen or needs to be found. Orange on charcoal is under the 4.5:1 floor for small type, so wherever orange has to be read it is lifted to `#F08A66`; as a fill it carries charcoal type. Negative marks use the lifted orange as well, on the X-ray logic that cool means fine and warm means flagged. The teal and lemon of the previous pass are gone.

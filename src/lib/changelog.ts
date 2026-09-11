@@ -13,6 +13,13 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.4",
+    date: "11 September 2026",
+    items: [
+      ["changed", "New colours, taken from the X-ray poster reference: poster paper and cool grey for the page, charcoal glass surfaces, ice blue and khaki for the quiet marks, and one orange accent for the badge, the search button and anything selected."],
+    ],
+  },
+  {
     v: "0.3",
     date: "11 September 2026",
     items: [

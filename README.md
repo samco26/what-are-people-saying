@@ -74,7 +74,7 @@ public/logos/                   the X, YouTube and Reddit marks
 
 ## Design
 
-See [DESIGN.md](DESIGN.md). The implemented look takes its dark palette, glass pane construction, segmented controls and easing from the Kia DAA dashboard's dark and glass modes, as agreed on 11 September 2026.
+See [DESIGN.md](DESIGN.md). The glass pane construction, segmented controls and easing come from the Kia DAA dashboard's glass mode. The palette is read from the user's X-ray poster reference: paper and cool grey for the page, charcoal glass, ice blue and khaki for the quiet marks, and one orange accent. The table of values is in DESIGN.md.
 
 ## Development rules
 
