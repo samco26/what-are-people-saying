@@ -4,7 +4,7 @@ A personal, non-commercial app that reads a bounded selection of online discussi
 
 ## Current checkpoint: BETA 0.9.4
 
-Deployed BETA 0.9.4 on 12 September 2026. A live search for “ChatGPT” returned 234 YouTube opinions and 50 X posts, followed by a grounded OpenAI answer with separate evidence for both sources. This verifies the production X Bearer token, paid recent-search access, YouTube collection and multi-source analysis path. A prior X HTTP 400 was traced to its requirement that `end_time` be at least ten seconds old and fixed in commit `b466fbe`. Reddit remains unconnected, and the actual provider charges have not yet been reconciled against their dashboards.
+Deployed BETA 0.9.4 with X archive fallback on 12 September 2026 (`122d279`). The exact query “mercury marine boat engines australia” completed all three X windows and reported no matches over three years, alongside 159 YouTube opinions. Searching “Mercury Marine” returned 15 X posts within three months and 243 YouTube opinions. These controlled checks verify production archive access, empty-result expansion, stopping on matches, and multi-source analysis. Collection took 2.840 seconds for the fallback query and 1.020 seconds for the matching query; full responses took 9.1 and 12.5 seconds respectively, not latency guarantees. Reddit remains unconnected, and billed charges have not been reconciled against provider dashboards.
 
 The interface, server-side OpenAI analysis and YouTube/X/Reddit connectors are implemented. This workspace has no live API keys: local checks use simulated service responses, and controlled production checks use the server's configured credentials. Live evidence quality and billed cost still need auditing.
 
