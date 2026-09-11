@@ -4,11 +4,11 @@ import { parseHeadlines, newsDay, collectNewsSubjects } from "../src/lib/newsSub
 import { EVERGREEN_SUBJECTS, mixSubjects } from "../src/lib/suggestions.ts";
 
 const fetchBefore = globalThis.fetch;
-const keyBefore = process.env.ANTHROPIC_API_KEY;
+const keyBefore = process.env.OPENAI_API_KEY;
 afterEach(() => {
   globalThis.fetch = fetchBefore;
-  if (keyBefore === undefined) delete process.env.ANTHROPIC_API_KEY;
-  else process.env.ANTHROPIC_API_KEY = keyBefore;
+  if (keyBefore === undefined) delete process.env.OPENAI_API_KEY;
+  else process.env.OPENAI_API_KEY = keyBefore;
 });
 
 const item = (title, date, url = "https://www.bbc.co.uk/news/articles/fictional?tracking=test") =>
@@ -40,7 +40,7 @@ test("news alternates with niche ideas and unavailable news returns evergreen ex
 });
 
 test("news picks must be grounded in dated headlines; duplicates and invented topics are rejected", async () => {
-  process.env.ANTHROPIC_API_KEY = "test-placeholder-not-a-key";
+  process.env.OPENAI_API_KEY = "test-placeholder-not-a-key";
   const now = new Date();
   const today = newsDay(now);
   let feedCalls = 0, modelCalls = 0;
@@ -52,14 +52,15 @@ test("news picks must be grounded in dated headlines; duplicates and invented to
     }
     modelCalls++;
     const request = JSON.parse(init.body);
-    assert.match(request.messages[0].content, /Fictional Camera Z/);
-    return new Response(JSON.stringify({ id: "msg_test", type: "message", role: "assistant", model: request.model,
-      content: [{ type: "text", text: JSON.stringify({ topics: [
+    assert.equal(request.store, false);
+    assert.match(request.input, /Fictional Camera Z/);
+    return new Response(JSON.stringify({ id: "resp_test", object: "response", status: "completed", model: request.model,
+      output: [{ id: "msg_test", type: "message", role: "assistant", status: "completed", content: [{ type: "output_text", annotations: [], text: JSON.stringify({ topics: [
         { headlineIndex: 0, subject: "Camera Z" },
         { headlineIndex: 0, subject: "Camera Z" },
         { headlineIndex: 0, subject: "Invented Phone Duo" },
         { headlineIndex: 900, subject: "No source" },
-      ] }) }], stop_reason: "end_turn", stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 },
+      ] }) }] }], usage: { input_tokens: 1, output_tokens: 1, total_tokens: 2 },
     }), { headers: { "Content-Type": "application/json" } });
   };
   const subjects = await collectNewsSubjects(today);
@@ -71,7 +72,7 @@ test("news picks must be grounded in dated headlines; duplicates and invented to
 });
 
 test("news failure does not call the model or prevent evergreen suggestions", async () => {
-  process.env.ANTHROPIC_API_KEY = "test-placeholder-not-a-key";
+  process.env.OPENAI_API_KEY = "test-placeholder-not-a-key";
   globalThis.fetch = async (input) => {
     assert.match(String(input), /^https:\/\/feeds.bbci.co.uk/);
     throw new Error("Simulated feed failure");

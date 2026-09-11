@@ -21,7 +21,7 @@ export function envInt(name: string, fallback: number, min: number, max: number)
 }
 
 export const configured = {
-  anthropic: () => Boolean(env("ANTHROPIC_API_KEY")),
+  openai: () => Boolean(env("OPENAI_API_KEY")),
   youtube: () => Boolean(env("YOUTUBE_API_KEY")),
   x: () => Boolean(env("X_BEARER_TOKEN")),
   reddit: () => Boolean(env("REDDIT_CLIENT_ID") && env("REDDIT_CLIENT_SECRET")),
@@ -30,5 +30,5 @@ export const configured = {
 /* Live search is possible when the analysis key exists and at least one
    source can be read. */
 export function liveEnabled(): boolean {
-  return configured.anthropic() && (configured.youtube() || configured.x() || configured.reddit());
+  return configured.openai() && (configured.youtube() || configured.x() || configured.reddit());
 }

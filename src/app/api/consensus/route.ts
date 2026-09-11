@@ -9,9 +9,9 @@ import { SOURCES, type ConsensusResponse } from "@/lib/types";
 
    Two paths, chosen by what keys exist on the server:
 
-   Live, when ANTHROPIC_API_KEY and at least one source key are set: the
+   Live, when OPENAI_API_KEY and at least one source key are set: the
    available platforms are collected in parallel, each under its own
-   timeout, then the sample goes to Claude once and the answer comes back
+   timeout, then the sample goes to OpenAI once and the answer comes back
    in the shape the screen draws. A platform without a key is reported as
    unavailable in the answer. Too little collected and the answer says so
    instead of guessing. Nothing collected is kept.

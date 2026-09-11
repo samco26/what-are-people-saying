@@ -5,11 +5,11 @@ import { analyse } from "../src/lib/analysis/analyse.ts";
 import { sentimentPercentages } from "../src/lib/sentiment.ts";
 
 const originalFetch = globalThis.fetch;
-const previousKey = process.env.ANTHROPIC_API_KEY;
+const previousKey = process.env.OPENAI_API_KEY;
 afterEach(() => {
   globalThis.fetch = originalFetch;
-  if (previousKey === undefined) delete process.env.ANTHROPIC_API_KEY;
-  else process.env.ANTHROPIC_API_KEY = previousKey;
+  if (previousKey === undefined) delete process.env.OPENAI_API_KEY;
+  else process.env.OPENAI_API_KEY = previousKey;
 });
 
 const date = "2026-09-10T00:00:00Z";
@@ -81,29 +81,30 @@ const reading = {
   positives: [{ title: "Design", detail: "Fictional praise." }], negatives: [], drawnFrom: [1, 299, 300, 9999, 0, 1],
 };
 const analysisOutput = { ...reading, summary: "Excitement for the fictional phone is substantial.", sentiment: { positive: 0.6, neutral: 0.2, negative: 0.2 } };
-function mockClaude(makeOutput, inspect) {
-  process.env.ANTHROPIC_API_KEY = "test-placeholder-not-a-key";
+function mockOpenAI(makeOutput, inspect) {
+  process.env.OPENAI_API_KEY = "test-placeholder-not-a-key";
   globalThis.fetch = async (input, init) => {
-    assert.match(String(input), /^https:\/\/api.anthropic.com\/v1\/messages/);
+    assert.match(String(input), /^https:\/\/api.openai.com\/v1\/responses/);
     const body = JSON.parse(init.body);
+    assert.equal(body.store, false);
     inspect(body);
-    return json({ id: "msg_fixture", type: "message", role: "assistant", model: body.model,
-      content: [{ type: "text", text: JSON.stringify(makeOutput()) }], stop_reason: "end_turn", stop_sequence: null,
-      usage: { input_tokens: 1, output_tokens: 1 } });
+    return json({ id: "resp_fixture", object: "response", status: "completed", model: body.model,
+      output: [{ id: "msg_fixture", type: "message", role: "assistant", status: "completed", content: [{ type: "output_text", text: JSON.stringify(makeOutput()), annotations: [] }] }],
+      usage: { input_tokens: 1, output_tokens: 1, total_tokens: 2 } });
   };
 }
 const sample = () => [{ id: "video0", source: "youtube", kind: "video", text: "Fictional context" },
   ...Array.from({ length: 300 }, (_, i) => ({ id: `comment${i}`, source: "youtube", kind: "comment", text: `Fictional opinion ${i}`, parentId: "video0", url: `https://www.youtube.com/watch?v=fictional&lc=${i}` }))];
 
-test("all 300 opinions reach Claude and one-source evidence is generated only once", async () => {
-  mockClaude(() => analysisOutput, (body) => {
-    assert.ok(!body.output_config.format.schema.properties.bySource);
-    const lines = body.messages[0].content.split("\n").filter((line) => line.startsWith('{"ref":')).map(JSON.parse);
+test("all 300 opinions reach OpenAI and one-source evidence is generated only once", async () => {
+  mockOpenAI(() => analysisOutput, (body) => {
+    assert.ok(!body.text.format.schema.properties.bySource);
+    const lines = body.input.split("\n").filter((line) => line.startsWith('{"ref":')).map(JSON.parse);
     assert.equal(lines.length, 301);
     assert.equal(lines.at(-1).text, "Fictional opinion 299");
     assert.equal(lines.at(-1).parent, 0);
-    assert.match(body.system, /Lead immediately/);
-    assert.match(body.system, /untrusted data/);
+    assert.match(body.instructions, /Lead immediately/);
+    assert.match(body.instructions, /untrusted data/);
   });
   const result = await analyse("fictional phone", sample(), [{ source: "youtube", availability: "ok", itemsAnalysed: 301 }]);
   assert.equal(result.sources[0].itemsAnalysed, 300);
@@ -115,13 +116,13 @@ test("all 300 opinions reach Claude and one-source evidence is generated only on
 
 test("multi-source analysis preserves every opinion and prevents cross-platform citations", async () => {
   const items = [...sample(), { id: "x1", source: "x", kind: "post", text: "Fictional X reaction", url: "https://x.com/i/status/fictional" }];
-  mockClaude(() => {
+  mockOpenAI(() => {
     const { drawnFrom, ...overall } = analysisOutput;
     return { ...overall, bySource: [{ ...reading, source: "youtube", drawnFrom: [1, 301] }, { ...reading, source: "x", drawnFrom: [301, 1] }] };
   }, (body) => {
-    assert.ok(body.output_config.format.schema.properties.bySource);
-    assert.match(body.messages[0].content, /Fictional opinion 299/);
-    assert.match(body.messages[0].content, /Fictional X reaction/);
+    assert.ok(body.text.format.schema.properties.bySource);
+    assert.match(body.input, /Fictional opinion 299/);
+    assert.match(body.input, /Fictional X reaction/);
   });
   const result = await analyse("fictional phone", items, [{ source: "youtube", availability: "ok", itemsAnalysed: 300 }, { source: "x", availability: "partial", itemsAnalysed: 1 }]);
   assert.equal(result.bySource.length, 2);

@@ -15,3 +15,4 @@
 - For application changes, run relevant tests and the production build before calling the checkpoint complete. Report checks that cannot run. Documentation-only changes do not require an application build.
 - Commit each verified working milestone. Keep the GitHub repository private unless the user requests otherwise.
 - Keep README.md accurate about setup, implemented functionality and known limitations.
+- Keep PHASES.md current at each relevant checkpoint, using PROJECT.md milestone numbers and verified evidence. Distinguish code that passes local checks from a live integration that has actually succeeded.
