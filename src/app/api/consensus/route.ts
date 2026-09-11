@@ -62,8 +62,10 @@ function readRefinements(body: unknown): Pick<Refinements, "platforms" | "period
   };
 }
 
-/* The time window as dates, from the period or the custom range. */
-export function windowFor(period: PeriodId, from: string, to: string): { from?: Date; to?: Date } {
+/* The time window as dates, from the period or the custom range.
+   Keep helpers private: Next.js only permits route handlers and route
+   configuration to be exported from this file. */
+function windowFor(period: PeriodId, from: string, to: string): { from?: Date; to?: Date } {
   const now = Date.now();
   const days = (n: number) => new Date(now - n * 86_400_000);
   if (period === "7d") return { from: days(7) };

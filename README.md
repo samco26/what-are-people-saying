@@ -6,16 +6,16 @@ A personal, non-commercial web app that turns a controlled sample of online disc
 
 Milestones 3 and 5 of [PROJECT.md](PROJECT.md) are written: the Next.js, TypeScript and Tailwind scaffold, and the complete search, processing and result flow on clearly labelled sample data. What People Think is the name, formerly The General Consensus; the GitHub repository is `what-are-people-saying`.
 
-**This code has not yet been compiled or run with Next.js.** It was written on a machine without Node.js, so the first `npm install` and `npm run build` are the first real check. What has been done is the stand-in check in [tools/no-node-check](tools/no-node-check/README.md): every source file parses as TypeScript and JSX, and the app mounts and runs through every state in a browser with React and Tailwind loaded from a CDN. That is not a type check and not a build. Nothing below should be read as verified until a build has passed.
+**The production build and TypeScript check pass with Next.js 15.5.25 on Node.js 24.** The built app has also been checked in desktop and mobile browsers: sample search, Get Specific and the no-live-search state work without browser runtime errors. API checks cover all six sample subjects, invalid requests and uncached responses. Live integrations remain unverified.
 
 The server-side analysis and the YouTube, X and Reddit connectors are written and switch on by keys; see Going live below. Without keys, every result the app shows is a fictional sample and is labelled as such on screen.
 
 ## Setup
 
-Node.js 18.17 or newer is required.
+Use Node.js 22 or 24. The lockfile fixes dependency versions for local and Vercel installs.
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -26,6 +26,8 @@ npm run build      # production build, which is also the strictest type check
 npm run typecheck  # TypeScript only, no build
 npm run start      # serve the production build
 ```
+
+Next.js is pinned to the patched 15.5 release line. The PostCSS override keeps its transitive copies on the same patched 8.x version as the direct dependency. The dependency audit reported zero known vulnerabilities when these versions were installed.
 
 ## What is implemented
 
@@ -98,8 +100,7 @@ public/logos/                   the X, YouTube and Reddit marks
 
 ## Known limitations
 
-- Not compiled or run yet. See Status.
-- No live sources and no AI. The sample data stands in for both.
+- Live sources and AI integration have not been verified against real services. Without keys, the sample data stands in for both.
 - The container's height animates when it first opens and when a panel opens inside it, but the step from the processing state to the answer is a cut rather than a glide.
 - The glass effect needs `backdrop-filter`. Browsers without it get a solid pane.
 
