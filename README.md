@@ -1,10 +1,10 @@
-# The General Consensus
+# What People Think
 
 A personal, non-commercial web app that turns a controlled sample of online discussion about a subject into one clear consensus statement, with supporting themes and source counts.
 
 ## Status
 
-Milestones 3 and 5 of [PROJECT.md](PROJECT.md) are written: the Next.js, TypeScript and Tailwind scaffold, and the complete search, processing and result flow on clearly labelled sample data. The General Consensus is the working title; the GitHub repository is `what-are-people-saying`.
+Milestones 3 and 5 of [PROJECT.md](PROJECT.md) are written: the Next.js, TypeScript and Tailwind scaffold, and the complete search, processing and result flow on clearly labelled sample data. What People Think is the name, formerly The General Consensus; the GitHub repository is `what-are-people-saying`.
 
 **This code has not yet been compiled or run with Next.js.** It was written on a machine without Node.js, so the first `npm install` and `npm run build` are the first real check. What has been done is the stand-in check in [tools/no-node-check](tools/no-node-check/README.md): every source file parses as TypeScript and JSX, and the app mounts and runs through every state in a browser with React and Tailwind loaded from a CDN. That is not a type check and not a build. Nothing below should be read as verified until a build has passed.
 

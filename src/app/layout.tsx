@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "The General Consensus",
+  title: "What People Think",
   description:
     "See what people think about a subject: one clear statement drawn from a sample of online discussion.",
   /* Private until the version-one flow has been tested. */

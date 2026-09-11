@@ -1,4 +1,4 @@
-# The General Consensus — design direction
+# What People Think — design direction
 
 Working title and first visual direction, supplied by the user on 11 September 2026. The mockup is a proposal for refinement, not an approved final design or a live application.
 

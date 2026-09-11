@@ -13,6 +13,13 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.9.1",
+    date: "11 September 2026",
+    items: [
+      ["changed", "The site is called What People Think. It was The General Consensus."],
+    ],
+  },
+  {
     v: "0.9",
     date: "11 September 2026",
     items: [

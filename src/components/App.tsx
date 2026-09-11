@@ -19,10 +19,10 @@ export function App() {
         <button
           type="button"
           onClick={() => setSession((n) => n + 1)}
-          aria-label="The General Consensus. Return to search."
+          aria-label="What People Think. Return to search."
           className="rounded-full px-3 py-2 -ml-3 text-[13px] font-semibold tracking-[-0.01em] page-ink hover:bg-[color:var(--pageSoft)] transition-colors"
         >
-          The General Consensus
+          What People Think
         </button>
         <button
           type="button"

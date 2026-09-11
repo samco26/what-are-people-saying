@@ -2,7 +2,7 @@
 
 ## Purpose
 
-A user enters the name of a subject. The application retrieves a controlled sample from YouTube, X and Reddit, analyses relevant discussion, and returns a short qualitative consensus with supporting themes and source counts available on expansion. The working title is The General Consensus.
+A user enters the name of a subject. The application retrieves a controlled sample from YouTube, X and Reddit, analyses relevant discussion, and returns a short qualitative consensus with supporting themes and source counts available on expansion. The name is What People Think. It was The General Consensus until 11 September 2026.
 
 This is a simple consumer-facing, personal, non-commercial project. Visitors encounter the search function immediately.
 

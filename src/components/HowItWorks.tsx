@@ -6,7 +6,7 @@ export function HowItWorks() {
   return (
     <div className="flex flex-col gap-4 max-w-[76ch] text-[15px] leading-[1.6] text-ink">
       <p className="mrow m-0">
-        Type a subject. The General Consensus collects a small, bounded sample of what people
+        Type a subject. What People Think collects a small, bounded sample of what people
         are saying about it on YouTube, X and Reddit, reads it, and gives you one to three plain
         sentences on where opinion sits.
       </p>

@@ -2,7 +2,7 @@
   "name": "what-are-people-saying",
   "private": true,
   "version": "0.1.0",
-  "description": "The General Consensus: one clear statement of what a sample of online discussion thinks about a subject.",
+  "description": "What People Think: one clear statement of what a sample of online discussion thinks about a subject.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
