@@ -1,0 +1,163 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>harness</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+<style>body{margin:0;background:#222}#log{font:12px monospace;color:#ddd;white-space:pre-wrap;padding:8px;max-height:160px;overflow:auto}#f{display:block;border:0;width:1280px;height:900px;background:#070e20}</style>
+</head>
+<body>
+<div id="log"></div>
+<iframe id="f"></iframe>
+<script>
+const FILES = [
+  "src/lib/types.ts",
+  "src/lib/sampleData.ts",
+  "src/lib/subjects.ts",
+  "src/app/api/consensus/route.ts",
+  "src/lib/changelog.ts",
+  "src/lib/labels.ts",
+  "src/components/Pill.tsx",
+  "src/components/Logo.tsx",
+  "src/components/RotatingSubjects.tsx",
+  "src/components/Answer.tsx",
+  "src/components/PlatformEvidence.tsx",
+  "src/components/GetSpecific.tsx",
+  "src/components/SearchCard.tsx",
+  "src/components/Changelog.tsx",
+  "src/components/App.tsx",
+  "src/app/layout.tsx",
+  "src/app/page.tsx",
+];
+const log = (m) => { document.getElementById("log").textContent += m + "\n"; };
+window.__result = { syntax: {}, errors: [], mounted: false };
+window.addEventListener("error", (e) => { window.__result.errors.push(String(e.message)); log("ERROR " + e.message); });
+window.addEventListener("unhandledrejection", (e) => { window.__result.errors.push(String(e.reason && e.reason.message || e.reason)); log("REJECT " + (e.reason && e.reason.message || e.reason)); });
+
+const TW_CONFIG = `tailwind.config={theme:{extend:{colors:{bg:"var(--bg)",ink:"var(--ink)",muted:"var(--muted)",faint:"var(--faint)",line:"var(--line)",soft:"var(--soft)",accent:"var(--accent)",up:"var(--up)",down:"var(--down)",neg:"var(--neg)"},fontFamily:{sans:["Helvetica","Helvetica Neue","Arial","sans-serif"]},borderRadius:{glass:"var(--radius)"}}}}`;
+
+async function main() {
+  const src = {};
+  for (const f of FILES) {
+    const r = await fetch("/" + f);
+    if (!r.ok) { log("MISSING " + f); continue; }
+    src[f] = await r.text();
+  }
+  const css = await (await fetch("/src/app/globals.css")).text();
+
+  const compiled = {};
+  for (const f of FILES) {
+    if (!(f in src)) continue;
+    try {
+      compiled[f] = Babel.transform(src[f], {
+        filename: f,
+        presets: [["typescript", { isTSX: f.endsWith("x"), allExtensions: true }], "react"],
+        plugins: ["transform-modules-commonjs"],
+      }).code;
+      window.__result.syntax[f] = "ok";
+    } catch (e) {
+      window.__result.syntax[f] = String(e.message);
+      log("SYNTAX " + f + ": " + e.message);
+    }
+  }
+  log("syntax pass done: " + Object.values(window.__result.syntax).filter((v) => v === "ok").length + "/" + FILES.length + " ok");
+
+  const fr = document.getElementById("f");
+  let doc = fr.contentDocument;
+  let win = fr.contentWindow;
+  doc.open();
+  doc.write('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+    + '<script src="https://cdn.tailwindcss.com"><\/script><script>' + TW_CONFIG + '<\/script>'
+    + '<style>' + css.replace(/@tailwind[^;]*;/g, "") + '</style></head>'
+    + '<body><div class="ground" aria-hidden="true"></div><div id="root"></div></body></html>');
+  doc.close();
+  /* The written document has an external script, so the parser pauses on it
+     and close() returns before #root exists. Wait for it. */
+  for (let i = 0; i < 200 && !fr.contentDocument.getElementById("root"); i++) {
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  doc = fr.contentDocument;
+  win = fr.contentWindow;
+  if (!doc.getElementById("root")) throw new Error("frame never produced #root");
+
+  const mods = {};
+  const nextServer = {
+    NextResponse: {
+      json: (data, init) => new Response(JSON.stringify(data), {
+        status: (init && init.status) || 200,
+        headers: Object.assign({ "content-type": "application/json" }, (init && init.headers) || {}),
+      }),
+    },
+  };
+  const cssStub = {};
+  function resolve(spec, from) {
+    if (spec === "react") return React;
+    if (spec === "react-dom") return ReactDOM;
+    if (spec === "next/server") return nextServer;
+    if (spec === "next") return {};
+    if (spec.endsWith(".css")) return cssStub;
+    let path;
+    if (spec.startsWith("@/")) path = "src/" + spec.slice(2);
+    else if (spec.startsWith("./")) path = from.slice(0, from.lastIndexOf("/") + 1) + spec.slice(2);
+    else throw new Error("unknown import " + spec + " from " + from);
+    const key = FILES.find((f) => f === path + ".ts" || f === path + ".tsx" || f === path);
+    if (!key) throw new Error("cannot resolve " + spec + " from " + from);
+    return load(key);
+  }
+  let fakeFetch = null;
+  function load(f) {
+    if (mods[f]) return mods[f].exports;
+    const module = { exports: {} };
+    mods[f] = module;
+    const fn = new Function("require", "module", "exports", "window", "document", "fetch", compiled[f]);
+    try {
+      fn((s) => resolve(s, f), module, module.exports, win, doc, (u, i) => fakeFetch(u, i));
+    } catch (e) {
+      throw new Error(f + ": " + e.message);
+    }
+    return module.exports;
+  }
+
+  const route = load("src/app/api/consensus/route.ts");
+  fakeFetch = async (url, init) => {
+    window.__result.lastRequest = { url: String(url), body: init && init.body };
+    if (String(url).startsWith("/api/consensus")) {
+      return route.POST(new Request("http://localhost" + url, init));
+    }
+    return fetch(url, init);
+  };
+
+  /* layout and page are parsed only; they are server components. */
+  load("src/app/page.tsx");
+
+  const app = load("src/components/App.tsx");
+  const root = ReactDOM.createRoot(doc.getElementById("root"));
+  root.render(React.createElement(app.App));
+  window.__doc = doc;
+  window.__win = win;
+  window.__result.mounted = true;
+  log("mounted");
+
+  /* Drive helpers. */
+  window.__type = (text) => {
+    const input = doc.querySelector('input[aria-label="Subject"]');
+    const setter = Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, "value").set;
+    setter.call(input, text);
+    input.dispatchEvent(new win.Event("input", { bubbles: true }));
+  };
+  window.__submit = () => {
+    doc.querySelector('button[aria-label="Search"]').click();
+  };
+  window.__click = (text) => {
+    const b = [...doc.querySelectorAll("button")].find((x) => x.textContent.trim() === text);
+    if (!b) throw new Error("no button " + text);
+    b.click();
+  };
+  window.__size = (w, h) => { fr.style.width = w + "px"; fr.style.height = h + "px"; };
+}
+main().catch((e) => { window.__result.errors.push(String(e.message)); log("FATAL " + e.message); });
+</script>
+</body>
+</html>

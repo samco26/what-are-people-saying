@@ -43,3 +43,34 @@ Desktop and mobile are equally important. Maintain the search-and-expanding-card
 ## Still to refine
 
 Glass intensity, atmospheric lighting, exact corner radii, transition timing, copy and the eventual audience-filter taxonomy. No additional platforms have been selected beyond YouTube, X and Reddit.
+
+## Implemented direction, 11 September 2026
+
+The original mockup and UI reference images were not available when the application was built, so the user asked for the look to take heavy inspiration from the Kia DAA dashboard's live interface, in dark mode. What came across, and what did not:
+
+- **The pane.** The glass surface is the dashboard's glass-mode construction rebuilt for this palette: blur the ground and put its colour back (`blur(20px) saturate(1.55) brightness(1.05)`), a smoked midnight-blue tint, a white sheen off the top-left corner, a shadow gathering at the bottom, and a one-pixel rim that catches the light at the top and returns dimmer underneath. Radius stays at the agreed 30px. A smaller inset surface, at 22px, holds the panels that open inside the pane.
+- **The ground.** Two soft lights drifting very slowly behind everything, a cool one top right and a bluer one bottom left, over the agreed `#070e20`. They are what the pane blurs. They stop under reduced motion.
+- **Controls.** The dashboard's pill segmented control, with its highlight sliding to the chosen stop rather than redrawing, is the time-period and audience control. Its 11px tracked uppercase labels head every section. Its house easing, `cubic-bezier(.2,.7,.3,1)`, is the easing everywhere. Its 36px minimum control height is the floor here too, and the search button and main actions are 44px or more.
+- **Colour.** The dashboard's dark tokens are read the other way up, so what is borrowed is the grade rather than the hue: light grey ink, a cool blue-grey for secondary text, and lifted green, amber and rose for positive, mixed and negative that clear 4.5:1 on the pane. One cool blue accent for focus and selection. Kia's red is deliberately not here: nothing on this screen is an alarm.
+- **Type.** Helvetica as agreed, not the dashboard's Archivo. Nothing smaller than 11px.
+- **Not carried across.** The rail, the header, the charts, the liquid-metal surfaces and the moving mesh field. This is one container on an open page, and it stays that way.
+
+## Second pass, 11 September 2026
+
+Changes the user asked for after seeing the first preview, all implemented:
+
+- **Two colours.** Teal green `#3D8D7A` and lemon chiffon `#FFFACD` are the whole palette. The ground is a deep green gradient with a teal light top right and a warm lemon light bottom left. Text is lemon chiffon and its tints. Positive is a tint of the teal, mixed is the lemon, and negative is a muted clay, the one colour outside the pair, used for negative marks only. The blue and brown first proposed were dropped at the user's request.
+- **BETA badge.** Top right, the dashboard's badge in the teal, opening a list of what changed with green, lemon and clay dots for new, changed and removed.
+- **Examples in the box.** The rotating subjects now sweep inside the empty search box in place of a placeholder. Enter on an empty box searches the one showing. The pause control is gone; reduced motion still stops the rotation.
+- **Get Specific under the box.** A small quiet button under the search box, there before any search, unfolding its own pane: platform chips with the real logos, the time-period control with a Custom range that reveals from-and-to dates, audience, and the unavailable demographics note.
+- **Sentiment extracted from.** Under the answer, right-aligned, a button for each platform with its logo. Each opens that platform's own evidence page in the same container, and switching platforms crossfades. The single Show the evidence panel is gone; the overall classification and confidence sit on one line under the answer.
+- **Motion.** One set of tokens: entering eases out over 320ms, leaving eases in over 220ms, micro-interactions at 180ms, a press scale of 0.97 on buttons, chevrons that turn, and crossfades for content swapped inside an open container. Everything stops under reduced motion.
+
+## Third pass, 11 September 2026
+
+- **Lemon ground, teal glass.** The page is now the lemon chiffon as a soft gradient, with a teal light top right and a warmer lemon light bottom left. The panes stay smoked teal, made denser (86%) so lemon type on them clears 4.5:1 over a light ground. Type on the page itself is deep teal.
+- **The card grows sideways.** With an answer showing, opening a platform's evidence widens the card from 720px to 1180px, equally to both sides, and the evidence takes the second column beside the answer. The search field is held at the resting width in the centre and never moves. Below 1024px the card cannot widen, so the evidence stacks beneath, as before. The page scrolls.
+- **Get Specific morphs.** The button is a small teal glass pill that grows into the panel in place: width, corners and padding animate together and the body unfolds inside. Nothing drops out of it.
+- **Demographics replace audience.** Three rows of chips, age, gender and region, any number selected at once, click to select and click again to clear. The explanatory paragraph under the heading is gone at the user's request; the summary line at the foot of the panel still says the selection is a preview.
+- **Removed.** The overall sentiment pill and its line under the answer, and the unavailable or partial source notes. X is available on every example with an evidence page of its own.
+- **Spacing.** The answer sits further below the search box.

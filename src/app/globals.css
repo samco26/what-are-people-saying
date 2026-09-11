@@ -1,0 +1,700 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* The General Consensus: global stylesheet.
+
+   Two colours, teal green and lemon chiffon, and their tints and shades.
+   The page is a lemon cream gradient. Every surface on it is a pane of
+   smoked teal glass: blur the ground, put its colour back, tint the pane,
+   then light the rim. Type on the page is deep teal; type on a pane is
+   lemon. Every colour is a variable so it changes in one place.
+
+   Motion shares one set of tokens. Entering eases out and takes a little
+   longer; leaving eases in and is quicker, so the interface feels responsive
+   rather than sluggish. Nothing loops except the example subjects and the
+   ground lights, and both stop under reduced motion. */
+
+:root {
+  --teal: #3d8d7a;
+  --lemon: #fffacd;
+
+  /* The page. */
+  --bg: var(--lemon);
+  --pageInk: #163b33;
+  --pageMuted: #2f6455;
+  --pageFaint: #5c8a7c;
+  --pageLine: rgba(22, 59, 51, 0.16);
+  --pageSoft: rgba(61, 141, 122, 0.12);
+
+  /* On a pane. */
+  --ink: var(--lemon);
+  --muted: rgba(255, 250, 205, 0.78);
+  --faint: rgba(255, 250, 205, 0.58);
+  --line: rgba(255, 250, 205, 0.14);
+  --soft: rgba(255, 250, 205, 0.08);
+  --softer: rgba(255, 250, 205, 0.045);
+
+  /* The pane: smoked teal. Over a light ground it has to be dense enough
+     for lemon type to clear 4.5:1, so the ground shows through as a glow
+     rather than a picture. */
+  --pane: rgba(14, 46, 40, 0.86);
+  --paneBlur: blur(20px) saturate(1.4);
+  --e3: 0 25px 50px rgba(22, 59, 51, 0.22);
+
+  --accent: var(--teal);
+  --accentInk: var(--lemon);
+  --accentLift: #86cdb8;
+  --accentBg: rgba(61, 141, 122, 0.34);
+
+  /* Verdict colours, used on the platform pages. Positive is a tint of the
+     teal, mixed is the lemon, and negative is the one colour outside the
+     pair: a muted clay, kept for negative marks only. */
+  --up: #8ed9c1;
+  --upBg: rgba(61, 141, 122, 0.3);
+  --mixed: var(--lemon);
+  --mixedBg: rgba(255, 250, 205, 0.16);
+  --neg: #f2b59f;
+  --negBg: rgba(242, 181, 159, 0.16);
+
+  --radius: 30px;
+
+  /* The card at rest and grown. The field inside stays at the resting
+     width whatever the card does. */
+  --cardRest: 720px;
+  --cardWide: 1180px;
+
+  /* Motion tokens. */
+  --easeOut: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --easeIn: cubic-bezier(0.4, 0, 0.7, 0.2);
+  --durIn: 320ms;
+  --durOut: 220ms;
+  --durMicro: 180ms;
+}
+
+html {
+  background: var(--bg);
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-y: auto;
+  background: var(--bg);
+  color: var(--pageInk);
+  font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  touch-action: manipulation;
+}
+
+:focus-visible {
+  outline: 2.5px solid var(--teal);
+  outline-offset: 2px;
+}
+.pane :focus-visible {
+  outline-color: var(--accentLift);
+}
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb { background: rgba(22, 59, 51, 0.22); border-radius: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+.pane ::-webkit-scrollbar-thumb { background: rgba(255, 250, 205, 0.2); }
+
+/* Type on the page, outside any pane. */
+.page-ink { color: var(--pageInk); }
+.page-muted { color: var(--pageMuted); }
+.page-faint { color: var(--pageFaint); }
+
+/* ---------- the ground ----------
+   Lemon cream, as a gradient rather than a flat colour, with a teal light
+   top right and a warmer lemon light bottom left drifting very slowly. */
+.ground {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background: linear-gradient(160deg, #fffde9 0%, #fffacd 42%, #f9f1b8 76%, #f1e6a6 100%);
+}
+.ground::before,
+.ground::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  will-change: transform;
+}
+.ground::before {
+  width: 72vmax;
+  height: 72vmax;
+  right: -22vmax;
+  top: -30vmax;
+  background: radial-gradient(closest-side, rgba(61, 141, 122, 0.26), rgba(61, 141, 122, 0));
+  animation: drift1 46s ease-in-out infinite alternate;
+}
+.ground::after {
+  width: 80vmax;
+  height: 80vmax;
+  left: -34vmax;
+  bottom: -42vmax;
+  background: radial-gradient(closest-side, rgba(255, 236, 140, 0.55), rgba(255, 236, 140, 0));
+  animation: drift2 58s ease-in-out infinite alternate;
+}
+@keyframes drift1 { from { transform: translate(0, 0); } to { transform: translate(-8vmax, 6vmax); } }
+@keyframes drift2 { from { transform: translate(0, 0); } to { transform: translate(10vmax, -7vmax); } }
+
+/* ---------- the pane ----------
+   isolation:isolate so the sheen can be drawn behind the pane's own content.
+   ::before is the tint, light at the top left fading to nothing and a little
+   shadow gathering at the bottom. ::after is the rim: only the outermost pixel
+   is painted, so no type ever sits under it. */
+.pane {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--radius);
+  background: var(--pane);
+  -webkit-backdrop-filter: var(--paneBlur);
+  backdrop-filter: var(--paneBlur);
+  box-shadow: var(--e3);
+  color: var(--ink);
+}
+.pane::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    linear-gradient(146deg, rgba(255, 250, 205, 0.14) 0%, rgba(255, 250, 205, 0.04) 30%, rgba(255, 250, 205, 0) 58%),
+    linear-gradient(0deg, rgba(5, 25, 20, 0.22) 0%, rgba(5, 25, 20, 0) 44%);
+}
+.pane::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 250, 205, 0.34),
+    inset 0 0 0 1px rgba(255, 250, 205, 0.09),
+    inset 0 -1px 0 rgba(255, 250, 205, 0.14);
+}
+.pane-small { border-radius: 24px; }
+@supports not ((-webkit-backdrop-filter: blur(2px)) or (backdrop-filter: blur(2px))) {
+  .pane { background: #12332c; }
+}
+
+/* A smaller surface inside a pane: a platform's evidence page. */
+.inset {
+  border-radius: 22px;
+  background: var(--softer);
+  box-shadow: inset 0 0 0 1px var(--line), inset 0 1px 0 rgba(255, 250, 205, 0.07);
+}
+
+/* ---------- the card ----------
+   The search card rests at 720px, centred. When a platform's evidence is
+   open it grows outward to both sides, and the evidence takes the second
+   column beside the answer. The field at the top stays at the resting width
+   throughout, so it never moves. Below 1024px there is no room to grow, so
+   the evidence stacks beneath the answer instead. */
+.card {
+  width: 100%;
+  max-width: var(--cardRest);
+  margin: 0 auto;
+  transition: max-width var(--durIn) var(--easeOut);
+}
+.card-top {
+  max-width: calc(var(--cardRest) - 32px);
+  margin: 0 auto;
+}
+.answer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px 28px;
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .card[data-wide="1"] { max-width: var(--cardWide); }
+  .card[data-wide="1"] .answer { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  /* On a wide screen the side column appears with the card; the height
+     animation is only for the stacked layout. */
+  .card[data-wide="1"] .answer .unfold,
+  .card[data-wide="1"] .answer .unfold[data-open="1"] { transition: none; }
+}
+
+/* ---------- the morph ----------
+   Get Specific is a small glass pill that grows into its own panel: the
+   width, the corners and the padding all animate, and the panel's body
+   unfolds inside it. Same element throughout, so it reads as one thing
+   opening rather than a menu dropping out of a button. */
+.morph {
+  width: 100%;
+  max-width: 132px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 999px;
+  transition:
+    max-width var(--durIn) var(--easeOut),
+    border-radius var(--durIn) var(--easeOut),
+    padding var(--durIn) var(--easeOut);
+}
+.morph[data-open="1"] {
+  max-width: var(--cardRest);
+  border-radius: 24px;
+  padding: 8px 8px 12px;
+}
+.morph-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--durMicro) ease;
+}
+.morph-head:hover { background: var(--soft); }
+.morph-body { padding: 10px 8px 4px; }
+
+/* ---------- the unfold ----------
+   A container grows by animating a grid row from 0fr to 1fr, the one way
+   CSS can animate to an unknown height. Opening eases out over the longer
+   duration and the content fades up a beat behind; closing eases in, quicker,
+   with the content leaving first. The inner wrapper has 4px of side padding
+   so focus rings are not clipped by its overflow. */
+.unfold {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin: 0 -4px;
+  transition: grid-template-rows var(--durOut) var(--easeIn);
+}
+.unfold[data-open="1"] {
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--durIn) var(--easeOut);
+}
+.unfold > div { min-height: 0; overflow: hidden; }
+.unfold > div > * {
+  padding: 0 4px 4px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity var(--durOut) var(--easeIn), transform var(--durOut) var(--easeIn);
+}
+.unfold[data-open="1"] > div > * {
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--durIn) var(--easeOut) 60ms, transform var(--durIn) var(--easeOut) 60ms;
+}
+
+/* Content replaced inside an already open container crossfades. */
+.swap { animation: swap var(--durOut) var(--easeOut) both; }
+@keyframes swap {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Content arriving inside an already open container. */
+.rise { animation: rise var(--durIn) var(--easeOut) both; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- the rotating subject ----------
+   One subject at a time inside the search box, arriving from below, standing,
+   and leaving upward. Keyed on the subject so the animation restarts each
+   time. Paused, it simply stands. */
+.ghost {
+  position: absolute;
+  left: 22px;
+  right: 64px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--faint);
+  font-size: 17px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sweepbox {
+  display: block;
+  overflow: hidden;
+  line-height: 1.3;
+}
+.sweep {
+  display: block;
+  animation: sweep var(--sweepMs, 2600ms) var(--easeOut) both;
+}
+.sweep-still {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+@keyframes sweep {
+  0% { opacity: 0; transform: translateY(80%); }
+  16% { opacity: 1; transform: none; }
+  84% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-80%); }
+}
+
+/* ---------- type ---------- */
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- controls ---------- */
+.field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 22px;
+  border-radius: 999px;
+  background: rgba(255, 250, 205, 0.06);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 rgba(255, 250, 205, 0.08);
+  transition: border-color var(--durMicro) ease, background var(--durMicro) ease;
+}
+.field:focus-within {
+  border-color: rgba(134, 205, 184, 0.6);
+  background: rgba(255, 250, 205, 0.08);
+}
+.field input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  /* 17px so no phone zooms the page on focus. */
+  font-size: 17px;
+  color: var(--ink);
+  padding: 12px 0;
+}
+.go {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: var(--accentInk);
+  cursor: pointer;
+  transition: background var(--durMicro) var(--easeOut), transform var(--durMicro) var(--easeOut), opacity var(--durMicro) var(--easeOut);
+}
+.go:hover { background: #46a08b; }
+.go:active { transform: scale(0.94); }
+.go:disabled {
+  background: transparent;
+  color: var(--faint);
+  border-color: var(--line);
+  cursor: not-allowed;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--soft);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--durMicro) ease, border-color var(--durMicro) ease, color var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
+}
+.btn:hover { background: rgba(255, 250, 205, 0.12); }
+.btn:active { transform: scale(0.97); }
+.btn[aria-expanded="true"],
+.btn[aria-pressed="true"] {
+  background: var(--accentBg);
+  border-color: rgba(134, 205, 184, 0.5);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn-quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  font-weight: 500;
+}
+.btn-quiet:hover { background: var(--soft); color: var(--ink); }
+.btn-small { min-height: 36px; padding: 0 12px; font-size: 13px; }
+.btn small {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--faint);
+}
+.btn img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+.btn:disabled img { filter: grayscale(1); }
+
+/* The chevron on a disclosure button turns as it opens. */
+.chev { transition: transform var(--durMicro) var(--easeOut); }
+[aria-expanded="true"] > .chev { transform: rotate(180deg); }
+
+/* The BETA badge, in the accent. */
+.beta {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent);
+  color: var(--accentInk);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: background var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
+}
+.beta:hover { background: #46a08b; }
+.beta:active { transform: scale(0.96); }
+
+/* A segmented control with a sliding highlight, measured in Pill.tsx. */
+.pill {
+  position: relative;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--soft);
+  max-width: 100%;
+}
+.pill-thumb {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 999px;
+  background: var(--accentBg);
+  box-shadow: inset 0 1px 0 rgba(255, 250, 205, 0.22), 0 1px 2px rgba(0, 0, 0, 0.26);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform var(--durIn) var(--easeOut), width var(--durIn) var(--easeOut), height var(--durIn) var(--easeOut);
+}
+.pill-stop {
+  position: relative;
+  z-index: 1;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--durMicro) ease;
+}
+.pill-stop[data-on="1"] { color: var(--ink); font-weight: 600; }
+.pill-stop:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* A toggle chip: platforms and demographics. Click to select, click again
+   to clear. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--softer);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--durMicro) ease, color var(--durMicro) ease, border-color var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
+}
+.chip:active { transform: scale(0.97); }
+.chip[aria-pressed="true"] {
+  background: var(--accentBg);
+  border-color: rgba(134, 205, 184, 0.5);
+  color: var(--ink);
+}
+.chip:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.chip img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  margin-left: -4px;
+  transition: filter var(--durMicro) ease, opacity var(--durMicro) ease;
+}
+.chip:not([aria-pressed="true"]) img { filter: grayscale(1); opacity: 0.7; }
+.chip small { font-size: 11px; color: var(--faint); font-weight: 500; }
+.chip[aria-pressed="true"] small { color: var(--muted); }
+
+/* A clickable example subject. */
+.example {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background var(--durMicro) ease, border-color var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
+}
+.example:hover { background: var(--soft); border-color: rgba(134, 205, 184, 0.5); }
+.example:active { transform: scale(0.97); }
+
+/* A date field in the custom range. */
+.datefield {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.datefield input {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: var(--softer);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 16px;
+  color-scheme: dark;
+  transition: border-color var(--durMicro) ease;
+}
+.datefield input:focus { border-color: rgba(134, 205, 184, 0.6); outline: none; }
+.datefield input:focus-visible { outline: 2.5px solid var(--accentLift); outline-offset: 2px; }
+
+/* ---------- result pieces ---------- */
+.verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.verdict-positive { color: var(--up); background: var(--upBg); }
+.verdict-mixed { color: var(--mixed); background: var(--mixedBg); }
+.verdict-negative { color: var(--neg); background: var(--negBg); }
+
+.thread {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.thread:first-child { border-top: none; padding-top: 0; }
+
+.dots { display: inline-flex; align-items: center; gap: 5px; }
+.dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.dots span:nth-child(2) { animation-delay: 0.2s; }
+.dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+  40% { opacity: 1; transform: none; }
+}
+
+/* ---------- the changelog dialog ---------- */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(22, 59, 51, 0.42);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10vh 20px 20px;
+  animation: fadein var(--durOut) ease both;
+}
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+.dialog {
+  width: min(560px, 100%);
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 22px 24px;
+  animation: dialogin var(--durIn) var(--easeOut) both;
+}
+@keyframes dialogin {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  margin-top: 7px;
+}
+.dot-new { background: var(--up); }
+.dot-changed { background: var(--mixed); }
+.dot-removed { background: var(--neg); }
+
+/* ---------- reduced motion ----------
+   Everything that loops is stopped outright rather than shortened: an
+   infinite loop at a 1ms duration is a strobe, not a stop. State changes
+   still happen, instantly. */
+@media (prefers-reduced-motion: reduce) {
+  .ground::before, .ground::after { animation: none; }
+  .sweep { animation: none; opacity: 1; transform: none; }
+  .unfold, .unfold[data-open="1"] { transition: none; }
+  .unfold > div > *, .unfold[data-open="1"] > div > * { transition: none; }
+  .card, .morph, .morph-head, .pill-thumb, .chev, .btn, .chip, .go, .beta, .example { transition: none; }
+  .rise, .swap, .scrim, .dialog { animation: none; }
+  .dots span { animation: none; opacity: 0.7; }
+}
