@@ -13,6 +13,15 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.9",
+    date: "11 September 2026",
+    items: [
+      ["changed", "Get Specific and How does this work rethought. Each panel is now the width of the search card and grows out of its own pill, which stays exactly where you clicked and becomes the panel's header. No more travelling pill, no more empty space beside the text."],
+      ["changed", "The rows inside arrive one after another, rising from below, and the panels open in about half a second and close faster."],
+      ["changed", "Platforms and Time period sit side by side in Get Specific, above the demographics."],
+    ],
+  },
+  {
     v: "0.8.2",
     date: "11 September 2026",
     items: [

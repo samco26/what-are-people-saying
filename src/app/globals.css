@@ -265,55 +265,50 @@ button {
    from the script, and it scrolls inside itself once settled. The one
    cost of clipping is the drop shadow, which a clip removes; the rim and
    the blur carry the glass instead. */
+/* The two pills under the search card, Get Specific at its left edge and
+   How does this work at its right, each the header of a panel the width of
+   the card. The panel is laid out at full size from the start and sits over
+   whatever is beneath; only its visible edge animates, a clip that opens
+   out from the pill's own outline, so the panel visibly grows out of the
+   thing that was clicked and the pill never moves. The rows inside arrive
+   one beat after another, rising from below.
+
+   The wrapper keeps the pills' 36px in the flow, so the page never moves.
+   Open, a panel's height is capped to the window by the script and it
+   scrolls inside itself once settled. */
 .morph-wrap {
   position: relative;
+  width: 100%;
+  max-width: var(--cardRest);
   height: 36px;
+  margin: 12px auto 0;
   flex: 0 0 auto;
   z-index: 10;
-  /* Where the pill sits: the search card's edge, measured from the panel's
-     edge. Set in pixels by the script from the wrapper's width, because a
-     percentage means the panel's width inside clip-path but the button's
-     own width inside transform, and the two have to agree exactly. */
-  --pillLeft: 0px;
 }
 .morph {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  inset: 0 0 auto 0;
   border-radius: 24px;
-  padding: 0 8px 12px;
+  padding: 0 0 12px;
   box-shadow: none;
-  clip-path: inset(0 calc(100% - var(--pillLeft) - 132px) calc(100% - 36px) var(--pillLeft) round 999px);
-  transition: clip-path var(--durSlowOut) var(--easeIn);
+  --pillW: 132px;
+  clip-path: inset(0 calc(100% - var(--pillW)) calc(100% - 36px) 0 round 999px);
+  transition: clip-path var(--durOut) var(--easeIn);
 }
 .morph[data-open="1"] {
   clip-path: inset(0 0 0 0 round 24px);
-  transition: clip-path var(--durSlow) var(--easeOut);
+  transition: clip-path var(--durIn) var(--easeOut);
 }
 .morph.morph-settled { overflow: auto; overscroll-behavior: contain; }
-/* The mirror: "How does this work" sits at the search card's right edge
-   and opens the same way, outward to the same wide panel, its pill
-   travelling right to the panel's corner as the clip opens. */
 .morph-right {
   --pillW: 168px;
-  clip-path: inset(0 var(--pillLeft) calc(100% - 36px) calc(100% - var(--pillLeft) - var(--pillW)) round 999px);
+  clip-path: inset(0 0 calc(100% - 36px) calc(100% - var(--pillW)) round 999px);
 }
-.morph-right .morph-head {
-  display: flex;
-  width: var(--pillW);
-  margin-left: auto;
-  transform: translateX(calc(8px - var(--pillLeft)));
-}
-.morph-right[data-open="1"] .morph-head { transform: none; }
-/* The pill travels with the opening edge: it starts at the search card's
-   corner and slides to the panel's own corner as the clip opens, on a
-   transform, so the slide costs nothing to draw. */
 .morph-head {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
-  width: 132px;
+  width: var(--pillW);
   height: 36px;
   padding: 0 14px;
   border: none;
@@ -325,36 +320,40 @@ button {
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
-  /* The panel has 8px of side padding; the pill has to sit exactly on the
-     clipped glass, flush with the card's edge, so the button steps back
-     by that padding. */
-  transform: translateX(calc(var(--pillLeft) - 8px));
-  transition:
-    transform var(--durSlowOut) var(--easeIn),
-    background var(--durMicro) ease,
-    box-shadow var(--durOut) var(--easeOut);
+  transition: background var(--durMicro) ease, transform var(--durMicro) var(--easeOut);
 }
 .morph-head:hover { background: var(--soft); }
-/* Open, the pill sits in the panel's corner and its own rim fades: the
-   panel's rim takes over. */
-.morph[data-open="1"] .morph-head {
-  transform: none;
-  box-shadow: inset 0 0 0 1px transparent;
-  transition:
-    transform var(--durSlow) var(--easeOut),
-    background var(--durMicro) ease,
-    box-shadow var(--durOut) var(--easeOut);
-}
+.morph-head:active { transform: scale(0.97); }
+.morph-right .morph-head { margin-left: auto; }
+/* Open, the pill's own rim fades into the panel. */
+.morph[data-open="1"] .morph-head { box-shadow: inset 0 0 0 1px transparent; }
 .morph-body {
-  opacity: 0;
+  padding: 14px 22px 4px;
   visibility: hidden;
-  transition: opacity var(--durOut) var(--easeIn), visibility 0s linear var(--durOut);
+  transition: visibility 0s linear var(--durOut);
 }
 .morph[data-open="1"] .morph-body {
-  opacity: 1;
   visibility: visible;
-  transition: opacity 600ms var(--easeOut) 250ms, visibility 0s;
+  transition: visibility 0s;
 }
+/* Each row rises in a beat after the last on the way in, and all leave
+   together, quickly, on the way out. */
+.mrow {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--durOut) var(--easeIn), transform var(--durOut) var(--easeIn);
+}
+.morph[data-open="1"] .mrow {
+  opacity: 1;
+  transform: none;
+  transition: opacity 360ms var(--easeOut) var(--d, 80ms), transform 420ms var(--easeOut) var(--d, 80ms);
+}
+.mrow:nth-child(1) { --d: 80ms; }
+.mrow:nth-child(2) { --d: 130ms; }
+.mrow:nth-child(3) { --d: 180ms; }
+.mrow:nth-child(4) { --d: 230ms; }
+.mrow:nth-child(5) { --d: 280ms; }
+.mrow:nth-child(6) { --d: 330ms; }
 
 /* ---------- the unfold ----------
    A container grows by animating a grid row from 0fr to 1fr, the one way
@@ -830,6 +829,7 @@ button {
   .unfold > div > *, .unfold[data-open="1"] > div > *,
   .unfold-slow > div > *, .unfold-slow[data-open="1"] > div > * { transition: none; }
   .card, .morph, .morph[data-open="1"], .morph-head, .morph-body, .morph[data-open="1"] .morph-body,
+  .mrow, .morph[data-open="1"] .mrow,
   .srcbtn, .sentbar span, .pill-thumb, .chev, .btn, .chip, .go, .beta, .example { transition: none; }
   .rise, .swap, .scrim, .dialog { animation: none; }
   .dots span { animation: none; opacity: 0.7; }

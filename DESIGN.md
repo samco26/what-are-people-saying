@@ -116,3 +116,15 @@ Also in this pass: every expansion is slower, with the answer and Get Specific a
 - **Simpler platform evidence.** Verdict, agreement and item count on one line; one line of confidence; Liked and Did not like as short lists of titles; the titles it drew from, with one note that they are fictional. The confidence heading, the theme details, the shortfall notes, the kind labels and the per-item fictional marks are gone.
 - **The accent** is now the golden orange at the foot of the background image, `#F2A33A`, read by eye. It carries dark type, because white on it falls short of the floor. The focus ring is a darker cut of it, `#C9781A`, so it reads on pale glass.
 - **How does this work** mirrors Get Specific at the search card's right edge: the same pill, the same clip-path opening, to the card's own 720px rather than the wide width, holding four short paragraphs in plain English. Opening one closes the other. The small print at the foot of the page is gone, with nothing in its place, at the user's request.
+
+## Eighth pass, 11 September 2026: the pills rethought
+
+The user asked for the expanding pills to be judged as a concept against the ui-ux-pro-max rules, and they failed three of them. The panels opened to 1180px because Get Specific once needed two columns, so a four-paragraph explanation sat in a panel three times wider than its text (the user's "massive gap"). The pill travelled to a corner that moved away from where it was clicked, which breaks spatial continuity and the cause-and-effect the rules ask of every animation. And 900ms is past the ceiling for a panel that is opened and closed often.
+
+What replaced it:
+
+- **The panel is the card's width and grows out of its pill.** The wrapper is the 720px column; each panel is laid out at that width from the start and only its clip animates, from the pill's outline in its own corner to the full rounded rectangle. The pill stays exactly where it was clicked and becomes the panel's header, its rim fading into the panel's. No pixel measurement is needed any more, because the pill's corner and the panel's corner are the same point.
+- **Standard timings for these two** (520ms out, 360ms back, ease-out in and ease-in out), the answer keeping its slow reveal. Press feedback on the pill.
+- **Rows arrive in sequence.** Each `.mrow` rises from 8px below, one beat (50ms) after the last, on the way in; all leave together, faster, on the way out. Hierarchy motion: entering from below reads as deeper.
+- **Get Specific fits 720px** with Platforms and Time period side by side above the demographics. How does this work runs at 15px on a 76ch measure.
+- **Kept:** the no-scroll rule (the wrapper still holds only the pills' 36px; a panel's height is capped to the window and scrolls inside), and the 22px inset.

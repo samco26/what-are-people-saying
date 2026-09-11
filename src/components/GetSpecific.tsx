@@ -56,8 +56,8 @@ export function GetSpecific({
   ).map((s) => s.name);
 
   return (
-    <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-x-10">
-      <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5">
+      <div className="mrow grid gap-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-x-8">
       <Row label="Platforms">
         <div className="flex flex-wrap gap-2">
           {SOURCES.map((s) => {
@@ -123,7 +123,7 @@ export function GetSpecific({
       </Row>
       </div>
 
-      <Row label="Demographics">
+      <Row label="Demographics" className="mrow">
         <div className="flex flex-col gap-3">
           <Group label="Age">
             {AGES.map((a) => (
@@ -170,7 +170,7 @@ export function GetSpecific({
         </div>
       </Row>
 
-      <p className="m-0 text-[12px] leading-[1.55] text-faint lg:col-span-2">
+      <p className="mrow m-0 text-[12px] leading-[1.55] text-faint">
         Selected: {listNames(chosen)}, {periodText(value)}, {demographicText(value)}. Platforms and
         the time period shape what a live search collects. The six example subjects are fixed
         samples and ignore them. Demographics are recorded but not yet applied, because no
@@ -180,9 +180,9 @@ export function GetSpecific({
   );
 }
 
-function Row({ label, children }: { label: string; children: ReactNode }) {
+function Row({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className={`flex flex-col gap-2.5 min-w-0${className ? ` ${className}` : ""}`}>
       <span className="label">{label}</span>
       {children}
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { EXAMPLE_SUBJECTS } from "@/lib/subjects";
 import { DEFAULT_REFINEMENTS, type ConsensusResponse, type Refinements, type SourceId } from "@/lib/types";
 import { RotatingSubjects } from "./RotatingSubjects";
@@ -31,10 +31,6 @@ type Phase =
    step rather than a flicker. The sample answers instantly, so this is the
    whole wait. */
 const MIN_WAIT_MS = 1100;
-
-/* A layout effect in the browser, a plain effect on the server, where a
-   layout effect has nothing to lay out and React says so. */
-const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /* A card's body may scroll inside the card only once its opening has
    finished, so no scrollbar appears while the row is still growing. The
@@ -78,27 +74,6 @@ export function SearchCard() {
   const answerId = useId();
   const specificId = useId();
   const panelId = useId();
-
-  /* The pills sit at the search card's edges, which is a pixel offset from
-     the wide panel's edges that depends on the wrapper's width. Measured
-     here and handed to the stylesheet, before paint, and again whenever the
-     wrapper resizes. */
-  useIsoLayoutEffect(() => {
-    const el = morphWrap.current;
-    if (!el) return;
-    const place = () => {
-      const left = Math.max(0, (el.clientWidth - 720) / 2);
-      el.style.setProperty("--pillLeft", `${left}px`);
-    };
-    place();
-    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(place) : null;
-    if (ro) ro.observe(el);
-    window.addEventListener("resize", place);
-    return () => {
-      window.removeEventListener("resize", place);
-      if (ro) ro.disconnect();
-    };
-  }, []);
 
   useEffect(() => {
     if (!specific && !how) return;
@@ -266,7 +241,7 @@ export function SearchCard() {
         </div>
       </section>
 
-      <div className="morph-wrap mt-3" ref={morphWrap}>
+      <div className="morph-wrap" ref={morphWrap}>
         <section
           className={"glass morph" + (specificSettled ? " morph-settled" : "")}
           data-open={specific ? "1" : undefined}
