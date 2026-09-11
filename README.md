@@ -4,9 +4,9 @@ A personal, non-commercial app that reads a bounded selection of online discussi
 
 ## Current checkpoint: BETA 0.9.4
 
-Deployed BETA 0.9.4 on 12 September 2026: Vercel confirmed commit `1a2539b` succeeded. A live search for “mercury marine boat engines in australia” returned 160 YouTube opinions from the last 3 months in 5.9 seconds, including 1.101 seconds for collection and 4.275 seconds for analysis. X returned HTTP 400 and Reddit was unconnected. Twelve-month and three-year fallback paths pass mocked tests; one live measurement is not a general speed guarantee.
+Deployed BETA 0.9.4 on 12 September 2026. The X timestamp fix in `b466fbe` was subsequently deployed successfully: a controlled live Mercury Marine search returned 160 YouTube opinions from the last 3 months in 6.2 seconds (collection 0.802 seconds; analysis 4.474 seconds). X accepted the search and returned zero matches, replacing the previous HTTP 400 failure; Reddit was unconnected. Twelve-month and three-year fallback paths pass mocked tests. One live measurement is not a general speed guarantee, and an accepted empty X search does not verify nonempty evidence or billing.
 
-The interface, server-side OpenAI analysis and YouTube/X/Reddit connectors are implemented. The user has observed a live result on the deployed site. This workspace has no live API keys, so the revised collection and AI paths are checked with simulated service responses; live response quality and latency still need verification after deployment.
+The interface, server-side OpenAI analysis and YouTube/X/Reddit connectors are implemented. This workspace has no live API keys: local checks use simulated service responses, and controlled production checks use the server's configured credentials. Live evidence quality and billed cost still need auditing.
 
 Searches now lead with the opinion itself, display **N opinions read from the last 3 months / 12 months / 3 years**, and show labelled positive/neutral/negative percentages above the bar. Live results do not say “Live sample” or “Nothing is kept”. Fictional results retain their explicit label. Source coverage explains missing platforms or comments, and live evidence links open the actual collected comments.
 
@@ -63,6 +63,8 @@ YouTube needs one video search and up to two comment-list requests per video: 11
 ## Response speed
 
 Sparse searches can take longer than dense ones because they try broader windows. YouTube search/comment responses and Reddit tokens/comment responses are reused in request memory, avoiding redundant reads. No social content is cached across searches. X remains at its existing default of 50 posts for this release; increasing its paid scope and adding conversation replies is a separate decision.
+
+X omits `end_time` for searches ending near the current instant, allowing the API to apply its indexing-safe default. Historical end times are preserved. An accepted empty response explicitly reports no matching posts. X currently quotes the entire subject as an exact phrase, so long natural-language queries can return no matches even when related discussion exists. No third-party X provider is configured.
 
 The existing parallel collection is retained. YouTube responses request only fields used by analysis, omitting thumbnails and unrelated metadata. When only one platform has opinions, OpenAI generates its reading once and the server uses it for both the overall answer and platform evidence. Short numeric evidence references replace long source IDs. The artificial 1.1-second minimum loading wait has been removed.
 

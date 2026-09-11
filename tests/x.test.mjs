@@ -38,3 +38,17 @@ test("X retains an end_time for a genuinely historical search", async () => {
   const requested = await collectWith(to);
   assert.equal(requested.searchParams.get("end_time"), to.toISOString());
 });
+
+test("an accepted empty X search reports no matches and its seven-day coverage", async () => {
+  process.env.X_BEARER_TOKEN = "test-placeholder-not-a-token";
+  globalThis.fetch = async () => Response.json({ meta: { result_count: 0 } });
+  const result = await x.collect({
+    subject: "fictional boat engine",
+    from: new Date(Date.now() - 90 * 86_400_000),
+    to: new Date(),
+    signal: new AbortController().signal,
+  });
+  assert.equal(result.items.length, 0);
+  assert.equal(result.status.itemsAnalysed, 0);
+  assert.equal(result.status.note, "No matching X posts were found in the last seven days.");
+});

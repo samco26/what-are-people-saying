@@ -11,8 +11,9 @@
    is a guard rail rather than a hard cap; the hard cap is the tier's own
    monthly limit on the X developer console.
 
-   Not verified against the live API yet: written from the API's published
-   shapes and switched on only when X_BEARER_TOKEN exists. */
+   A live empty search was verified on 12 September 2026. Nonempty result
+   coverage and billed cost still need verification. Enabled only when
+   X_BEARER_TOKEN exists. */
 
 import type { SourceItem } from "../types";
 import { env, envInt } from "../env";
@@ -94,7 +95,9 @@ async function collect(opts: CollectOptions): Promise<Collected> {
     engagement: (p.public_metrics?.like_count ?? 0) + (p.public_metrics?.retweet_count ?? 0),
   }));
 
-  const note = clamped ? "X only searches the last seven days, so the time period was narrowed to that." : undefined;
+  const note = items.length === 0
+    ? (clamped ? "No matching X posts were found in the last seven days." : "No matching X posts were found in this search window.")
+    : (clamped ? "X only searches the last seven days, so the time period was narrowed to that." : undefined);
   const status = statusFor("x", items.length, max, note);
   if (note && status.availability === "ok") status.note = note;
   return { items, status };
