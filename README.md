@@ -44,7 +44,7 @@ Search accepts only a subject. The Get Specific button and all platform, date an
 
 ## Going live
 
-The live search is built and switches on by keys. With no keys, the app answers only the six example subjects, from labelled samples. With `ANTHROPIC_API_KEY` plus at least one source key, every search collects a bounded sample from all connected platforms using the default past-30-day window (X is limited to its recent-search coverage), sends it to Claude once, and answers from that. A platform without its key is reported as unavailable in the answer rather than failing the search. Nothing collected is stored.
+The live search is built and switches on by keys. With no keys, the app answers only the six example subjects, from labelled samples. With `OPENAI_API_KEY` plus at least one source key, every search collects a bounded sample from all connected platforms using the default past-30-day window (X is limited to its recent-search coverage), sends it to OpenAI once, and answers from that. A platform without its key is reported as unavailable in the answer rather than failing the search. Nothing collected is stored by this application, and the OpenAI response is requested with `store: false`.
 
 **Not yet verified against any live service.** The connectors were written from each platform's published API shapes on a machine with no Node and no keys. The first search with a real key is the first real test, and small fixes should be expected then.
 
@@ -52,7 +52,7 @@ Where each key comes from, and what it costs:
 
 | Key | Where | Cost |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | console.anthropic.com | Per search, roughly 20,000 input tokens and 1,500 output: about 12 cents on `claude-opus-5` (the default), 5 cents on `claude-sonnet-5`, 3 cents on `claude-haiku-4-5`. Set `CONSENSUS_MODEL` to change. |
+| `OPENAI_API_KEY` | platform.openai.com/api-keys | Per search, roughly 20,000 input tokens and 1,500 output: about 0.6 US cents on `gpt-5.6-luna` (the default), 5.8 cents on `gpt-5.6-terra`, or 11 cents on `gpt-5.6-sol`, before tax. Set `CONSENSUS_MODEL` to change. The estimate assumes no reasoning tokens. |
 | `YOUTUBE_API_KEY` | Google Cloud console, enable YouTube Data API v3, create an API key | Free. About 108 quota units a search against a free daily quota of 10,000, so roughly 90 searches a day. |
 | `X_BEARER_TOKEN` | developer.x.com, create a project and app, copy the Bearer token | Paid. X bills by posts read; `X_MAX_RESULTS` (default 50) and `X_DAILY_POST_BUDGET` cap it. Recent search covers seven days. |
 | `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_USER_AGENT` | reddit.com/prefs/apps, create a "script" app | Free within 100 calls a minute; a search uses about 12. |
@@ -68,7 +68,7 @@ connectors/index.ts       runs the requested connectors in parallel, each under 
 connectors/youtube.ts     video search plus top comments
 connectors/x.ts           recent search, with the spend controls
 connectors/reddit.ts      post search plus top comments, via OAuth
-analysis/analyse.ts       one Claude call with a fixed output shape; links come only from collected items
+analysis/analyse.ts       one OpenAI Responses API call with a fixed output shape; links come only from collected items
 ```
 
 ## Sample subjects

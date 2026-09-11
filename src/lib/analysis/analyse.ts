@@ -1,4 +1,4 @@
-/* The analysis: the collected sample goes to Claude once, and a structured
+/* The analysis: the collected sample goes to OpenAI once, and a structured
    answer comes back in the shape the screen already draws.
 
    Two rules keep it honest. The model may only cite items it was given:
@@ -7,16 +7,16 @@
    And the model is told to say when the evidence is thin rather than fill
    the slots: fewer than three themes is a valid answer.
 
-   The model is CONSENSUS_MODEL, claude-opus-5 by default. See README.md for
+   The model is CONSENSUS_MODEL, gpt-5.6-luna by default. See README.md for
    what a search costs on each model. */
 
-import Anthropic from "@anthropic-ai/sdk";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import OpenAI from "openai";
+import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 import type { ConsensusResult, SourceId, SourceItem, SourceStatus, SourceThread } from "../types";
 import { env } from "../env";
 
-const DEFAULT_MODEL = "claude-opus-5";
+const DEFAULT_MODEL = "gpt-5.6-luna";
 
 /* The most of the sample the model reads. Above this the longest items are
    dropped first, which keeps a search inside a predictable cost. */
@@ -88,34 +88,31 @@ export function trimSample(items: SourceItem[], max = MAX_ITEMS): SourceItem[] {
 }
 
 export async function analyse(subject: string, items: SourceItem[], statuses: SourceStatus[]): Promise<ConsensusResult> {
-  const client = new Anthropic({ apiKey: env("ANTHROPIC_API_KEY") });
+  const client = new OpenAI({ apiKey: env("OPENAI_API_KEY") });
   const model = env("CONSENSUS_MODEL") ?? DEFAULT_MODEL;
   const sample = trimSample(items);
   const byId = new Map(sample.map((it) => [it.id, it]));
 
-  /* Effort keeps the reasoning short on a classification task. Haiku 4.5
-     rejects the setting, so it is only sent to models that take it. */
-  const outputConfig = model.startsWith("claude-haiku")
-    ? { format: zodOutputFormat(Analysis) }
-    : { effort: "low" as const, format: zodOutputFormat(Analysis) };
-
-  const response = await client.messages.parse({
+  const response = await client.responses.parse({
     model,
-    max_tokens: 6000,
-    system: SYSTEM,
-    output_config: outputConfig,
-    messages: [
-      {
-        role: "user",
-        content: `Subject: ${subject}\n\nSample of ${sample.length} items:\n${formatItems(sample)}`,
-      },
-    ],
+    instructions: SYSTEM,
+    input: `Subject: ${subject}\n\nSample of ${sample.length} items:\n${formatItems(sample)}`,
+    max_output_tokens: 6000,
+    reasoning: { effort: "none" },
+    text: { format: zodTextFormat(Analysis, "consensus_analysis") },
+    /* A search is complete in one request, so its response does not need
+       to be retained by the provider for later retrieval. */
+    store: false,
   });
 
-  if (response.stop_reason === "refusal") {
+  const refusal = response.output
+    .filter((item) => item.type === "message")
+    .flatMap((item) => item.content)
+    .find((part) => part.type === "refusal");
+  if (refusal) {
     throw new Error("The analysis declined this subject.");
   }
-  const out = response.parsed_output;
+  const out = response.output_parsed;
   if (!out) throw new Error("The analysis did not come back in the expected shape.");
 
   const threadsFor = (ids: string[]): SourceThread[] =>
