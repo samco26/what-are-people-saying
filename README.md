@@ -35,7 +35,7 @@ Put credentials in `.env.local` locally or Vercel's Environment Variables. Never
 | `CONSENSUS_MODEL` | Defaults to `gpt-5.6-luna`; the current model is retained for these changes. |
 | `YOUTUBE_API_KEY` | YouTube Data API v3 access. Collection is fixed at 10 videos × 30 comments. |
 | `X_BEARER_TOKEN` | X recent search access. |
-| `X_MAX_RESULTS` | Default 50; bounded to 10–100 posts per query. |
+| `X_MAX_RESULTS` | Default 20; bounded to 10–20 posts per query, including older environment overrides. Up to US$0.10 in post-read charges at US$0.005 per post, excluding AI. |
 | `X_DAILY_POST_BUDGET` | Default 1,000; best-effort per-process budget, not a global billing cap. |
 | `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_USER_AGENT` | Reddit OAuth and an identifying user agent. |
 | `REDDIT_MAX_POSTS`, `REDDIT_COMMENTS_PER_POST` | Defaults 10 posts and 12 comments per post. |
@@ -52,7 +52,7 @@ Without an AI key plus at least one source key, only six built-in fictional subj
 - Each source has its own connector and returns a shared format with an explicit availability status. Sources run in parallel with a nine-second limit each per pass. Access failures and X recent search are not retried during expansion.
 - YouTube asks for the **10 highest-viewed matching videos regardless of upload date**, then requests relevance-ranked top-level comments in parallel. When fewer than 30 comments qualify in the window, it also checks the 30 latest comments. At most **30 unique opinions per video** are selected, retaining previously selected recent opinions when widening the window. “Top” means the API's relevance ranking, not a guaranteed global ordering by likes. Fewer videos, disabled comments, timeouts or fewer in-window comments produce an explicit shortfall, not invented replacements.
 - Video titles/descriptions provide context. Only comments count as YouTube opinions. Parent references connect each comment to its video. YouTube comment text is preserved in full; X and Reddit retain their existing 600-character per-entry limit.
-- **All collected entries reach OpenAI.** The former 220-entry cutoff and preference for shorter entries have been removed. At the default limits this is up to 300 YouTube comments, 50 X posts and 130 Reddit posts/comments per pass (deduplicated across up to three passes), plus 10 YouTube context entries.
+- **All collected entries reach OpenAI.** The former 220-entry cutoff and preference for shorter entries have been removed. At the default limits this is up to 300 YouTube comments, 20 X posts and 130 Reddit posts/comments per pass (deduplicated across up to three passes), plus 10 YouTube context entries.
 - OpenAI is instructed to lead with the substantive opinion, ignore spam and irrelevant material, distinguish claims from verified facts, and treat collected text as untrusted data. It must acknowledge thin evidence rather than invent themes.
 - Percentages are AI estimates across relevant opinions, not audited per-comment classifications or population polling. Likes are not extra votes. Rounded display values add to 100.
 - Representative links are resolved from numeric references into the collected evidence, constrained to the correct platform. The model cannot invent a source URL.
@@ -62,7 +62,7 @@ YouTube needs one video search and up to two comment-list requests per video: 11
 
 ## Response speed
 
-Sparse searches can take longer than dense ones because they try broader windows. YouTube search/comment responses and Reddit tokens/comment responses are reused in request memory, avoiding redundant reads. No social content is cached across searches. X remains at its existing default of 50 posts for this release; increasing its paid scope and adding conversation replies is a separate decision.
+Sparse searches can take longer than dense ones because they try broader windows. YouTube search/comment responses and Reddit tokens/comment responses are reused in request memory, avoiding redundant reads. No social content is cached across searches. X makes one search request for up to 20 posts, with no additional reply requests or pagination. It is not repeated when other sources expand their time windows.
 
 X omits `end_time` for searches ending near the current instant, allowing the API to apply its indexing-safe default. Historical end times are preserved. An accepted empty response explicitly reports no matching posts. X currently quotes the entire subject as an exact phrase, so long natural-language queries can return no matches even when related discussion exists. No third-party X provider is configured.
 

@@ -4,12 +4,12 @@
    only. Recent search reaches back seven days, so an earlier time window
    is clamped to that and the status says so.
 
-   Spend controls, because X bills by posts read: X_MAX_RESULTS (10 to 100,
-   default 50) is the most one search reads, and X_DAILY_POST_BUDGET
+   Spend controls, because X bills by posts read: X_MAX_RESULTS (10 to 20,
+   default 20) is the most one search reads, and X_DAILY_POST_BUDGET
    (default 1000) is a best-effort daily ceiling kept in this process's
    memory. On a serverless host that memory is per instance, so the ceiling
-   is a guard rail rather than a hard cap; the hard cap is the tier's own
-   monthly limit on the X developer console.
+   is a guard rail rather than a hard cap; set a billing-cycle spending
+   limit in the X developer console for a whole-app cap.
 
    Live empty and nonempty searches were verified on 12 September 2026.
    Billed cost still needs reconciliation. Enabled only when
@@ -52,7 +52,8 @@ function spend(n: number): boolean {
 
 async function collect(opts: CollectOptions): Promise<Collected> {
   const token = env("X_BEARER_TOKEN") ?? "";
-  const max = envInt("X_MAX_RESULTS", 50, 10, 100);
+  // Enforce the agreed US$0.10 post-read budget even with an older env value.
+  const max = envInt("X_MAX_RESULTS", 20, 10, 20);
 
   if (!spend(max)) {
     return {
