@@ -1,0 +1,29 @@
+# Secrets and local credentials
+.env
+.env.*
+*.pem
+*.key
+credentials*.json
+*service-account*.json
+.auth/
+playwright/.auth/
+
+# Dependencies and build output
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Hosting and tooling state
+.vercel/
+.codex/
+.agents/
+playwright-report/
+test-results/
+
+# Logs and operating system files
+*.log
+.DS_Store
