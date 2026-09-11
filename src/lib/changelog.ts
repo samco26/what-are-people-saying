@@ -13,6 +13,13 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.8.2",
+    date: "11 September 2026",
+    items: [
+      ["changed", "The Get Specific and How does this work pills sit exactly on their glass, flush with the card's edges. The sliver of glass that showed past each button is gone."],
+    ],
+  },
+  {
     v: "0.8.1",
     date: "11 September 2026",
     items: [

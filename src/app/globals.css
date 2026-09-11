@@ -303,7 +303,7 @@ button {
   display: flex;
   width: var(--pillW);
   margin-left: auto;
-  transform: translateX(calc(-1 * var(--pillLeft)));
+  transform: translateX(calc(8px - var(--pillLeft)));
 }
 .morph-right[data-open="1"] .morph-head { transform: none; }
 /* The pill travels with the opening edge: it starts at the search card's
@@ -325,7 +325,10 @@ button {
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
-  transform: translateX(var(--pillLeft));
+  /* The panel has 8px of side padding; the pill has to sit exactly on the
+     clipped glass, flush with the card's edge, so the button steps back
+     by that padding. */
+  transform: translateX(calc(var(--pillLeft) - 8px));
   transition:
     transform var(--durSlowOut) var(--easeIn),
     background var(--durMicro) ease,
