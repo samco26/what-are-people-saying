@@ -12,7 +12,8 @@ test("a provider's structured 400 detail reaches the source status without reque
     new Response(
       JSON.stringify({
         title: "Invalid Request",
-        detail: "The start_time parameter is invalid.",
+        detail: "One or more parameters to your request was invalid.",
+        errors: [{ message: "The start_time parameter is invalid." }],
       }),
       { status: 400, headers: { "content-type": "application/json" } },
     );

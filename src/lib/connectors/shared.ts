@@ -48,10 +48,10 @@ function responseDetail(body: string): string | undefined {
       errors?: Array<{ message?: unknown; detail?: unknown }>;
     };
     const candidates = [
-      parsed.detail,
-      parsed.error?.message,
-      parsed.errors?.[0]?.detail,
       parsed.errors?.[0]?.message,
+      parsed.errors?.[0]?.detail,
+      parsed.error?.message,
+      parsed.detail,
       parsed.title,
     ];
     const detail = candidates.find((value): value is string => typeof value === "string" && value.trim().length > 0);
