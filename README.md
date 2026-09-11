@@ -4,7 +4,7 @@ A personal, non-commercial app that reads a bounded selection of online discussi
 
 ## Current checkpoint: BETA 0.9.4
 
-Deployed BETA 0.9.4 on 12 September 2026. The X timestamp fix in `b466fbe` was subsequently deployed successfully: a controlled live Mercury Marine search returned 160 YouTube opinions from the last 3 months in 6.2 seconds (collection 0.802 seconds; analysis 4.474 seconds). X accepted the search and returned zero matches, replacing the previous HTTP 400 failure; Reddit was unconnected. Twelve-month and three-year fallback paths pass mocked tests. One live measurement is not a general speed guarantee, and an accepted empty X search does not verify nonempty evidence or billing.
+Deployed BETA 0.9.4 on 12 September 2026. A live search for “ChatGPT” returned 234 YouTube opinions and 50 X posts, followed by a grounded OpenAI answer with separate evidence for both sources. This verifies the production X Bearer token, paid recent-search access, YouTube collection and multi-source analysis path. A prior X HTTP 400 was traced to its requirement that `end_time` be at least ten seconds old and fixed in commit `b466fbe`. Reddit remains unconnected, and the actual provider charges have not yet been reconciled against their dashboards.
 
 The interface, server-side OpenAI analysis and YouTube/X/Reddit connectors are implemented. This workspace has no live API keys: local checks use simulated service responses, and controlled production checks use the server's configured credentials. Live evidence quality and billed cost still need auditing.
 
@@ -83,7 +83,7 @@ Suggestions load independently of searches. Only the public news suggestions and
 - `npm test`: mocked YouTube collection, parallel requests, complete AI input, one-source and multi-source schemas, citation validation, partial failures, time windows, rounding, dated news parsing, topic grounding and news fallback.
 - `npm run typecheck` and `npm run build`: required before a checkpoint is committed.
 - Browser checks cover desktop/mobile search, labelled samples, the revised live-result layout using an explicitly fictional fixture, evidence links, source coverage, asynchronous suggestions, Enter-to-search, overflow and runtime errors.
-- The public BBC feed format was checked directly, and production returned six AI-selected news topics after deployment. The revised live YouTube/OpenAI path succeeded on one controlled production query; its detailed evidence quality and billed cost have not been audited. Mocked checks do not verify real consensus phrasing, provider permissions or speed.
+- The public BBC feed format was checked directly, and production returned six AI-selected news topics after deployment. Controlled live queries verified YouTube/OpenAI, and a multi-source query returned 50 X posts. Detailed evidence quality and billed cost have not been audited. Mocked checks do not verify every provider failure mode or general response speed.
 - Popular videos and top-ranked comments are a popularity-biased selection. Even the widest window can miss discussion, and a bounded selection is not exhaustive. Fewer than 300 opinions is expected where coverage is limited. Suggestions can be broader than the available evidence.
 - The news rotation uses one publisher across several categories, not a comprehensive trend ranking.
 - The glass effect needs `backdrop-filter`; smaller windows scroll within the card.

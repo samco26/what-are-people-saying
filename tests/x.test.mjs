@@ -19,23 +19,24 @@ async function collectWith(to) {
     requested = new URL(String(input));
     return Response.json({ meta: { result_count: 0 } });
   };
-  await x.collect({
+  const result = await x.collect({
     subject: "fictional boat engine",
-    from: new Date(Date.now() - 86_400_000),
+    from: new Date(Date.now() - 30 * 86_400_000),
     to,
     signal: new AbortController().signal,
   });
-  return requested;
+  return { requested, result };
 }
 
 test("X omits an end_time near now so the API can apply its valid default", async () => {
-  const requested = await collectWith(new Date());
+  const { requested, result } = await collectWith(new Date());
   assert.equal(requested.searchParams.get("end_time"), null);
+  assert.equal(result.status.note, "No matching X posts were found in the last seven days.");
 });
 
 test("X retains an end_time for a genuinely historical search", async () => {
   const to = new Date(Date.now() - 60_000);
-  const requested = await collectWith(to);
+  const { requested } = await collectWith(to);
   assert.equal(requested.searchParams.get("end_time"), to.toISOString());
 });
 

@@ -11,8 +11,8 @@
    is a guard rail rather than a hard cap; the hard cap is the tier's own
    monthly limit on the X developer console.
 
-   A live empty search was verified on 12 September 2026. Nonempty result
-   coverage and billed cost still need verification. Enabled only when
+   Live empty and nonempty searches were verified on 12 September 2026.
+   Billed cost still needs reconciliation. Enabled only when
    X_BEARER_TOKEN exists. */
 
 import type { SourceItem } from "../types";
