@@ -20,6 +20,7 @@ import { getJson, statusFor, tidy, type Collected, type CollectOptions, type Con
 
 const API = "https://api.x.com/2/tweets/search/recent";
 const RECENT_DAYS = 7;
+const END_TIME_SAFETY_MS = 15_000;
 
 interface RecentSearchResponse {
   data?: Array<{
@@ -72,7 +73,11 @@ async function collect(opts: CollectOptions): Promise<Collected> {
   url.searchParams.set("max_results", String(max));
   url.searchParams.set("tweet.fields", "created_at,public_metrics,author_id");
   if (from) url.searchParams.set("start_time", from.toISOString());
-  if (opts.to) url.searchParams.set("end_time", opts.to.toISOString());
+  /* X rejects an end_time less than ten seconds before it receives the
+     request. For a search ending now, omitting it uses X's safe default. */
+  if (opts.to && opts.to.getTime() <= Date.now() - END_TIME_SAFETY_MS) {
+    url.searchParams.set("end_time", opts.to.toISOString());
+  }
 
   const res = await getJson<RecentSearchResponse>(url.toString(), {
     signal: opts.signal,
