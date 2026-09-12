@@ -9,6 +9,7 @@
   --up:#215c40; --neg:#873b37; --down:#873b37;
   --sentPos:#53866a; --sentNeu:#525a5f; --sentNeg:#bc716b;
   --radius:32px; --easeOut:cubic-bezier(.16,1,.3,1);
+  --star:#cd7f6e; --starEmpty:#16464c22;
   --durIn:550ms; --durOut:240ms; --khaki:#f2c9b5; --orange:#d5908c;
 }
 *{box-sizing:border-box}
@@ -26,10 +27,10 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
 .ground:before{width:140%;height:45%;left:-18%;top:7%;background:linear-gradient(180deg,#f2cac400,#f2cac4cc 35%,#ffc6aeeb 47%,#f5b39e59 62%,#e4b4aa00)}
 .ground:after{width:110%;height:26%;left:29%;bottom:5%;background:linear-gradient(180deg,#f9cab000,#f9c6aec4 44%,#e9a09473 63%,#f9cab000)}
 .app-shell{height:100dvh;display:flex;flex-direction:column;padding:0 30px 20px;overflow:hidden}
-.app-header{display:flex;align-items:center;justify-content:space-between;height:66px;flex-shrink:0}
+.app-header{display:flex;align-items:center;justify-content:space-between;height:66px;flex-shrink:0}.privacy-left{display:none}
 .app-main{position:relative;flex:1;min-height:0;width:100%;max-width:1400px;margin:0 auto}
 .page-ink{color:var(--pageInk)}
-.beta{border:1px solid #ffffff88;background:#efd6c675;box-shadow:inset 0 1px 0 #ffffffaa;border-radius:50px;padding:0 13px;min-height:36px;font-size:11px;letter-spacing:.9px;font-weight:500}
+.beta{display:inline-flex;align-items:center;justify-content:center;line-height:1;border:1px solid #ffffff88;background:#efd6c675;box-shadow:inset 0 1px 0 #ffffffaa;border-radius:50px;padding:0 13px;min-height:36px;font-size:11px;letter-spacing:.9px;font-weight:500}
 .glass{position:relative;isolation:isolate;background:#f2efe28f;backdrop-filter:blur(26px) saturate(1.2);-webkit-backdrop-filter:blur(26px) saturate(1.2);border:1px solid #ffffff99;box-shadow:inset 0 1px 0 #ffffffd9,inset 0 -1px 0 #ffffff40,0 18px 40px #17424a20}
 .glass:before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(125deg,#ffffff4a,#ffffff08 38%,transparent 65%,#ffffff26);z-index:-1;pointer-events:none}
 .ctl{background:#fffaf05c;border:1px solid #ffffff99;box-shadow:inset 0 1px 0 #ffffffcc,0 4px 12px #153f4310;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
@@ -46,25 +47,25 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
 .ghost{position:absolute;left:20px;right:66px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:17px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sweepbox{display:block;overflow:hidden;line-height:1.4}.sweep{display:block;animation:sweep var(--sweepMs,2600ms) var(--easeOut) both}.sweep-still{animation:none}
 @keyframes sweep{0%{opacity:0;transform:translateY(80%)}16%,84%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-80%)}}
-.result-unfold{display:grid;grid-template-rows:0fr;transition:grid-template-rows 650ms var(--easeOut);min-height:0}.result-unfold[data-open="true"]{grid-template-rows:1fr}.result-unfold>div{min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.result-unfold{display:grid;grid-template-rows:0fr;transition:grid-template-rows 650ms var(--easeOut);min-height:0}.result-unfold[data-open="true"]{grid-template-rows:1fr}.result-unfold>div{min-height:0;overflow:hidden;overscroll-behavior:contain;scrollbar-width:thin}.result-unfold[data-settled="true"]>div{overflow:auto}
 .result-copy{padding:28px 17px 15px;animation:resolve 550ms var(--easeOut) both}.result-copy h2{font-size:23px;margin-bottom:12px}.result-copy>p:not(.overall-answer){line-height:1.5}
 .overall-answer{font-size:clamp(21px,1.9vw,26px);line-height:1.38;letter-spacing:-.55px;text-wrap:pretty}
 .sample-label{font-size:11px;color:var(--muted);margin-bottom:15px}
 .source-buttons{display:flex;gap:9px;align-items:center;margin-top:24px}
 .srcbtn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;padding:0;background:#fff9}.srcbtn:hover{background:#fff}.srcbtn:disabled img{filter:grayscale(1)}
-.under-card{display:flex;align-items:center;justify-content:space-between;padding:8px 10px 0;gap:12px}
+.under-card{display:flex;align-items:center;justify-content:flex-end;padding:8px 10px 0;gap:12px}
 .text-action{border:0;background:none;padding:10px 0;min-height:40px;font-size:12px;display:inline-flex;align-items:center;gap:9px;text-decoration:underline;text-underline-offset:4px;text-decoration-color:#17464b40}
 .text-action:hover{text-decoration-color:currentColor}.quiet,.coverage-note{font-size:13px;line-height:1.55;color:var(--muted);margin-top:15px}.coverage-note{font-size:12px}
 .example-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.example{border-radius:50px;min-height:42px;padding:8px 14px;font-size:13px}
-.opinion-cloud{position:absolute;inset:0;pointer-events:none}
+.opinion-frame{display:contents}.opinion-cloud{position:absolute;inset:0;pointer-events:none}
 .opinion-pill{border:1px solid #ffffffa6;border-radius:29px;padding:14px 18px;font-size:14px;line-height:1.4;box-shadow:inset 0 1px 0 #ffffffc7,0 10px 28px #163e491a;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);text-align:left;overflow-wrap:anywhere;pointer-events:auto;transition:transform 250ms var(--easeOut),box-shadow 250ms;animation:float-in 800ms var(--easeOut) both;animation-delay:calc(var(--pill-order,0)*70ms)}
 .opinion-pill:hover{box-shadow:inset 0 1px 0 #fffd,0 15px 32px #163e492c;transform:translateY(-3px)}
 .opinion-positive{color:#215c40;background:#d0e6cddd}.opinion-neutral{color:#41474c;background:#dcdfdfdd}.opinion-negative{color:#813631;background:#f1cac3e6}.opinion-unclassified{color:var(--muted);background:#f4f0e4b3}
 .opinion-cloud .opinion-pill{position:absolute;max-width:21%}
-.opinion-cloud .opinion-pill:nth-child(1){left:14%;top:5%;--from-x:55px;--from-y:40px}.opinion-cloud .opinion-pill:nth-child(2){right:13%;top:7%;--from-x:-55px;--from-y:40px}
+.opinion-cloud .opinion-pill:nth-child(1){left:7%;top:0;max-width:20%;--from-x:55px;--from-y:40px}.opinion-cloud .opinion-pill:nth-child(2){right:13%;top:7%;--from-x:-55px;--from-y:40px}
 .opinion-cloud .opinion-pill:nth-child(3){left:0;top:42%;--from-x:80px;--from-y:0px}.opinion-cloud .opinion-pill:nth-child(4){right:0;top:48%;--from-x:-80px;--from-y:0px}
-.opinion-cloud .opinion-pill:nth-child(5){left:14%;bottom:6%;--from-x:55px;--from-y:-40px}.opinion-cloud .opinion-pill:nth-child(6){right:13%;bottom:4%;--from-x:-55px;--from-y:-40px}
-.more-opinions{position:absolute;bottom:0;left:50%;transform:translateX(-50%);color:#fbefe8;pointer-events:auto;white-space:nowrap}.more-opinions:active{transform:translateX(-50%) scale(.97)}.mobile-only{display:none}
+.opinion-cloud .opinion-pill:nth-child(5){left:14%;bottom:6%;--from-x:55px;--from-y:-40px}.opinion-cloud .opinion-pill:nth-child(6){right:5%;bottom:4%;--from-x:-55px;--from-y:-40px}
+.more-opinions{position:absolute;bottom:0;left:50%;transform:translateX(-50%);color:#fbefe8;pointer-events:auto;white-space:nowrap}.more-opinions:active{transform:translateX(-50%) scale(.97)}.opinion-cloud .opinion-pill:nth-child(n+7){display:none}
 .evidence-screen{position:absolute;inset:0;border-radius:32px;display:flex;flex-direction:column;overflow:hidden;background:#eeeee4e8;outline:none;transform-origin:var(--panel-x,50%) var(--panel-y,50%);animation:panel-in 550ms var(--easeOut) both;z-index:5}
 .evidence-nav{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 25px;border-bottom:1px solid var(--line);flex-shrink:0}
 .back-button{border:0;background:none;min-height:44px;display:flex;align-items:center;gap:10px;font-size:13px;padding:0 10px 0 0}.back-button>span{font-size:20px}
@@ -73,7 +74,8 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
 .evidence-scroll h2{font-size:28px;line-height:1.2;letter-spacing:-.65px;margin:0 0 24px}.evidence-footer{font-size:11px;color:var(--muted);padding:10px 25px;border-top:1px solid var(--line);flex-shrink:0}
 .platform-heading{display:flex;flex-direction:column;align-items:flex-start;gap:21px;margin-bottom:26px}.platform-heading>span{display:flex;align-items:center}
 .sentiment{width:100%;margin:0 0 5px}.sentbar{width:100%;display:flex;height:16px;border-radius:50px;overflow:hidden;background:#19464c15}.sentbar span{height:100%;display:block;transition:flex-basis 500ms var(--easeOut)}.sent-pos{background:var(--sentPos)}.sent-neu{background:var(--sentNeu)}.sent-neg{background:var(--sentNeg)}
-.sent-legend{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding-top:8px}
+.sent-legend{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding-top:8px}.sent-note{font-size:10px;line-height:1.3;color:var(--muted);text-align:right;margin:0 0 6px;letter-spacing:.2px}
+.result-copy .sentiment{margin:24px 0 2px}.result-copy .sentbar{height:12px}
 .post-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}.post-section{display:block;color:var(--ink);text-decoration:none;padding:20px 22px;border-radius:25px;background:#ffffff40;border:1px solid #ffffffa6;box-shadow:inset 0 1px 0 #fff9;transition:background 200ms,transform 250ms var(--easeOut)}a.post-section:hover{background:#ffffff88;transform:translateY(-2px)}
 .post-section h3{font-size:17px;font-weight:500;line-height:1.4;overflow-wrap:anywhere;margin:0 0 15px}.comment-pills{display:flex;flex-direction:column;align-items:flex-start;gap:9px}.comment-pill{border:1px solid #ffffff88;border-radius:23px;padding:10px 15px;font-size:14px;line-height:1.5;max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:inset 0 1px 0 #ffffff66}
 .post-note{display:block;font-size:10px;color:var(--muted);margin-top:12px}.opinion-evidence{margin-top:28px}.opinion-evidence>img{margin-bottom:14px}
@@ -89,52 +91,101 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
 @keyframes panel-in{from{opacity:0;transform:scale(.93);border-radius:55px}to{opacity:1;transform:scale(1);border-radius:32px}}
 .label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
 @media(max-width:1050px){
-  .app-shell{padding:0 18px 14px}.app-header{height:60px}.search-home{display:block;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:22px 0 8px}.search-stack{width:100%;max-width:620px;margin:0 auto}.search-stack h1{font-size:30px;margin-left:3px;margin-bottom:16px}.search-home:not([data-result="true"]){padding-top:clamp(20px,10vh,80px)}
-  .main-card{max-height:none}.opinion-cloud{position:static;display:flex;flex-direction:column;align-items:flex-start;gap:9px;max-width:620px;margin:14px auto 0}.opinion-cloud .opinion-pill{position:static;max-width:90%;font-size:13px;padding:11px 15px;--from-x:0;--from-y:-12px}.opinion-cloud .opinion-pill:nth-child(2){align-self:flex-end}.opinion-cloud .opinion-pill:nth-child(n+4){display:none}.more-opinions,.mobile-only{display:flex;position:static;align-self:center;transform:none;font-size:12px;padding:6px 10px;min-height:36px}.more-opinions:active{transform:scale(.97)}
+  .app-shell{padding:0 18px 14px}.app-header{height:60px}.search-home{display:flex;flex-direction:column;overflow:hidden auto;overscroll-behavior:contain;scrollbar-width:thin;padding:22px 0 8px}.search-stack{width:100%;max-width:620px;margin:0 auto;flex:0 0 auto}.search-stack h1{font-size:30px;margin-left:3px;margin-bottom:16px}.search-home:not([data-result="true"]){padding-top:clamp(20px,10vh,80px)}
+  .main-card{max-height:none}.search-home[data-result="true"]{justify-content:flex-start}
+  /* The pill list scrolls on its own under the answer. The fade sits on a wrapper because WebKit scrolls a mask along with the content of the element it is set on, and the list itself must take pointer events or touches that land between pills scroll nothing. */
+  .opinion-frame{display:flex;flex-direction:column;width:100%;max-width:620px;margin:14px auto 0;flex:1 1 auto;min-height:150px;-webkit-mask-image:linear-gradient(#000 calc(100% - 28px),transparent);mask-image:linear-gradient(#000 calc(100% - 28px),transparent)}
+  .opinion-cloud{position:static;inset:auto;pointer-events:auto;display:flex;flex-direction:column;align-items:stretch;gap:9px;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding-bottom:28px}.opinion-cloud::-webkit-scrollbar{display:none}
+  .opinion-cloud .opinion-pill,.opinion-cloud .opinion-pill:nth-child(n){position:static;display:block;flex-shrink:0;width:100%;max-width:none;font-size:13px;padding:11px 15px;--from-x:0;--from-y:-12px}.more-opinions{display:none}
 }
 @media(max-width:600px){
-  .app-shell{padding:0 16px 12px}.app-header{height:57px}.beta{min-height:32px;font-size:10px}.search-home{padding-top:13px}.search-stack h1{font-size:27px;max-width:310px;letter-spacing:-.85px}.main-card{border-radius:29px;padding:10px}.field{min-height:54px;padding-left:15px}.ghost{left:15px}.go{width:41px;height:41px}.result-copy{padding:24px 12px 12px}.overall-answer{font-size:21px;line-height:1.4}.sample-label{font-size:10px;margin-bottom:12px}.source-buttons{margin-top:19px}.under-card{padding:4px 7px 0}.text-action{font-size:11px}.opinion-cloud{margin-top:12px}.opinion-cloud .opinion-pill{font-size:12px;max-width:95%;padding:10px 14px}.evidence-screen{border-radius:27px}.evidence-nav{padding:9px 15px}.back-button,.subject-chip{font-size:12px}.evidence-scroll{padding:21px 17px}.evidence-scroll h2{font-size:24px}.platform-heading{gap:18px;margin-bottom:22px}.post-section{padding:15px 14px;border-radius:23px}.post-section h3{font-size:15px;margin-bottom:12px}.comment-pill{font-size:12px;line-height:1.5;padding:9px 12px;border-radius:22px}.post-list{gap:11px}.evidence-footer{font-size:10px;padding:9px 16px}.all-opinions{grid-template-columns:1fr;gap:10px}.how-copy{font-size:14px;gap:18px}
+  .app-shell{padding:0 16px 6px}.app-header{height:46px}.brand,.privacy-right{display:none}.privacy-left{display:inline;padding:8px 0;min-height:32px}.beta{min-height:32px;font-size:10px}.search-home{padding:6px 0 4px}.search-stack h1{font-size:clamp(20px,6.3vw,25px);max-width:none;white-space:nowrap;letter-spacing:-.85px;margin-bottom:6px}.main-card{border-radius:29px;padding:8px}.field{min-height:50px;padding-left:15px}.ghost{left:15px}.go{width:38px;height:38px}.result-copy{padding:12px 10px 4px}.overall-answer{font-size:14.5px;line-height:1.4;letter-spacing:-.2px}.sample-label{font-size:10px;margin-bottom:8px}.source-buttons{margin-top:12px;gap:8px}.srcbtn{width:40px;height:40px}.result-copy .sentiment{margin:12px 0 0}.result-copy .sentbar{height:10px}.sent-legend{font-size:10px;padding-top:4px}.under-card{padding:0 7px}.text-action{font-size:11px;min-height:30px;padding:6px 0}.opinion-cloud{margin-top:4px;gap:6px}.opinion-cloud .opinion-pill,.opinion-cloud .opinion-pill:nth-child(n){font-size:12px;padding:8px 12px;line-height:1.35}.evidence-screen{border-radius:27px}.evidence-nav{padding:9px 15px}.back-button,.subject-chip{font-size:12px}.evidence-scroll{padding:21px 17px}.evidence-scroll h2{font-size:24px}.platform-heading{gap:18px;margin-bottom:22px}.post-section{padding:15px 14px;border-radius:23px}.post-section h3{font-size:15px;margin-bottom:12px}.comment-pill{font-size:12px;line-height:1.5;padding:9px 12px;border-radius:22px}.post-list{gap:11px}.evidence-footer{font-size:10px;padding:9px 16px}.all-opinions{grid-template-columns:1fr;gap:10px}.how-copy{font-size:14px;gap:18px}
 }
 @media(min-width:1051px) and (max-height:750px){.opinion-cloud .opinion-pill:nth-child(1),.opinion-cloud .opinion-pill:nth-child(2){top:1%}.opinion-cloud .opinion-pill:nth-child(5),.opinion-cloud .opinion-pill:nth-child(6){bottom:1%}.search-stack h1{font-size:27px}.overall-answer{font-size:20px}.result-copy{padding-top:22px}.source-buttons{margin-top:17px}}
 @supports not(backdrop-filter:blur(1px)){.glass{background:#e8e9df}.ctl{background:#f0ede3}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.liquid-track span{transform:none;width:100%;opacity:.7}}
-.scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  background: rgba(20, 21, 24, 0.32);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 10vh 20px 20px;
-  animation: fadein var(--durOut) ease both;
-}
-@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
-.dialog {
-  width: min(560px, 100%);
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 22px 24px;
-  animation: dialogin var(--durIn) var(--easeOut) both;
-}
-@keyframes dialogin {
-  from { opacity: 0; transform: translateY(12px) scale(0.98); }
-  to { opacity: 1; transform: none; }
-}
-.dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex: 0 0 auto;
-  margin-top: 7px;
-}
-.dot-new { background: var(--sentPos); }
-.dot-changed { background: var(--khaki); }
-.dot-removed { background: var(--orange); }
-
-.pane{border-radius:32px}.pane-small{border-radius:24px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border-radius:50px;border:1px solid var(--line);background:#ffffff40;font-size:13px}.btn:hover{background:#ffffff80}
 .unclassified-note{display:block;font-size:11px;margin-bottom:5px}
 .post-attribution{font-size:11px;color:var(--muted);margin:-8px 0 14px}.comment-attribution{display:block;font-style:normal;font-size:10px;margin-top:7px;opacity:.85}
+
+/* Category cards (src/components/CategoryCard.tsx). The card widens
+   outward for a film, product, place or app; the page still never scrolls. */
+.search-stack.wide{width:min(880px,76%)}.search-stack.wide .main-card{max-height:calc(100dvh - 190px)}
+.ccard{padding:12px 17px 8px}.ccard .sample-label{margin-bottom:10px}
+.eyebrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;min-height:32px}
+.general{margin-left:auto;display:inline-flex;align-items:center;gap:7px;border-radius:99px;min-height:32px;padding:0 12px 0 10px;font-size:11.5px;letter-spacing:.2px;text-transform:none;color:var(--ink);white-space:nowrap}
+.general svg{width:13px;height:13px;flex-shrink:0}.general:hover{background:#ffffff8c}
+.ctitle{font-size:24px;letter-spacing:-.7px;line-height:1.15;text-wrap:balance}
+.answer-small{font-size:17px;letter-spacing:-.3px;line-height:1.45;margin-top:8px;text-wrap:pretty}
+.ccard .label{display:block;margin-bottom:8px}.csection{margin-top:14px}
+.two{display:grid;grid-template-columns:170px 1fr;gap:22px;align-items:stretch}
+.side{display:flex;flex-direction:column;gap:14px;min-height:0}
+.tile{border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:18px 14px}
+.tile-poster{aspect-ratio:2/3}.tile-place{padding:22px 14px}.score-tile{padding:10px 14px;gap:4px;margin:0 0 4px}.score-tile .score-md{font-size:38px}.side .pstack{gap:6px}
+.score{font-variant-numeric:tabular-nums;letter-spacing:-1.5px;line-height:1}
+.score-xl{font-size:64px}.score-md{font-size:44px}.score-sm{font-size:20px;letter-spacing:-.6px;color:var(--ink)}
+.den{font-size:22px;letter-spacing:-.5px;color:var(--muted);margin-left:2px}
+.approval{font-size:12px;color:var(--muted);line-height:1.3}
+.stars{display:inline-block;font-size:18px;letter-spacing:1px;line-height:1;background:linear-gradient(90deg,var(--star) var(--fill),var(--starEmpty) var(--fill));-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
+.stars-lg{font-size:26px}.stars-xs{font-size:12px;letter-spacing:.5px}
+.opinion-pill .stars{--star:currentColor}
+.pstack{display:flex;flex-direction:column;gap:8px}.pstack-fill{justify-content:space-evenly;flex:1}
+.prow{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.prow b{color:var(--ink);font-weight:500;font-size:14px}.prow-none{font-size:11px}
+.srcbtn-sm{width:36px;height:36px}
+/* Desktop opinion boxes: capped, fading out, scrolling in place, so up to
+   twenty opinions stay reachable while the card keeps to one screen. */
+.list,.chips,.cards{max-height:190px;overflow:auto;overscroll-behavior:contain;scrollbar-width:none;padding-bottom:18px;-webkit-mask-image:linear-gradient(#000 calc(100% - 18px),transparent);mask-image:linear-gradient(#000 calc(100% - 18px),transparent)}
+.list::-webkit-scrollbar,.chips::-webkit-scrollbar,.cards::-webkit-scrollbar{display:none}
+.chips{max-height:130px}.cards{max-height:155px}
+.list{display:flex;flex-direction:column;gap:8px}
+.ccard .opinion-pill{animation:none;text-align:left;width:auto;max-width:none}
+.opinion-pill.rev{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:9px 14px;border-radius:99px;width:100%;font-size:13.5px}
+.opinion-pill.rev>span:first-child{min-width:0}
+.revmeta{display:flex;align-items:center;gap:8px;font-size:10.5px;opacity:.85;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start}
+.opinion-pill.chip{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:99px;font-size:13px}
+.opinion-pill .n{font-size:11px;opacity:.7;font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0}.opinion-pill.chip>.mark{flex-shrink:0}.opinion-pill .mark{font-size:12px;font-weight:600}
+.rating-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 12px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}.rating-row .dot{opacity:.5}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px;align-items:start}
+.grid2{display:grid;grid-template-columns:170px 1fr;grid-template-rows:auto auto;gap:12px 22px;align-items:start}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opinion-pill.card{border-radius:18px;padding:10px 12px;height:100%;font-size:13.5px;display:block;width:100%}
+.opinion-pill.card .ttl{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;margin-bottom:3px;opacity:.85}
+.apphead{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
+.apphead .sub{font-size:13px;color:var(--muted);margin:3px 0 4px}.apphead .general{align-self:start}
+.appicon{width:56px;height:56px;border-radius:15px;background:linear-gradient(135deg,#f9d6c5,var(--accent));border:1px solid #ffe6dc;box-shadow:inset 0 1px 0 #ffffffbb,0 6px 16px #885a4a29;display:grid;place-items:center;font-size:26px;letter-spacing:-1px;color:var(--ink)}
+.apphead~.two{margin-top:8px}
+.foot{margin-top:14px}.ccard .sentiment,.pbody .sentiment{margin:0}.ccard h2.ctitle{margin-bottom:0}
+/* Did you mean: the typed text is mirrored invisibly so the suggestion
+   starts exactly where the typing ends; Tab or a click accepts it. */
+.ghost-suggest{display:flex;align-items:center;gap:8px}
+.ghost-mirror{visibility:hidden;flex:0 0 auto;white-space:pre}
+.ghost-accept{pointer-events:auto;border:0;background:none;padding:0;font:inherit;font-weight:700;font-style:italic;color:var(--muted);opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;cursor:pointer}
+.ghost-accept:hover{opacity:1}
+.ghost-suggest kbd{font:inherit;font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;border:1px solid #16464c33;border-radius:6px;padding:2px 6px;color:var(--muted);flex-shrink:0}
+@media(max-width:1050px){.search-stack.wide{width:100%;max-width:880px}}
+@media(max-width:600px){
+  /* One column. The card fills the screen and only the opinions box scrolls. */
+  .search-home[data-result="true"]:has(.search-stack.wide){overflow:hidden}
+  .search-stack.wide{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+  .search-stack.wide .main-card{flex:1 1 auto;min-height:0;max-height:none}
+  .search-stack.wide .result-unfold{flex:1 1 auto;min-height:0}
+  .search-stack.wide .result-unfold[data-settled="true"]>div{overflow:hidden}
+  .pbody{display:flex;flex-direction:column;gap:10px;height:100%;padding:10px 10px 4px;overflow:hidden}
+  .pbody>*{flex-shrink:0}
+  .pbody .tile{flex-direction:row;justify-content:flex-start;text-align:left;padding:10px 12px;gap:12px;flex-wrap:wrap}
+  .pbody .score-md{font-size:36px}.pbody .approval{text-align:left;font-size:11px}
+  .pbody .answer-small{font-size:13px;line-height:1.4;margin-top:0}
+  .opn{flex:1 1 auto;min-height:60px;display:flex;flex-direction:column;gap:6px}.opn .label{margin:0}
+  .opbox{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:none;padding-bottom:22px;-webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent)}
+  .opbox::-webkit-scrollbar{display:none}
+  .opbox-list{display:flex;flex-direction:column;gap:6px}.opbox-list .opinion-pill{flex-shrink:0}
+  .opbox-chips{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+  .opbox-cards{display:grid;grid-template-columns:1fr;gap:6px}
+  .opinion-pill.rev{border-radius:20px;padding:8px 12px;font-size:12.5px;gap:10px}
+  .opinion-pill.chip{font-size:12px;padding:7px 11px}.opinion-pill.card{padding:9px 12px}
+  .pbody .pstack{flex-direction:row;justify-content:space-between;gap:6px}
+  .pbody .prow{flex:1;justify-content:center;gap:5px;font-size:11px;min-width:0}.pbody .prow b{font-size:12px}.pbody .stars-xs{font-size:9.5px;letter-spacing:.2px}
+  .pbody .foot{margin-top:0}.pbody .sentbar{height:10px}
+  .ghost-suggest kbd{display:none}
+}

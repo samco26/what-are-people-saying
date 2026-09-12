@@ -8,6 +8,7 @@ import { platformQuery } from "../src/lib/connectors/query.ts";
 import { collectAdaptive } from "../src/lib/connectors/adaptive.ts";
 import { POST } from "../src/app/api/consensus/route.ts";
 import { Answer } from "../src/components/Answer.tsx";
+import { CategoryCard } from "../src/components/CategoryCard.tsx";
 import { SubjectFacts } from "../src/components/SubjectFacts.tsx";
 
 const originalFetch = globalThis.fetch;
@@ -128,7 +129,7 @@ test("each platform combines supported aliases in one query and adaptive passes 
     calls++;
     assert.deepEqual(request.aliases, opts.aliases);
     return { items: [], statuses: [{ source: "youtube", availability: "unavailable", itemsAnalysed: 0 }], expandable: sources };
-  }, opts.aliases);
+  }, undefined, opts.aliases);
   assert.equal(calls, 3);
 });
 
@@ -161,6 +162,11 @@ test("route passes resolved identity and facts through real connector and analys
       const body = JSON.parse(init.body);
       if (body.tools) { sequence.push("research"); return json(report()); }
       if (body.text.format.name === "subject_resolution") { sequence.push("resolve"); return json(response([message(JSON.stringify(resolution()))])); }
+      if (body.text.format.name === "search_plan") {
+        sequence.push("plan");
+        assert.match(body.input, /Cited web context/);
+        return json(response([message(JSON.stringify({subject:"iPhone Duo",interpretation:"Wrong stale description",category:"product",kind:"Rumoured phone",ambiguous:false,suggestion:"",suggestionCategory:"general",phrases:["iPhone Duo"],keywords:[],exclude:[],youtubeQuery:"iPhone Duo"}))]));
+      }
       sequence.push("analyse");
       assert.match(body.input, /Subject: "iPhone Duo"/);
       assert.match(body.input, /available October 23/);
@@ -171,7 +177,7 @@ test("route passes resolved identity and facts through real connector and analys
       return json(response([message(JSON.stringify({
         verdict: "mixed", agreement: "weak", confidence: { level: "low", reason: "Simulated pre-announcement and recent reactions are mixed." },
         positives: [], negatives: [], drawnFrom: [1, 2], summary: "SIMULATED: Reactions to the announced phone are mixed.", sentiment: { positive: 0.5, neutral: 0, negative: 0.5 },
-        classified: entries.filter((entry) => entry.metadata.startsWith("comment")).map((entry) => ({ ref: entry.ref, sentiment: "positive" })), opinions: [],
+        classified: { positive: entries.filter((entry) => entry.metadata.startsWith("comment")).map((entry) => entry.ref), neutral: [], negative: [], irrelevant: [] }, opinions: [],
       }))]));
     }
     assert.equal(url.hostname, "www.googleapis.com");
@@ -188,10 +194,15 @@ test("route passes resolved identity and facts through real connector and analys
   assert.equal(out.kind, "result");
   assert.equal(out.result.subject, "iPhone Duo");
   assert.equal(out.result.context.original, "iphone fold");
-  assert.deepEqual(sequence, ["research", "resolve", "collect", "analyse"]);
+  assert.equal(out.result.category, "product");
+  assert.equal(out.result.kind, resolution().description.text);
+  assert.deepEqual(sequence, ["research", "resolve", "plan", "collect", "analyse"]);
   assert.match(apiResponse.headers.get("server-timing"), /lookup;dur=/);
   const html = renderToStaticMarkup(createElement(Answer, { response: out, onPick() {}, onChoose() {} }));
   assert.match(html, /Showing results for iPhone Duo/);
+  const card = renderToStaticMarkup(createElement(CategoryCard, { result: out.result, onChoose() {}, onOpinion() {}, onGeneral() {} }));
+  assert.match(card, /Showing results for iPhone Duo/);
+  assert.doesNotMatch(card, /Rumoured phone/);
   const facts = renderToStaticMarkup(createElement(SubjectFacts, { context: out.result.context }));
   assert.match(facts, /https:\/\/example.com\/fictional-announcement/);
   assert.match(facts, /available October 23/);

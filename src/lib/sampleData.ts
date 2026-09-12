@@ -118,6 +118,8 @@ export const SAMPLES: SampleEntry[] = [
     aliases: ["newest chatgpt model", "new chatgpt model", "latest chatgpt model", "chatgpt", "the new chatgpt", "chatgpt model"],
     result: {
       subject: "the newest ChatGPT model",
+      category: "app",
+      kind: "AI assistant · web, iOS, Android",
       sentiment: { positive: 0.41, neutral: 0.19, negative: 0.4 },
       summary:
         "Opinion on the newest ChatGPT model is split. Developers and heavy users are mostly pleased with speed and coding help, while a loud share of everyday users say the tone has changed for the worse and that usage limits arrive too quickly. Nobody agrees on whether it is a big step or a small one.",
@@ -287,6 +289,8 @@ export const SAMPLES: SampleEntry[] = [
     aliases: ["keychron k2", "k2 keyboard", "keychron k2 keyboard", "the keychron k2 keyboard"],
     result: {
       subject: "the Keychron K2",
+      category: "product",
+      kind: "Product · 75% wireless mechanical keyboard",
       sentiment: { positive: 0.78, neutral: 0.14, negative: 0.08 },
       summary:
         "Enthusiasm for the Keychron K2 is strong and unusually consistent. It is recommended over and over as the sensible first mechanical keyboard, especially for Mac users, with the main reservations being its height and the stock keycaps rather than anything about how it types.",
@@ -376,6 +380,8 @@ export const SAMPLES: SampleEntry[] = [
     aliases: ["melbourne", "life in melbourne", "moving to melbourne", "living in melbourne australia", "melbourne living"],
     result: {
       subject: "living in Melbourne",
+      category: "place",
+      kind: "City · Victoria, Australia",
       sentiment: { positive: 0.47, neutral: 0.18, negative: 0.35 },
       summary:
         "Living in Melbourne inspires affection and frustration in the same breath. Food, coffee, culture and the sense that there is always something on are praised almost without exception, while rent, the weather and the commute from the affordable suburbs are the three things that wear people down.",
@@ -559,14 +565,16 @@ for (const entry of SAMPLES) {
     reading.threads.forEach((thread, index) => {
       thread.id = `sample:${reading.source}:${index}`;
       thread.comments = [
-        ...reading.positives.slice(0, 2).map((theme, i) => ({ id: `${thread.id}:positive:${i}`, text: theme.detail, sentiment: "positive" as const })),
-        ...reading.negatives.slice(0, 1).map((theme, i) => ({ id: `${thread.id}:negative:${i}`, text: theme.detail, sentiment: "negative" as const })),
+        ...(reading.positives ?? []).slice(0, 2).map((theme, i) => ({ id: `${thread.id}:positive:${i}`, text: theme.detail, sentiment: "positive" as const })),
+        ...(reading.negatives ?? []).slice(0, 1).map((theme, i) => ({ id: `${thread.id}:negative:${i}`, text: theme.detail, sentiment: "negative" as const })),
       ];
     });
   }
+  /* Fictional support counts, descending, so a category card has a number
+     to print beside each opinion. */
   result.opinions = [
-    ...result.positives.map((theme, i) => ({ id: `positive-${i}`, sentence: theme.detail, sentiment: "positive" as const, evidenceIds: result.bySource.flatMap((source) => source.threads.slice(0, 1).map((thread) => thread.id!)) })),
-    ...result.negatives.map((theme, i) => ({ id: `negative-${i}`, sentence: theme.detail, sentiment: "negative" as const, evidenceIds: result.bySource.flatMap((source) => source.threads.slice(-1).map((thread) => thread.id!)) })),
+    ...result.positives.map((theme, i) => ({ id: `positive-${i}`, sentence: theme.detail, sentiment: "positive" as const, support: 31 - i * 7, evidenceIds: result.bySource.flatMap((source) => source.threads.slice(0, 1).map((thread) => thread.id!)) })),
+    ...result.negatives.map((theme, i) => ({ id: `negative-${i}`, sentence: theme.detail, sentiment: "negative" as const, support: 26 - i * 6, evidenceIds: result.bySource.flatMap((source) => source.threads.slice(-1).map((thread) => thread.id!)) })),
   ];
 }
 
@@ -575,16 +583,16 @@ const keyboard = SAMPLES.find((entry) => entry.display === "the Keychron K2");
 if (keyboard) {
   keyboard.result.summary = "The Keychron K2 is widely liked for its typing feel and compact layout. The main reservations are its height, stock keycaps and Bluetooth wake-up delay.";
   const examples = [
-    ["The typing feel is satisfying for the price.", "positive"],
-    ["The tall case benefits from a wrist rest.", "negative"],
-    ["The Mac layout feels familiar from the start.", "positive"],
-    ["Bluetooth can be slow to wake up.", "negative"],
-    ["The switch choice changes the sound.", "neutral"],
-    ["Replaceable switches make it easy to personalise.", "positive"],
-    ["The stock keycaps feel less premium than the case.", "negative"],
+    ["The typing feel is satisfying for the price.", "positive", 38],
+    ["The tall case benefits from a wrist rest.", "negative", 19],
+    ["The Mac layout feels familiar from the start.", "positive", 22],
+    ["Bluetooth can be slow to wake up.", "negative", 12],
+    ["The switch choice changes the sound.", "neutral", 9],
+    ["Replaceable switches make it easy to personalise.", "positive", 27],
+    ["The stock keycaps feel less premium than the case.", "negative", 14],
   ] as const;
-  keyboard.result.opinions = examples.map(([sentence, sentiment], index) => ({
-    id: `keyboard-opinion-${index}`, sentence, sentiment,
+  keyboard.result.opinions = examples.map(([sentence, sentiment, support], index) => ({
+    id: `keyboard-opinion-${index}`, sentence, sentiment, support,
     evidenceIds: keyboard.result.bySource.flatMap((reading) => reading.threads.slice(0, 1).map((thread) => thread.id!)),
   }));
 }

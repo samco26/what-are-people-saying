@@ -18,7 +18,7 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), { status
 const videos = { items: Array.from({ length: 10 }, (_, i) => ({ id: { videoId: `v${i}` }, snippet: { title: `Fictional test video ${i}`, description: "Context only", publishedAt: date } })) };
 const comments = (id) => ({ items: Array.from({ length: 30 }, (_, i) => ({ snippet: { topLevelComment: { id: `${id}c${i}`, snippet: { textOriginal: `Fictional opinion ${i} ${"long text ".repeat(90)}END`, publishedAt: date, likeCount: i } } } })) });
 
-test("YouTube fetches 10 by views and 30 top comments per video concurrently, preserving long text", async () => {
+test("YouTube fetches 10 by views and reads top and recent comments for every video concurrently, preserving long text", async () => {
   let active = 0, peak = 0, commentCalls = 0;
   globalThis.fetch = async (input, init) => {
     const url = new URL(String(input));
@@ -32,21 +32,43 @@ test("YouTube fetches 10 by views and 30 top comments per video concurrently, pr
       return json(videos);
     }
     assert.equal(url.searchParams.get("maxResults"), "30");
-    assert.equal(url.searchParams.get("order"), "relevance");
+    assert.ok(["relevance", "time"].includes(url.searchParams.get("order")));
     commentCalls++; active++; peak = Math.max(peak, active);
     await new Promise((resolve) => setTimeout(resolve, 5));
     active--;
     return json(comments(url.searchParams.get("videoId")));
   };
   const result = await youtube.collect(opts());
-  assert.equal(commentCalls, 10);
-  assert.equal(peak, 10);
+  assert.equal(commentCalls, 20);
+  assert.equal(peak, 20);
   assert.equal(result.items.length, 310);
   assert.equal(result.status.itemsAnalysed, 300);
   assert.equal(result.status.availability, "ok");
   const opinions = result.items.filter((item) => item.kind === "comment");
   assert.ok(opinions.every((item) => item.text.endsWith("END") && item.parentId));
-  assert.equal(opinions[0].url, "https://www.youtube.com/watch?v=v0&lc=v0c0");
+  // The most-liked comment of each video comes first.
+  assert.equal(opinions[0].url, "https://www.youtube.com/watch?v=v0&lc=v0c29");
+  assert.equal(opinions[0].engagement, 29);
+});
+
+test("when top and recent comments together exceed 30, the most-liked are kept and previous selections stay", async () => {
+  const stamped = (id, prefix, n, likes) => ({ items: Array.from({ length: n }, (_, i) => ({ snippet: { topLevelComment: { id: `${id}${prefix}${i}`, snippet: { textOriginal: `Fictional opinion ${prefix}${i}`, publishedAt: date, likeCount: likes(i) } } } })) });
+  globalThis.fetch = async (input) => {
+    const url = new URL(String(input));
+    if (url.pathname.endsWith("/search")) return json({ items: videos.items.slice(0, 1) });
+    const id = url.searchParams.get("videoId");
+    // 20 top comments with 0–19 likes; 20 recent comments with 100–119 likes.
+    return json(url.searchParams.get("order") === "time" ? stamped(id, "r", 20, (i) => 100 + i) : stamped(id, "t", 20, (i) => i));
+  };
+  const previous = [{ id: "youtube:comment:v0t0", source: "youtube", kind: "comment", text: "kept", parentId: "youtube:video:v0", engagement: 0 }];
+  const result = await youtube.collect({ ...opts(), previousItems: previous });
+  const chosen = result.items.filter((item) => item.kind === "comment");
+  assert.equal(chosen.length, 30);
+  assert.equal(chosen[0].id, "youtube:comment:v0t0", "an earlier selection is retained first");
+  assert.equal(chosen[1].id, "youtube:comment:v0r19", "then the most-liked of the rest");
+  assert.equal(chosen.filter((item) => item.id.includes(":v0r")).length, 20);
+  assert.equal(chosen.filter((item) => item.id.includes(":v0t")).length, 10);
+  assert.ok(!chosen.some((item) => item.id === "youtube:comment:v0t1"), "the least-liked top comments are left out");
 });
 
 test("a failed comment section preserves other videos and reports the shortfall", async () => {
@@ -80,7 +102,7 @@ const reading = {
   verdict: "positive", agreement: "moderate", confidence: { level: "medium", reason: "Fictional evidence." },
   positives: [{ title: "Design", detail: "Fictional praise." }], negatives: [], drawnFrom: [1, 299, 300, 9999, 0, 1],
 };
-const analysisOutput = { ...reading, classified: Array.from({ length: 300 }, (_, i) => ({ ref: i + 1, sentiment: "positive" })), opinions: [{ sentence: "The design is appealing.", sentiment: "positive", refs: [1, 2, 299, 9999] }], summary: "Excitement for the fictional phone is substantial.", sentiment: { positive: 0.6, neutral: 0.2, negative: 0.2 } };
+const analysisOutput = { ...reading, classified: { positive: Array.from({ length: 300 }, (_, i) => i + 1), neutral: [], negative: [], irrelevant: [] }, opinions: [{ sentence: "The design is appealing.", sentiment: "positive", refs: [1, 2, 299, 9999] }], summary: "Excitement for the fictional phone is substantial.", sentiment: { positive: 0.6, neutral: 0.2, negative: 0.2 } };
 function mockOpenAI(makeOutput, inspect) {
   process.env.OPENAI_API_KEY = "test-placeholder-not-a-key";
   globalThis.fetch = async (input, init) => {
@@ -99,17 +121,19 @@ const sample = () => [{ id: "video0", source: "youtube", kind: "video", text: "F
 test("all 300 opinions reach OpenAI and one-source evidence is generated only once", async () => {
   mockOpenAI(() => analysisOutput, (body) => {
     assert.ok(!body.text.format.schema.properties.bySource);
+    assert.deepEqual(Object.keys(body.text.format.schema.properties.classified.properties), ["positive", "neutral", "negative", "irrelevant"]);
     const lines = body.input.split("\n").filter((line) => line.startsWith('{"ref":')).map(JSON.parse);
     assert.equal(lines.length, 301);
     assert.equal(lines.at(-1).text, "Fictional opinion 299");
     assert.equal(lines.at(-1).parent, 0);
     assert.match(body.instructions, /Lead immediately/);
     assert.match(body.instructions, /untrusted data/);
+    assert.match(body.input, /^Subject: "fictional phone"\nTaken to mean: "A fictional phone, for the test\."\nWeb context \(facts only; never opinion evidence\): null\nOpinion window:/);
   });
-  const result = await analyse("fictional phone", sample(), [{ source: "youtube", availability: "ok", itemsAnalysed: 301 }]);
+  const result = await analyse("fictional phone", sample(), [{ source: "youtube", availability: "ok", itemsAnalysed: 301 }], undefined, "A fictional phone, for the test.");
   assert.equal(result.sources[0].itemsAnalysed, 300);
   assert.equal(result.bySource.length, 1);
-  assert.deepEqual(result.bySource[0].positives, result.positives);
+  assert.equal(result.bySource[0].source, "youtube");
   assert.equal(result.bySource[0].threads.length, 1); // grouped under the original video
   assert.equal(result.bySource[0].threads[0].comments.length, 300);
   assert.equal(result.bySource[0].threads[0].kind, "video");
@@ -121,9 +145,10 @@ test("multi-source analysis preserves opinions and attribution without sending a
   const items = [...sample(), { id: "x1", source: "x", kind: "post", text: "Fictional X reaction", author: "public_test_author", url: "https://x.com/i/status/fictional" }];
   mockOpenAI(() => {
     const { drawnFrom, ...overall } = analysisOutput;
-    return { ...overall, classified: [...overall.classified, { ref: 301, sentiment: "negative" }], bySource: [{ ...reading, source: "youtube", drawnFrom: [1, 301] }, { ...reading, source: "x", drawnFrom: [301, 1] }] };
+    return { ...overall, classified: { ...overall.classified, negative: [301] }, bySource: [{ source: "youtube", drawnFrom: [1, 301] }, { source: "x", drawnFrom: [301, 1] }] };
   }, (body) => {
     assert.ok(body.text.format.schema.properties.bySource);
+    assert.deepEqual(Object.keys(body.text.format.schema.properties.bySource.items.properties), ["source", "drawnFrom"]);
     assert.match(body.input, /Fictional opinion 299/);
     assert.match(body.input, /Fictional X reaction/);
     assert.doesNotMatch(body.input, /public_test_author/);

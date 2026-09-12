@@ -1,18 +1,19 @@
 "use client";
-import { useCallback, useEffect, useRef, useState, type FormEvent, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type CSSProperties } from "react";
 import { EVERGREEN_SUBJECTS, type SuggestionsResponse } from "@/lib/suggestions";
 import type { ConsensusResponse, RecurringOpinion, SourceId } from "@/lib/types";
 import { RotatingSubjects } from "./RotatingSubjects";
 import { Answer, Coverage } from "./Answer";
 import { PlatformEvidence, PostList } from "./PlatformEvidence";
 import { OpinionPills } from "./OpinionPills";
-import { SentimentBar } from "./SentimentBar";
+import { CategoryCard, isCategoryCard } from "./CategoryCard";
 import { HowItWorks } from "./HowItWorks";
 import { Logo } from "./Logo";
+import { SentimentBar } from "./SentimentBar";
 import { SubjectFacts } from "./SubjectFacts";
 
 type Phase = { name: "idle" } | { name: "loading"; subject: string } | { name: "done"; subject: string; response: ConsensusResponse } | { name: "error"; subject: string };
-type View = { kind: "source"; source: SourceId } | { kind: "opinion"; opinion: RecurringOpinion } | { kind: "opinions" | "about" | "how" };
+type View = { kind: "source"; source: SourceId } | { kind: "opinion"; opinion: RecurringOpinion } | { kind: "opinions" | "how" | "about" };
 
 export function SearchCard() {
   const [examples, setExamples] = useState(EVERGREEN_SUBJECTS);
@@ -20,6 +21,10 @@ export function SearchCard() {
   const [phase, setPhase] = useState<Phase>({ name: "idle" });
   const [reduced, setReduced] = useState(false);
   const [history, setHistory] = useState<View[]>([]);
+  const [settled, setSettled] = useState(false);
+  /* True once General view is pressed: the default card is shown for a
+     result that would otherwise get a category card. Reset per search. */
+  const [general, setGeneral] = useState(false);
   const view = history.at(-1);
   const shown = useRef(EVERGREEN_SUBJECTS[0]);
   const request = useRef<AbortController | null>(null);
@@ -29,6 +34,10 @@ export function SearchCard() {
   const returnFocus = useRef<HTMLElement | null>(null);
   const [origin, setOrigin] = useState({ x: "50%", y: "50%" });
   const result = phase.name === "done" && phase.response.kind === "result" ? phase.response.result : null;
+  const category = Boolean(result && isCategoryCard(result) && !general);
+  /* The plan's suggestion for an ambiguous name is offered as ghost text
+     for as long as the field still holds the searched subject. */
+  const suggestion = result?.suggestion && phase.name === "done" && query === phase.subject ? result.suggestion : undefined;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -53,6 +62,14 @@ export function SearchCard() {
     return () => mq.removeEventListener("change", sync);
   }, []);
   useEffect(() => { if (view) panel.current?.focus({ preventScroll: true }); }, [view]);
+  /* The answer card keeps its scrollbar hidden while it unfolds, otherwise the
+     thin scroll track flashes as the height animates. */
+  const unfolded = phase.name !== "idle";
+  useEffect(() => {
+    if (!unfolded) { setSettled(false); return; }
+    const timer = window.setTimeout(() => setSettled(true), reduced ? 0 : 700);
+    return () => window.clearTimeout(timer);
+  }, [unfolded, reduced]);
   const back = useCallback(() => {
     setHistory((current) => current.slice(0, -1));
     if (history.length === 1) requestAnimationFrame(() => returnFocus.current?.focus({ preventScroll: true }));
@@ -63,6 +80,17 @@ export function SearchCard() {
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
   }, [view, back]);
+  /* A tap or click anywhere outside the expanded panel closes it completely. */
+  const closeAll = useCallback(() => {
+    setHistory([]);
+    requestAnimationFrame(() => returnFocus.current?.focus({ preventScroll: true }));
+  }, []);
+  useEffect(() => {
+    if (!view) return;
+    const outside = (event: PointerEvent) => { if (panel.current && !panel.current.contains(event.target as Node)) closeAll(); };
+    document.addEventListener("pointerdown", outside);
+    return () => document.removeEventListener("pointerdown", outside);
+  }, [view, closeAll]);
 
   const open = (next: View) => {
     if (!view) {
@@ -73,15 +101,17 @@ export function SearchCard() {
     }
     setHistory((current) => [...current, next]);
   };
-  const search = async (subject: string) => {
+  /* categoryHint travels with a subject accepted from a did-you-mean
+     suggestion, so the answer lands on the card that reading deserves. */
+  const search = async (subject: string, categoryHint?: string) => {
     const value = subject.trim();
     if (!value || phase.name === "loading") return;
     request.current?.abort();
     const controller = new AbortController();
     request.current = controller;
-    setQuery(value); setHistory([]); setPhase({ name: "loading", subject: value });
+    setQuery(value); setHistory([]); setGeneral(false); setPhase({ name: "loading", subject: value });
     try {
-      const response = await fetch("/api/consensus", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ subject: value }), signal: controller.signal, cache: "no-store" });
+      const response = await fetch("/api/consensus", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ subject: value, ...(categoryHint ? { categoryHint } : {}) }), signal: controller.signal, cache: "no-store" });
       if (!response.ok) throw new Error("Search failed");
       const data = await response.json() as ConsensusResponse;
       if (!controller.signal.aborted) setPhase({ name: "done", subject: value, response: data });
@@ -91,29 +121,34 @@ export function SearchCard() {
   };
   const onShow = useCallback((subject: string) => { shown.current = subject; }, []);
   const submit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); void search(query || shown.current); };
+  /* Tab accepts the did-you-mean suggestion, as in a search engine. */
+  const onKey = (event: ReactKeyboardEvent<HTMLInputElement>) => { if (event.key === "Tab" && suggestion) { event.preventDefault(); void search(suggestion, result?.suggestionCategory); } };
   const edit = () => { setHistory([]); requestAnimationFrame(() => { input.current?.focus(); input.current?.select(); }); };
   const source = view?.kind === "source" ? result?.bySource.find((reading) => reading.source === view.source) : undefined;
   const opinions = result?.opinions ?? [];
 
   return <div className="search-scene" ref={scene} style={{ "--panel-x": origin.x, "--panel-y": origin.y } as CSSProperties}>
     <div className="search-home" hidden={Boolean(view)} data-result={Boolean(result)}>
-      <div className="search-stack">
-        <h1>See what people think about</h1>
+      <div className={category ? "search-stack wide" : "search-stack"}>
+        <h1>Find the popular opinion on</h1>
         <section className="glass main-card" aria-label="Search and overall opinion">
           <form className="field ctl" role="search" onSubmit={submit}>
-            <input ref={input} value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Subject" maxLength={200} autoComplete="off" enterKeyHint="search" />
+            <input ref={input} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={onKey} aria-label="Subject" maxLength={200} autoComplete="off" enterKeyHint="search" />
             {!query && <span className="ghost"><RotatingSubjects subjects={examples} paused={reduced || phase.name !== "idle"} onShow={onShow} /></span>}
+            {suggestion && <span className="ghost ghost-suggest" aria-hidden="true"><span className="ghost-mirror">{query}</span><button type="button" tabIndex={-1} className="ghost-accept" onClick={() => void search(suggestion, result?.suggestionCategory)}>did you mean {suggestion}?</button><kbd>Tab</kbd></span>}
             <button type="submit" className="go" aria-label="Search" disabled={phase.name === "loading"}><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 16V4m-5 5 5-5 5 5" /></svg></button>
           </form>
-          <div className="result-unfold" data-open={phase.name !== "idle"}><div>
+          <div className="result-unfold" data-open={unfolded} data-settled={settled}><div>
             {phase.name === "loading" && <div className="loading-state"><div className="liquid-track" role="progressbar" aria-label="Searching discussion" aria-valuetext="Searching"><span /><span /></div><p>Finding what people think…</p></div>}
             {phase.name === "error" && <div className="result-copy"><h2>Something interrupted the search.</h2><p>Please try again.</p><button type="button" className="text-action" onClick={() => void search(phase.subject)}>Try again</button></div>}
-            {phase.name === "done" && <Answer response={phase.response} onPick={(subject) => void search(subject)} onChoose={(id) => open({ kind: "source", source: id })} />}
+            {phase.name === "done" && (category && result
+              ? <CategoryCard result={result} onChoose={(id) => open({ kind: "source", source: id })} onOpinion={(opinion) => open({ kind: "opinion", opinion })} onGeneral={() => setGeneral(true)} />
+              : <Answer response={phase.response} onPick={(subject) => void search(subject)} onChoose={(id) => open({ kind: "source", source: id })} />)}
           </div></div>
         </section>
-        <div className="under-card">{result ? <button className="text-action" onClick={() => open({ kind: "about" })}>About this answer <span aria-hidden="true">+</span></button> : <span />}<button className="text-action" onClick={() => open({ kind: "how" })}>How it works <span aria-hidden="true">↗</span></button></div>
+        <div className="under-card">{result?.context && <button className="text-action" onClick={() => open({ kind: "about" })}>About this answer</button>}<button className="text-action" onClick={() => open({ kind: "how" })}>How it works</button></div>
       </div>
-      {result && <OpinionPills opinions={opinions} onSelect={(opinion) => open({ kind: "opinion", opinion })} onMore={() => open({ kind: "opinions" })} />}
+      {result && !category && <OpinionPills opinions={opinions} onSelect={(opinion) => open({ kind: "opinion", opinion })} onMore={() => open({ kind: "opinions" })} />}
     </div>
     {view && <section className="glass evidence-screen" ref={panel} tabIndex={-1} aria-label={view.kind === "source" ? `${view.source} evidence` : "Supporting details"}>
       <div className="evidence-nav"><button type="button" className="back-button" onClick={back}><span aria-hidden="true">←</span> Back</button><button className="subject-chip ctl" onClick={edit} aria-label={`Edit subject ${query || "search"}`}><span>{result?.subject || query || "Search"}</span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m4 13 9-9 3 3-9 9-4 1 1-4ZM11 6l3 3" /></svg></button></div>
@@ -129,6 +164,7 @@ export function SearchCard() {
       </div>
       {result?.illustrative && <p className="evidence-footer">Illustrative sample. Posts and comments are fictional.</p>}
     </section>}
+    {suggestion && <span className="sr-only" role="status">Did you mean {suggestion}? Press Tab to search it.</span>}
     <span className="sr-only" role="status" aria-live="polite">{phase.name === "loading" ? "Searching discussion." : phase.name === "done" ? "Search complete." : phase.name === "error" ? "Search failed. Please try again." : ""}</span>
   </div>;
 }

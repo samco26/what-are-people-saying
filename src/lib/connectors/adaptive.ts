@@ -1,6 +1,7 @@
 import { collectAll } from "./index";
 import type { SourceId, SourceItem, SourceStatus } from "../types";
 import { SEARCH_MONTHS, monthsBefore } from "../searchWindow";
+import type { SearchQueries } from "../searchPlan";
 
 export { SEARCH_MONTHS, monthsBefore } from "../searchWindow";
 export const EXPAND_BELOW = 50;
@@ -8,6 +9,7 @@ export const EXPAND_BELOW = 50;
 export async function collectAdaptive(
   subject: string, sources: SourceId[], to = new Date(),
   collect: typeof collectAll = collectAll,
+  queries?: SearchQueries,
   aliases: string[] = [],
 ) {
   const items = new Map<string, SourceItem>();
@@ -19,7 +21,7 @@ export async function collectAdaptive(
     if (!active.length) break;
     months = windowMonths;
     const batch = await collect(active, {
-      subject, aliases, from: monthsBefore(to, months), to, memo, previousItems: [...items.values()],
+      subject, aliases, from: monthsBefore(to, months), to, memo, previousItems: [...items.values()], queries,
     });
     for (const item of batch.items) if (!items.has(item.id)) items.set(item.id, item);
     for (const status of batch.statuses) statuses.set(status.source, status);

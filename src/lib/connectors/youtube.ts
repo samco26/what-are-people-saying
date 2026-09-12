@@ -6,7 +6,7 @@
 
    Bounds: the 10 most-viewed matching videos and 30 top comments each,
    so at most 300 opinions plus 10 video context entries. When top comments
-   are too old, also check recent comments (up to 21 calls, reused across windows).
+   are too old, recent comments are read at the same time (21 calls, reused across windows).
    Each search costs 100 quota units and each comment list 1, against the
    API's free daily quota of 10,000, so a search is about 110–120 units.
 
@@ -47,7 +47,7 @@ async function collect(opts: CollectOptions): Promise<Collected> {
   const search = new URL(`${API}/search`);
   search.searchParams.set("part", "snippet");
   search.searchParams.set("type", "video");
-  search.searchParams.set("q", platformQuery("youtube", opts));
+  search.searchParams.set("q", opts.aliases?.length ? platformQuery("youtube", opts) : opts.queries?.youtube ?? opts.subject);
   search.searchParams.set("maxResults", String(maxVideos));
   search.searchParams.set("order", "viewCount");
   search.searchParams.set("fields", "items(id/videoId,snippet(title,description,publishedAt,channelTitle))");
@@ -114,13 +114,22 @@ async function collect(opts: CollectOptions): Promise<Collected> {
         for (const item of batch) if (selected.size < perVideo && !selected.has(item.id)) selected.set(item.id, item);
       };
       add((opts.previousItems ?? []).filter((item) => item.parentId === `youtube:video:${id}`));
-      add(convert(await read("relevance")));
-      // An old video's top comments can also be old. Check its recent comments
-      // before deciding it has no discussion inside the requested window.
-      if (selected.size < perVideo) {
-        try { add(convert(await read("time"))); }
-        catch (err) { failures.push(reasonFor(err, opts.signal.aborted)); }
+      // An old video's top comments can also be old, so its recent comments are
+      // requested at the same time rather than after the top ones arrive.
+      const recent: Promise<{ res?: CommentThreadsResponse; err?: unknown }> = read("time").then((res) => ({ res }), (err: unknown) => ({ err }));
+      const pool = new Map<string, SourceItem>();
+      const consider = (batch: SourceItem[]) => {
+        for (const item of batch) if (!selected.has(item.id)) pool.set(item.id, item);
+      };
+      consider(convert(await read("relevance")));
+      if (selected.size + pool.size < perVideo) {
+        const outcome = await recent;
+        if (outcome.res) consider(convert(outcome.res));
+        else failures.push(reasonFor(outcome.err, opts.signal.aborted));
       }
+      // Fill the remaining places with the comments viewers endorsed most.
+      // No minimum: a small subject's unliked comments still count.
+      add([...pool.values()].sort((a, b) => (b.engagement ?? 0) - (a.engagement ?? 0)));
       return [...selected.values()];
     } catch (err) {
       failures.push(reasonFor(err, opts.signal.aborted));

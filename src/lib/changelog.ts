@@ -13,11 +13,58 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.12.2", date: "12 September 2026",
+    items: [
+      ["new", "Live searches check the subject’s official name and current facts against web sources before looking for opinions."],
+      ["changed", "Verified names and supported aliases guide platform searches and category cards. Unclear subjects and failed fact-checks are explained before collecting discussion."],
+      ["new", "About this answer shows linked subject facts separately from opinions."],
+    ],
+  },
+  {
+    v: "0.12.1", date: "12 September 2026",
+    items: [
+      ["changed", "A did-you-mean suggestion now carries the kind of thing it is, so accepting it lands on the right card (a product stays a product) instead of the usual answer; and a name is only called ambiguous when it is shared by genuinely different things, not when a product is rumoured, unreleased or a concept."],
+      ["changed", "The heading reads Find the popular opinion on, the rotating examples have no question mark, and on phones the top left shows Privacy instead of the title."],
+    ],
+  },
+  {
+    v: "0.12.0", date: "12 September 2026",
+    items: [
+      ["new", "A film, product, place or app gets a card shaped like the site people would normally check for it, with a star rating out of five worked out from the sentiment, each platform's own rating beside its logo, and the common opinions with how many posts back each one. Everything else keeps the usual answer."],
+      ["new", "When a name could mean several things, the usual answer is shown and the search field suggests the most likely specific one; Tab or a click searches it."],
+      ["new", "General view, top right of a category card on desktop, switches back to the usual answer for the same subject."],
+      ["changed", "The heading asks how people feel about a subject, and the header reads Sentiment analyser."],
+    ],
+  },
+  {
+    v: "0.11.0", date: "12 September 2026",
+    items: [
+      ["new", "Before searching, the subject is turned into the words people actually use for it, so a question typed in plain English finds real posts on each platform. If that step fails the subject is searched as typed."],
+      ["changed", "X posts are chosen by X's relevance ranking instead of newest first, so a busy subject is not reduced to its last few hours."],
+      ["changed", "When a YouTube video has more comments in the period than the 30 that are read, the ones viewers liked most are kept."],
+      ["changed", "Searches that find nothing on X, or cannot reach it, no longer use up the daily X reading budget."],
+    ],
+  },
+  {
+    v: "0.10.3", date: "12 September 2026",
+    items: [
+      ["changed", "The analysis returns its classification as compact reference lists and only the representative posts per platform, and YouTube reads top and recent comments together. The answer is unchanged; the measured search time is about the same."],
+      ["new", "A small note above the sentiment bar when fewer than 50 opinions were found."],
+      ["changed", "On phones every recurring opinion is listed under the answer and the list scrolls on its own. Show more opinions is desktop only."],
+    ],
+  },
+  {
+    v: "0.10.2", date: "12 September 2026",
+    items: [
+      ["changed", "The BETA label text is centred, and How it works sits at the bottom right of the search card again."],
+    ],
+  },
+  {
     v: "0.10.1", date: "12 September 2026",
     items: [
-      ["new", "Live searches first check the subject’s name and current facts against web sources."],
-      ["changed", "Supported alternative names help find discussion, and results use the verified spelling."],
-      ["new", "About this answer includes linked subject facts. Unclear subjects and failed fact-checks are explained before collecting discussion."],
+      ["changed", "The overall sentiment bar now sits under the platform icons in the answer."],
+      ["changed", "Tapping anywhere outside an expanded view closes it. Smaller answer text on phones so the opinions fit on one screen."],
+      ["removed", "The About this answer panel, the list behind the BETA badge, the arrows on text links and two sentences from How it works."],
     ],
   },
   {

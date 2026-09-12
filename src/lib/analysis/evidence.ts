@@ -58,7 +58,8 @@ export function buildEvidence(items: SourceItem[], classifications: Classificati
     .sort((a, b) => b.support - a.support)
     .filter((opinion, index, all) => all.findIndex((other) => other.sentence.toLowerCase() === opinion.sentence.toLowerCase()) === index)
     .slice(0, 20)
-    .map(({ support: _support, ...opinion }): RecurringOpinion => opinion);
+    /* support stays on the opinion: the category cards print it. */
+    .map((opinion): RecurringOpinion => opinion);
   return {
     opinions, splits,
     threadsFor: (source: SourceId): SourceThread[] => [...groups.values()]
