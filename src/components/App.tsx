@@ -17,10 +17,10 @@ export function App() {
         <button
           type="button"
           onClick={() => setSession((n) => n + 1)}
-          aria-label="What People Think. Return to search."
+          aria-label="Sentiment analyser. Return to search."
           className="rounded-full px-3 py-2 -ml-3 text-[13px] font-semibold tracking-[-0.01em] page-ink hover:bg-[color:var(--pageSoft)] transition-colors"
         >
-          What People Think
+          Sentiment analyser
         </button>
         <div className="flex items-center gap-3">
           <a href="/privacy" className="text-[12px] font-medium page-ink opacity-70 hover:opacity-100 transition-opacity">

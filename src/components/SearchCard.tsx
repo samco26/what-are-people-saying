@@ -116,7 +116,7 @@ export function SearchCard() {
   return <div className="search-scene" ref={scene} style={{ "--panel-x": origin.x, "--panel-y": origin.y } as CSSProperties}>
     <div className="search-home" hidden={Boolean(view)} data-result={Boolean(result)}>
       <div className="search-stack">
-        <h1>See what people think about</h1>
+        <h1>How do people feel about</h1>
         <section className="glass main-card" aria-label="Search and overall opinion">
           <form className="field ctl" role="search" onSubmit={submit}>
             <input ref={input} value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Subject" maxLength={200} autoComplete="off" enterKeyHint="search" />

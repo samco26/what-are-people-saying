@@ -7,7 +7,8 @@ import { useEffect, useState, type CSSProperties } from "react";
    every new subject. Paused, the current one simply stands.
 
    onShow reports which subject is standing, so an empty search box can be
-   submitted to search the example it is showing. */
+   submitted to search the example it is showing. The question mark is
+   display only; the subject itself is searched without it. */
 
 const SWEEP_MS = 2600;
 
@@ -43,7 +44,7 @@ export function RotatingSubjects({
   return (
     <span className="sweepbox" aria-hidden="true">
       <span key={index} className={rotating ? "sweep" : "sweep sweep-still"} style={style}>
-        {text}
+        {text}?
       </span>
     </span>
   );
