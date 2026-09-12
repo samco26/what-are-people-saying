@@ -559,8 +559,8 @@ for (const entry of SAMPLES) {
     reading.threads.forEach((thread, index) => {
       thread.id = `sample:${reading.source}:${index}`;
       thread.comments = [
-        ...reading.positives.slice(0, 2).map((theme, i) => ({ id: `${thread.id}:positive:${i}`, text: theme.detail, sentiment: "positive" as const })),
-        ...reading.negatives.slice(0, 1).map((theme, i) => ({ id: `${thread.id}:negative:${i}`, text: theme.detail, sentiment: "negative" as const })),
+        ...(reading.positives ?? []).slice(0, 2).map((theme, i) => ({ id: `${thread.id}:positive:${i}`, text: theme.detail, sentiment: "positive" as const })),
+        ...(reading.negatives ?? []).slice(0, 1).map((theme, i) => ({ id: `${thread.id}:negative:${i}`, text: theme.detail, sentiment: "negative" as const })),
       ];
     });
   }

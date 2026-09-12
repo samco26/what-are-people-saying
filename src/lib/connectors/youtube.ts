@@ -115,11 +115,11 @@ async function collect(opts: CollectOptions): Promise<Collected> {
       add((opts.previousItems ?? []).filter((item) => item.parentId === `youtube:video:${id}`));
       // An old video's top comments can also be old, so its recent comments are
       // requested at the same time rather than after the top ones arrive.
-      const recent = read("time").then((res) => ({ res }), (err: unknown) => ({ err }));
+      const recent: Promise<{ res?: CommentThreadsResponse; err?: unknown }> = read("time").then((res) => ({ res }), (err: unknown) => ({ err }));
       add(convert(await read("relevance")));
       if (selected.size < perVideo) {
         const outcome = await recent;
-        if ("res" in outcome) add(convert(outcome.res));
+        if (outcome.res) add(convert(outcome.res));
         else failures.push(reasonFor(outcome.err, opts.signal.aborted));
       }
       return [...selected.values()];
