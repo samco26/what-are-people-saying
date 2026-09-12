@@ -86,6 +86,6 @@ Save each working checkpoint as a Git commit. Deployment and integrations must b
 
 ## Visual direction
 
-Use the user-supplied Tiffany-blue gradient image as the page background, with the existing peach/salmon controls, Helvetica typography, rounded liquid-glass surfaces and fluid interaction details. See DESIGN.md. The user refined the interactive mockup and authorized implementation on 12 September 2026.
+Use the user-supplied black, plum and crimson gradient image as the page background, with coral/crimson controls, Helvetica typography, dark transparent frosted-glass surfaces and fluid interaction details. Keep the existing green, red and grey sentiment colours. See DESIGN.md. The user refined the interactive mockup and authorized implementation on 13 September 2026.
 
 Accounts, payments and demographic inference remain excluded. Further source expansion requires evaluating access; the current source list is YouTube, X and Reddit.

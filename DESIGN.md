@@ -1,6 +1,6 @@
-# Tiffany-blue background — 13 September 2026
+# Warm crimson background — 13 September 2026
 
-The user supplied an AVIF gradient and requested it replace the page background. Serve the exact image as `public/tiffany-gradient.avif`, centred with cover sizing. Remove the earlier peach background overlays; retain the existing glass cards, typography, controls and sentiment colours. The supplied file is 763 bytes and 740×246 pixels.
+The user supplied a 3840×2160 black, plum, coral and crimson gradient image and requested it replace the page background. Serve the exact image as `public/warm-gradient.jpg`, centred with cover sizing. The liquid-glass surfaces are now a dark, transparent, strongly blurred frosted glass that lets the image show through. Controls, loading highlights, stars and focus states use the image's coral and crimson accents. The existing green, red and grey positive, negative and neutral sentiment colours remain unchanged.
 
 # Merged refinements — 13 September 2026
 

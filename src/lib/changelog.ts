@@ -12,6 +12,10 @@ export interface ChangeEntry {
 }
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
+  { v: "0.14.1", date: "13 September 2026", items: [
+    ["changed", "The supplied black, plum and crimson gradient now fills the page, with coral controls and dark frosted glass that lets the colour show through."],
+    ["changed", "Positive, neutral and negative indicators keep their existing green, grey and red meanings."],
+  ] },
   { v: "0.14.0", date: "13 September 2026", items: [
     ["changed", "Short subject searches collect discussion alongside web research and combine identity checks with opinion analysis."],
     ["changed", "Analysis returns less internal data; checked themes determine which source comments appear first."],

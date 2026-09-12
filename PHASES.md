@@ -1,6 +1,6 @@
 # What People Think — phase tracker
 
-Last audited: 12 September 2026 (Australia/Melbourne).
+Last audited: 13 September 2026 (Australia/Melbourne).
 
 ## Where we are
 
@@ -21,7 +21,7 @@ Use the ten milestones in [PROJECT.md](PROJECT.md) as the stable numbering. Comp
 | 7 | Integrate YouTube | Live collection verified; quality/edge cases pending | Separate video/comment connector exists. Complete when an authorized request retrieves real relevant comments, preserves their links and yields a grounded answer; test disabled comments, quota errors and insufficient evidence. |
 | 8 | Integrate X with collection and spending controls | Live collection verified; cost controls still need audit | After fixing X's ten-second `end_time` rule, a controlled production search returned 50 real X posts with source-specific analysis and links. The daily counter is only per server process, not a reliable whole-app spending cap. Reconcile actual charges and add an enforceable whole-app limit before completion. |
 | 9 | Integrate Reddit when access is available | Implementation verified locally; approval/live verification pending | OAuth, post search, comment collection, attribution and partial-failure handling pass simulated tests. Current Reddit policy requires explicit approval even for non-commercial use. Submit the application, add the three server-only settings only after approval, then demonstrate a successful authenticated search with real evidence. |
-| 10 | Refine UI and test privately before public availability | In progress | Substantial visual refinement and sample-mode checks are done. Still needs live-result quality checks, failure/partial-source tests, abuse/cost protections and a controlled user trial. |
+| 10 | Refine UI and test privately before public availability | In progress | BETA 0.14.1 applies the user-supplied warm crimson background and dark frosted glass. Local desktop and phone checks pass; live-result quality checks, failure/partial-source tests, abuse/cost protections and a controlled user trial remain. |
 
 ## Immediate next checkpoint
 
@@ -39,6 +39,8 @@ Milestones 6–8 and 10: benchmark BETA 0.13.0 on controlled live searches for r
 | AI provider in the code | OpenAI Responses API; GPT-5.6 Luna default | package.json; src/lib/analysis/analyse.ts; live production responses verified |
 
 ## Latest verification
+
+BETA 0.14.1, milestone 10: replaced the prior Tiffany background with the user-supplied 3840×2160 black, plum, coral and crimson JPEG. The page, answer and evidence surfaces are dark translucent frosted glass, while controls, loading highlights, stars and focus states use coral/crimson accents. The existing positive green (`#53866a`), neutral grey (`#525a5f`) and negative red (`#bc716b`) sentiment meter colours, and the corresponding opinion-pill colours, are unchanged. The current 70 tests, TypeScript check and Next.js 15.5.25 production build pass. A local browser check passed on the landing, loading and labelled fictional-result states at desktop and 390×844 phone widths; the source buttons, result layout and scrolling opinion list rendered without console errors. This is local verification only; deployment verification follows the requested push.
 
 BETA 0.14.0, milestones 6–8 and 10: user authorised recommendations 1–3 and the supplied Tiffany-blue background. Short multiword subjects overlap original-term collection with a short cited lookup, extract identity/category during analysis, and use three AI requests. More complex subjects retain researched queries (four requests). Required compact per-opinion labels and code-selected source excerpts preserve evidence checks. Source/model limits, no-storage behaviour and the separate checked writer remain. All 70 tests, TypeScript and the production build pass; a gated test proves collection proceeds while research waits. Isolated Chrome checks verify the exact AVIF and all five categories at 1440×900, 390×844 and 320×660, aligned controls, no overflow, source quotes, Back and reduced motion, with no runtime errors. Deployed commit `91242eb` successfully to Vercel Production. The homepage serves BETA 0.14.0 and the background bytes exactly match the supplied 763-byte AVIF. A live “iphone fold” search returned HTTP 200, product category, 81 accepted YouTube opinions, 11 X opinions and 7 themes in 24.79 seconds. Server timing confirms the parallel flow: research 8.609 seconds, collection 1.039 seconds (overlapping), classification 13.270 seconds, summary 1.812 seconds, total server time 23.736 seconds. This did not demonstrate a speedup over the earlier 24.67-second request; the evidence sample and model runtime differed. One fewer AI request does not establish lower billed cost, and no social content was persisted.
 
