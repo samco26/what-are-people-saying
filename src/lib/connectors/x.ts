@@ -18,6 +18,7 @@
 import { setTimeout as delay } from "node:timers/promises";
 import type { SourceItem, SearchWindow } from "../types";
 import { env, envInt } from "../env";
+import { platformQuery } from "./query";
 import { SEARCH_MONTHS, monthsBefore } from "../searchWindow";
 import { getJson, getOnce, reasonFor, statusFor, tidy, type Collected, type CollectOptions, type Connector } from "./shared";
 
@@ -63,7 +64,8 @@ export function resetDailyBudget(): void {
 }
 
 /* The terms X is searched for, before the fixed operators. */
-export function xTerms(opts: Pick<CollectOptions, "subject" | "queries">): string {
+export function xTerms(opts: Pick<CollectOptions, "subject" | "queries" | "aliases">): string {
+  if (opts.aliases?.length) return platformQuery("x", opts);
   return opts.queries?.x ?? `"${opts.subject.replace(/"/g, "")}"`;
 }
 

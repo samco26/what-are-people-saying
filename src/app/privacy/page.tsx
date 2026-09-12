@@ -20,7 +20,7 @@ export default function PrivacyPage() {
           </section>
           <section>
             <h2 className="mb-2 text-[18px] font-semibold">How AI is used</h2>
-            <p className="m-0">The search phrase and a bounded sample of public discussion are sent to OpenAI to produce the answer. The request disables OpenAI response storage, and the app does not use the material to train its own model; OpenAI may still process or retain API data under its own terms and abuse-monitoring rules.</p>
+            <p className="m-0">The search phrase is sent to OpenAI and its web-search service to identify the subject and check current facts. The verified name and supported alternative names are then used to search public-data services. A bounded sample of public discussion and the factual context are sent to OpenAI to produce the answer. These requests disable OpenAI response storage, and the app does not use the material to train its own model; OpenAI may still process or retain API data under its own terms and abuse-monitoring rules.</p>
           </section>
           <section>
             <h2 className="mb-2 text-[18px] font-semibold">Storage and accounts</h2>

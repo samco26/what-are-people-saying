@@ -5,6 +5,7 @@ import type { SourceId, SourceItem, SourceStatus } from "../types";
 
 export interface CollectOptions {
   subject: string;
+  aliases?: string[];
   /* Only items published in this window, when a source can filter by
      date. Undefined means no bound on that side. */
   from?: Date;

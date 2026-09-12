@@ -27,6 +27,7 @@ The default view prioritises the short answer. Keep the overall sentiment meter,
 - Mix daily news subjects with niche evergreen examples in that rotation. News suggestions load independently, are grounded in dated publisher headlines, and fall back to evergreen examples when unavailable.
 - Submitting the search expands the same glass container smoothly downward. The search field stays in place at the top of that container.
 - Show the one-to-three-sentence answer inside the expanded container.
+- Before live collection, check the subject against cited current web sources; preserve its official name and search supported aliases within existing source limits. Pass dated facts separately to analysis, distinguish speculation from confirmed announcements and availability, and stop explicitly when identity cannot be verified. Web facts never count as opinions.
 - Search accepts only a subject. No platform, time-period, audience or demographic refinement controls are offered.
 - Collect from all connected sources using 3 months initially, then 12 months and 3 years when fewer than 50 opinions are collected. Retain and deduplicate earlier findings, report the actual window, and respect source-specific coverage limits.
 - Mobile and desktop are equally important. The page stays within one screen; details may scroll internally.

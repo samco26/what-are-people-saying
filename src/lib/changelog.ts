@@ -13,12 +13,20 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
-    v: "0.12.2", date: "12 September 2026",
+    v: "0.12.3", date: "12 September 2026",
     items: [
       ["changed", "The answer now reads like a person telling you what people think (\"Melbourne is beautiful, has a real buzz and plenty to eat, though it is expensive\") instead of describing the opinions from the outside."],
       ["changed", "The sentiment bar and star rating are counted from the same per-comment classification the platform bars use, with a little more weight for comments many people liked, so the answer, the stars and the platform ratings always agree. The opinion count is the number of comments actually about the subject."],
       ["changed", "When too little of what came back is about the subject (a name that does not exist, something too specific, a search that matched something else), the usual answer is shown with a plain sentence, greyed platform buttons and an empty grey bar, with no star rating."],
       ["changed", "On phones the rating now sits directly above the platform ratings, fixed in place like them, under the scrolling opinions."],
+    ],
+  },
+  {
+    v: "0.12.2", date: "12 September 2026",
+    items: [
+      ["new", "Live searches check the subject’s official name and current facts against web sources before looking for opinions."],
+      ["changed", "Verified names and supported aliases guide platform searches and category cards. Unclear subjects and failed fact-checks are explained before collecting discussion."],
+      ["new", "About this answer shows linked subject facts separately from opinions."],
     ],
   },
   {

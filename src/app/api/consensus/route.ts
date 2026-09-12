@@ -4,6 +4,7 @@ import { liveEnabled } from "@/lib/env";
 import { collectAdaptive } from "@/lib/connectors/adaptive";
 import { collectAll } from "@/lib/connectors";
 import { planSearch } from "@/lib/searchPlan";
+import { resolveSubject } from "@/lib/subjectContext";
 import { analyse } from "@/lib/analysis/analyse";
 import { CATEGORIES, SOURCES, type Category, type ConsensusResponse } from "@/lib/types";
 
@@ -48,6 +49,7 @@ function readCategoryHint(body: unknown): Category | undefined {
 }
 
 export async function POST(request: Request) {
+  const started = performance.now();
   let body: unknown;
   try {
     body = await request.json();
@@ -77,14 +79,22 @@ export async function POST(request: Request) {
   }
 
   const to = new Date();
-  /* First work out what to search for on each platform, then collect. The
-     plan falls back to the subject as typed if that step cannot complete. */
+  const lookupStarted = performance.now();
+  const lookup = await resolveSubject(subject, to);
+  const lookupMs = performance.now() - lookupStarted;
+  if (lookup.status !== "resolved") {
+    const response: ConsensusResponse = { kind: "subject-unresolved", subject, reason: lookup.status, message: lookup.message };
+    return NextResponse.json(response, noStore);
+  }
+  const context = lookup.context;
+  /* Plan queries from the verified identity and facts. A failed plan falls
+     back to the verified name, never the unverified original input. */
   const planStarted = performance.now();
   const categoryHint = readCategoryHint(body);
-  const plan = await planSearch(subject, { confirmed: Boolean(categoryHint) });
+  const plan = await planSearch(context.name, { confirmed: true, context });
   const planMs = performance.now() - planStarted;
   const collectionStarted = performance.now();
-  const { items, statuses, window } = await collectAdaptive(subject, SOURCES.map((source) => source.id), to, collectAll, plan.queries);
+  const { items, statuses, window } = await collectAdaptive(context.name, SOURCES.map((source) => source.id), to, collectAll, plan.queries, context.aliases.map((alias) => alias.text));
   const collectionMs = performance.now() - collectionStarted;
   const opinionCount = items.filter((item) => item.kind !== "video").length;
 
@@ -92,7 +102,8 @@ export async function POST(request: Request) {
   if (opinionCount < minItems) {
     const response: ConsensusResponse = {
       kind: "insufficient",
-      subject,
+      subject: context.name,
+      context,
       message:
         opinionCount === 0
           ? "Nothing came back from the platforms that could be reached, so there is nothing to describe."
@@ -105,7 +116,7 @@ export async function POST(request: Request) {
 
   try {
     const analysisStarted = performance.now();
-    const result = await analyse(subject, items, statuses, window, plan.interpretation);
+    const result = await analyse(context.name, items, statuses, window, plan.interpretation, context, Math.max(1, 55_000 - (performance.now() - started)));
     const analysisMs = performance.now() - analysisStarted;
     /* Enough came back, but the analysis found that too little of it was
        actually about the subject: a name that does not exist, a subject too
@@ -115,14 +126,15 @@ export async function POST(request: Request) {
     if (relevant < minItems) {
       const response: ConsensusResponse = {
         kind: "insufficient",
-        subject,
+        subject: context.name,
+        context,
         message: relevant === 0
           ? `None of the ${opinionCount} opinions that came back were about the subject.`
           : `Only ${relevant} of the ${opinionCount} opinions that came back were about the subject, which is too few to describe honestly.`,
         sources: result.sources,
         window,
       };
-      return NextResponse.json(response, { headers: { ...noStore.headers, "Server-Timing": `plan;dur=${planMs.toFixed(0)}, collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}` } });
+      return NextResponse.json(response, { headers: { ...noStore.headers, "Server-Timing": `lookup;dur=${lookupMs.toFixed(0)}, plan;dur=${planMs.toFixed(0)}, collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}` } });
     }
     result.window = window;
     /* The plan decided what kind of thing this is; the screen picks the
@@ -135,7 +147,7 @@ export async function POST(request: Request) {
     const response: ConsensusResponse = { kind: "result", result };
     return NextResponse.json(response, { headers: {
       ...noStore.headers,
-      "Server-Timing": `plan;dur=${planMs.toFixed(0)}, collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}`,
+      "Server-Timing": `lookup;dur=${lookupMs.toFixed(0)}, plan;dur=${planMs.toFixed(0)}, collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}`,
     } });
   } catch (err) {
     const message = err instanceof Error ? err.message : "The analysis failed.";

@@ -15,6 +15,7 @@
 
 import type { SourceItem } from "../types";
 import { env } from "../env";
+import { platformQuery } from "./query";
 import { getJson, getOnce, inWindow, reasonFor, tidy, type Collected, type CollectOptions, type Connector } from "./shared";
 
 const API = "https://www.googleapis.com/youtube/v3";
@@ -46,7 +47,7 @@ async function collect(opts: CollectOptions): Promise<Collected> {
   const search = new URL(`${API}/search`);
   search.searchParams.set("part", "snippet");
   search.searchParams.set("type", "video");
-  search.searchParams.set("q", opts.queries?.youtube ?? opts.subject);
+  search.searchParams.set("q", opts.aliases?.length ? platformQuery("youtube", opts) : opts.queries?.youtube ?? opts.subject);
   search.searchParams.set("maxResults", String(maxVideos));
   search.searchParams.set("order", "viewCount");
   search.searchParams.set("fields", "items(id/videoId,snippet(title,description,publishedAt,channelTitle))");

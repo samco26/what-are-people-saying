@@ -11,6 +11,7 @@ export function Coverage({ sources }: { sources: SourceStatus[] }) {
    search widens its date window while under the same number. */
 const LIMITED_BELOW = 50;
 export function Answer({ response, onPick, onChoose }: { response: ConsensusResponse; onPick: (subject: string) => void; onChoose: (id: SourceId) => void }) {
+  if (response.kind === "subject-unresolved") return <div className="result-copy"><h2>{response.reason === "unavailable" ? "The fact-check couldn’t finish" : "Let’s narrow down the subject"}</h2><p>{response.message}</p>{response.reason === "unavailable" && <button type="button" className="text-action" onClick={() => onPick(response.subject)}>Try again</button>}</div>;
   if (response.kind === "no-live-search") return <div className="result-copy">
     <h2>No live search yet</h2><p>There is no live discussion available for “{response.subject}”. Try an illustrative example.</p>
     <div className="example-list">{response.examples.map((subject) => <button className="example ctl" key={subject} onClick={() => onPick(subject)}>{subject}</button>)}</div>
@@ -31,6 +32,7 @@ export function Answer({ response, onPick, onChoose }: { response: ConsensusResp
   const analysed = result.sources.reduce((total, status) => total + (status.relevant ?? status.itemsAnalysed), 0);
   return <div className="result-copy">
     {result.illustrative && <p className="sample-label">Illustrative sample · fictional opinions</p>}
+    {result.context && <p className="sample-label">Showing results for {result.subject}</p>}
     <p className="overall-answer">{result.summary}</p>
     <div className="source-buttons" aria-label="Explore a platform">
       {SOURCES.map((source) => {

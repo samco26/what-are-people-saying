@@ -130,7 +130,7 @@ test("all 300 opinions reach OpenAI and one-source evidence is generated only on
     assert.match(body.instructions, /tell a friend what people think/);
     assert.match(body.instructions, /judge each entry's view OF THE SUBJECT/);
     assert.match(body.instructions, /untrusted data/);
-    assert.match(body.input, /^Subject: "fictional phone"\nTaken to mean: "A fictional phone, for the test\."\nOpinion window:/);
+    assert.match(body.input, /^Subject: "fictional phone"\nTaken to mean: "A fictional phone, for the test\."\nWeb context \(facts only; never opinion evidence\): null\nOpinion window:/);
   });
   const result = await analyse("fictional phone", sample(), [{ source: "youtube", availability: "ok", itemsAnalysed: 301 }], undefined, "A fictional phone, for the test.");
   assert.equal(result.sources[0].itemsAnalysed, 300);

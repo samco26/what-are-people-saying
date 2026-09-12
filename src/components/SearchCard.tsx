@@ -3,15 +3,17 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type Keyboard
 import { EVERGREEN_SUBJECTS, type SuggestionsResponse } from "@/lib/suggestions";
 import type { ConsensusResponse, RecurringOpinion, SourceId } from "@/lib/types";
 import { RotatingSubjects } from "./RotatingSubjects";
-import { Answer } from "./Answer";
+import { Answer, Coverage } from "./Answer";
 import { PlatformEvidence, PostList } from "./PlatformEvidence";
 import { OpinionPills } from "./OpinionPills";
 import { CategoryCard, isCategoryCard } from "./CategoryCard";
 import { HowItWorks } from "./HowItWorks";
 import { Logo } from "./Logo";
+import { SentimentBar } from "./SentimentBar";
+import { SubjectFacts } from "./SubjectFacts";
 
 type Phase = { name: "idle" } | { name: "loading"; subject: string } | { name: "done"; subject: string; response: ConsensusResponse } | { name: "error"; subject: string };
-type View = { kind: "source"; source: SourceId } | { kind: "opinion"; opinion: RecurringOpinion } | { kind: "opinions" | "how" };
+type View = { kind: "source"; source: SourceId } | { kind: "opinion"; opinion: RecurringOpinion } | { kind: "opinions" | "how" | "about" };
 
 export function SearchCard() {
   const [examples, setExamples] = useState(EVERGREEN_SUBJECTS);
@@ -144,7 +146,7 @@ export function SearchCard() {
               : <Answer response={phase.response} onPick={(subject) => void search(subject)} onChoose={(id) => open({ kind: "source", source: id })} />)}
           </div></div>
         </section>
-        <div className="under-card"><button className="text-action" onClick={() => open({ kind: "how" })}>How it works</button></div>
+        <div className="under-card">{result?.context && <button className="text-action" onClick={() => open({ kind: "about" })}>About this answer</button>}<button className="text-action" onClick={() => open({ kind: "how" })}>How it works</button></div>
       </div>
       {result && !category && <OpinionPills opinions={opinions} onSelect={(opinion) => open({ kind: "opinion", opinion })} onMore={() => open({ kind: "opinions" })} />}
     </div>
@@ -157,6 +159,7 @@ export function SearchCard() {
           const threads = reading.threads.filter((thread) => thread.id && view.opinion.evidenceIds.includes(thread.id));
           return threads.length ? <section key={reading.source} className="opinion-evidence" aria-label={reading.source}><Logo id={reading.source} size={24} /><PostList threads={threads} source={reading.source} /></section> : null;
         })}</>}
+        {view.kind === "about" && result && <><h2>About this answer</h2><SentimentBar split={result.sentiment} /><p className="quiet">This describes the collected discussion, not everyone’s view.</p><p className="quiet">{result.confidence.level.charAt(0).toUpperCase() + result.confidence.level.slice(1)} confidence · {result.agreement} agreement. {result.confidence.reason}</p><Coverage sources={result.sources} />{opinions.length < 5 && <p className="quiet">The sample supports fewer distinct recurring opinions. Only those supported are shown.</p>}{result.context && <SubjectFacts context={result.context} />}</>}
         {view.kind === "how" && <><h2>How it works</h2><HowItWorks /></>}
       </div>
       {result?.illustrative && <p className="evidence-footer">Illustrative sample. Posts and comments are fictional.</p>}

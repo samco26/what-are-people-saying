@@ -97,7 +97,7 @@ function Foot({ result }: { result: ConsensusResult }) {
   return <div className="foot"><SentimentBar split={result.sentiment} note={analysedCount(result) < LIMITED_BELOW ? "Limited results on subject found" : undefined} /></div>;
 }
 function Sample({ result }: { result: ConsensusResult }) {
-  return result.illustrative ? <p className="sample-label">Illustrative sample · fictional opinions</p> : null;
+  return <>{result.illustrative && <p className="sample-label">Illustrative sample · fictional opinions</p>}{result.context && <p className="sample-label">Showing results for {result.subject}</p>}</>;
 }
 
 /* One column, shared by every category on phones: summary, the opinions in
