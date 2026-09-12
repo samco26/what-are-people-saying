@@ -3,6 +3,7 @@ import { EXAMPLE_SUBJECTS, findSample } from "@/lib/subjects";
 import { liveEnabled } from "@/lib/env";
 import { collectAdaptive } from "@/lib/connectors/adaptive";
 import { collectAll } from "@/lib/connectors";
+import { fallbackPlan } from "@/lib/searchPlan";
 import { resolveSubject } from "@/lib/subjectContext";
 import { analyse } from "@/lib/analysis/analyse";
 import { SOURCES, type ConsensusResponse } from "@/lib/types";
@@ -71,15 +72,12 @@ export async function POST(request: Request) {
   const lookupStarted = performance.now();
   const lookup = await resolveSubject(subject, to);
   const lookupMs = performance.now() - lookupStarted;
-  if (lookup.status !== "resolved") {
-    const response: ConsensusResponse = { kind: "subject-unresolved", subject, reason: lookup.status, message: lookup.message };
-    return NextResponse.json(response, noStore);
-  }
-  const context = lookup.context;
-  // Identity extraction and platform planning share the same cited report and AI call.
-  const plan = lookup.plan;
+  const context = lookup.status === "resolved" ? lookup.context : undefined;
+  const name = context?.name ?? subject;
+  // Verified extraction already planned queries. Otherwise preserve the literal input.
+  const plan = lookup.status === "resolved" ? lookup.plan : fallbackPlan(subject);
   const collectionStarted = performance.now();
-  const { items, statuses, window } = await collectAdaptive(context.name, SOURCES.map((source) => source.id), to, collectAll, plan.queries, context.aliases.map((alias) => alias.text));
+  const { items, statuses, window } = await collectAdaptive(name, SOURCES.map((source) => source.id), to, collectAll, plan.queries, context?.aliases.map((alias) => alias.text));
   const collectionMs = performance.now() - collectionStarted;
   const opinionCount = items.filter((item) => item.kind !== "video").length;
 
@@ -87,7 +85,7 @@ export async function POST(request: Request) {
   if (opinionCount < minItems) {
     const response: ConsensusResponse = {
       kind: "insufficient",
-      subject: context.name,
+      subject: name,
       context,
       message:
         opinionCount === 0
@@ -101,10 +99,10 @@ export async function POST(request: Request) {
 
   try {
     const analysisStarted = performance.now();
-    const result = await analyse(context.name, items, statuses, window, plan.interpretation, context, Math.max(1, 55_000 - (performance.now() - started)));
+    const result = await analyse(name, items, statuses, window, plan.interpretation, context, Math.max(1, 55_000 - (performance.now() - started)));
     const analysisMs = performance.now() - analysisStarted;
     if (result.sources.reduce((sum, source) => sum + source.itemsAnalysed, 0) < minItems) {
-      const response: ConsensusResponse = { kind: "insufficient", subject: context.name, context, sources: result.sources, window, message: "Too few unique, relevant opinions remained after checking the collected discussion." };
+      const response: ConsensusResponse = { kind: "insufficient", subject: name, context, sources: result.sources, window, message: "Too few unique, relevant opinions remained after checking the collected discussion." };
       return NextResponse.json(response, noStore);
     }
     result.window = window;

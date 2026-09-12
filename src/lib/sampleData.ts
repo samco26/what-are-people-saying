@@ -380,8 +380,6 @@ export const SAMPLES: SampleEntry[] = [
     aliases: ["melbourne", "life in melbourne", "moving to melbourne", "living in melbourne australia", "melbourne living"],
     result: {
       subject: "living in Melbourne",
-      category: "place",
-      kind: "City · Victoria, Australia",
       sentiment: { positive: 0.47, neutral: 0.18, negative: 0.35 },
       summary:
         "Living in Melbourne inspires affection and frustration in the same breath. Food, coffee, culture and the sense that there is always something on are praised almost without exception, while rent, the weather and the commute from the affordable suburbs are the three things that wear people down.",
@@ -458,6 +456,96 @@ export const SAMPLES: SampleEntry[] = [
             t("thread", "Is a 70-minute commute from the west normal or have I made a mistake?"),
             t("thread", "Moved from Brisbane five years ago. Miss the sun, would never give up the coffee"),
             t("thread", "Thinking of leaving Melbourne over rent, talk me out of it"),
+          ],
+        },
+      ],
+      illustrative: true,
+    },
+  },
+  {
+    /* A fictional chain, so the place card has a demo under the rule that
+       only a named venue or chain with a review listing is a place. */
+    display: "Harbour Lane Burgers",
+    aliases: ["harbour lane", "harbour lane burger", "harbor lane burgers", "harbour lane burgers restaurant"],
+    result: {
+      subject: "Harbour Lane Burgers",
+      category: "place",
+      kind: "Restaurant chain · burgers · 14 locations",
+      sentiment: { positive: 0.61, neutral: 0.17, negative: 0.22 },
+      summary:
+        "Harbour Lane Burgers does a genuinely good burger and the chips are the reason people keep going back, though it is dearer than it used to be and the newer suburban branches are slower and less consistent than the original.",
+      verdict: "positive",
+      agreement: "moderate",
+      confidence: {
+        level: "medium",
+        reason:
+          "A decent spread of Reddit threads and YouTube review comments from regulars, with a smaller X sample that is mostly opening-week posts.",
+      },
+      positives: [
+        { title: "The chips", detail: "Named more often than the burgers themselves; several people say they order them alone." },
+        { title: "A proper burger", detail: "Regulars describe it as the best chain burger in the city, cooked to order rather than kept warm." },
+        { title: "The original branch", detail: "The first shop gets warmer reviews than any of the newer ones." },
+      ],
+      negatives: [
+        { title: "Price creep", detail: "The most common complaint is that a meal now costs what a sit-down lunch used to." },
+        { title: "Slow newer branches", detail: "Waits of twenty minutes and the odd wrong order come up for the suburban shops." },
+      ],
+      sources: [
+        { source: "youtube", availability: "ok", itemsAnalysed: 34 },
+        { source: "x", availability: "ok", itemsAnalysed: 19 },
+        { source: "reddit", availability: "ok", itemsAnalysed: 71 },
+      ],
+      bySource: [
+        {
+          source: "youtube",
+          verdict: "positive",
+          agreement: "moderate",
+          confidence: { level: "medium", reason: "Comments under a handful of local food-review videos, mostly from people who have eaten there more than once." },
+          positives: [
+            { title: "The chips", detail: "Every review video's comments argue the chips are the real draw." },
+            { title: "Cooked to order", detail: "People like watching the burger made rather than picking one off a warmer." },
+          ],
+          negatives: [
+            { title: "Price", detail: "The price on screen draws a comment nearly every time." },
+          ],
+          threads: [
+            t("video", "Trying every burger at Harbour Lane, ranked"),
+            t("video", "Is Harbour Lane still worth it in 2026?"),
+            t("comment", "Went for the burger, stayed for the chips, left poorer"),
+          ],
+        },
+        {
+          source: "x",
+          verdict: "mixed",
+          agreement: "weak",
+          confidence: { level: "low", reason: "Short posts from opening weeks at new branches, which say more about queues than food." },
+          positives: [
+            { title: "Opening buzz", detail: "New branches open to long queues and happy first-day posts." },
+          ],
+          negatives: [
+            { title: "The wait", detail: "The same openings draw posts about twenty-minute waits and missed orders." },
+          ],
+          threads: [
+            t("post", "Harbour Lane finally opened near me. 25 minute wait, worth it, once"),
+            t("post", "Second time at the new Harbour Lane and they forgot the chips again"),
+          ],
+        },
+        {
+          source: "reddit",
+          verdict: "positive",
+          agreement: "moderate",
+          confidence: { level: "medium", reason: "Long local threads comparing branches, with regulars on both sides." },
+          positives: [
+            { title: "Best chain burger", detail: "The recurring verdict in city food threads, usually with the original branch named." },
+          ],
+          negatives: [
+            { title: "Price creep", detail: "Threads about the latest price rise are the longest in the sample." },
+            { title: "Branch inconsistency", detail: "The suburban shops are described as a different restaurant on a bad day." },
+          ],
+          threads: [
+            t("thread", "Harbour Lane just put the double up again. Is it still the best value burger?"),
+            t("thread", "Original Harbour Lane vs the new ones, is it just me?"),
+            t("thread", "Best burger chain in the city, settle it"),
           ],
         },
       ],

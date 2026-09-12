@@ -43,6 +43,9 @@ export interface SourceStatus {
   availability: SourceAvailability;
   /* Accepted unique relevant opinions after analysis; collected candidates before analysis. */
   itemsAnalysed: number;
+  /* How many of those the analysis classified as being about the subject.
+     The cards count these; absent on samples and before analysis. */
+  relevant?: number;
   /* A plain-English reason when the source is partial or unavailable. */
   note?: string;
   /* Actual bounds when a source expands independently of the others. */
@@ -174,7 +177,6 @@ export interface ConsensusResult {
 
 export type ConsensusResponse =
   | { kind: "result"; result: ConsensusResult }
-  | { kind: "subject-unresolved"; subject: string; reason: "ambiguous" | "unverified" | "unavailable"; message: string }
   /* No live sources are connected and the subject is not one of the
      samples. */
   | { kind: "no-live-search"; subject: string; message: string; examples: string[] }

@@ -18,6 +18,53 @@ export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
     ["removed", "Repeated source quotes and the Tab badge on suggestions."],
   ] },
   {
+    v: "0.12.8", date: "12 September 2026",
+    items: [
+      ["changed", "On the usual answer the sentiment bar sits on the same line as the platform buttons, to their right, without the Positive, Neutral, Negative legend, so the whole answer fits without scrolling inside the card."],
+      ["changed", "Show more opinions now sits under the answer card beside How it works, where it is always in view, instead of floating at the foot of the screen."],
+      ["changed", "On phones the heading has a little more room above it once a search is underway, and the search field is centred exactly on the landing screen."],
+    ],
+  },
+  {
+    v: "0.12.7", date: "12 September 2026",
+    items: [
+      ["changed", "On phones a category card keeps only the summary and the rating; the common opinions sit under the card as the same scrolling pills the usual answer has, with no heading."],
+      ["removed", "The sentiment bar from the four category cards, which have the star rating instead. The usual answer keeps its bar."],
+      ["removed", "The About this answer link and its facts panel."],
+    ],
+  },
+  {
+    v: "0.12.6", date: "12 September 2026",
+    items: [
+      ["changed", "On every category card the star rating is a compact tile on the left with the three platform buttons beside it, stretched to the same height so the row reads as one line."],
+      ["removed", "The star rating beside each platform's logo, the tick, cross and dash marks on opinion bubbles and the little stars on opinion rows and cards: the colour says the same thing. The number of posts behind each opinion stays."],
+      ["removed", "On phones, the Privacy link and BETA badge once a search is underway, giving the answer the room."],
+    ],
+  },
+  {
+    v: "0.12.5", date: "12 September 2026",
+    items: [
+      ["changed", "A search is never stopped because the web fact-check could not settle the name. Melbourne, a generic topic or a name the check cannot verify is simply searched as typed and gets the usual answer; verified names still bring their facts along."],
+      ["removed", "The Let's narrow down the subject screen."],
+    ],
+  },
+  {
+    v: "0.12.4", date: "12 September 2026",
+    items: [
+      ["changed", "A product, place, film or app card is only used for one specific named thing you would find on Amazon, Google Maps, Letterboxd or the App Store: iPhone 17, McDonald's, a named film, ChatGPT. A brand alone, a kind of thing (smartphones), a city or country (Rome), or a phrase about a thing (the weather in Rome in August) gets the usual answer."],
+      ["changed", "The illustrative place example is now a fictional restaurant chain, Harbour Lane Burgers; living in Melbourne shows the usual answer."],
+    ],
+  },
+  {
+    v: "0.12.3", date: "12 September 2026",
+    items: [
+      ["changed", "The answer now reads like a person telling you what people think (\"Melbourne is beautiful, has a real buzz and plenty to eat, though it is expensive\") instead of describing the opinions from the outside."],
+      ["changed", "The sentiment bar and star rating are counted from the same per-comment classification the platform bars use, with a little more weight for comments many people liked, so the answer, the stars and the platform ratings always agree. The opinion count is the number of comments actually about the subject."],
+      ["changed", "When too little of what came back is about the subject (a name that does not exist, something too specific, a search that matched something else), the usual answer is shown with a plain sentence, greyed platform buttons and an empty grey bar, with no star rating."],
+      ["changed", "On phones the rating now sits directly above the platform ratings, fixed in place like them, under the scrolling opinions."],
+    ],
+  },
+  {
     v: "0.12.2", date: "12 September 2026",
     items: [
       ["new", "Live searches check the subject’s official name and current facts against web sources before looking for opinions."],

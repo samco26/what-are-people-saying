@@ -18,6 +18,8 @@ const FILES = [
   "src/lib/subjects.ts",
   "src/lib/env.ts",
   "src/lib/connectors/shared.ts",
+  "src/lib/connectors/query.ts",
+  "src/lib/subjectContext.ts",
   "src/lib/connectors/youtube.ts",
   "src/lib/connectors/x.ts",
   "src/lib/connectors/reddit.ts",
@@ -132,6 +134,9 @@ async function main() {
     return load(key);
   }
   let fakeFetch = null;
+  /* __respond(body) answers the next /api/consensus call with body, so states the sample data cannot reach (insufficient, live-shaped results) can be drawn. */
+  let forced = null;
+  window.__respond = (body) => { forced = body; };
   function load(f) {
     if (mods[f]) return mods[f].exports;
     const module = { exports: {} };
@@ -148,6 +153,7 @@ async function main() {
   const route = load("src/app/api/consensus/route.ts");
   fakeFetch = async (url, init) => {
     window.__result.lastRequest = { url: String(url), body: init && init.body };
+    if (String(url).startsWith("/api/consensus") && forced) { const body = forced; forced = null; return new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } }); }
     if (String(url).startsWith("/api/consensus")) {
       return route.POST(new Request("http://localhost" + url, init));
     }
@@ -180,7 +186,8 @@ async function main() {
     if (!b) throw new Error("no button " + text);
     b.click();
   };
-  window.__size = (w, h) => { fr.style.width = w + "px"; fr.style.height = h + "px"; };
+  /* The pane never fires resize or matchMedia change events for a restyled frame, so the app is told itself. */
+  window.__size = (w, h) => { fr.style.width = w + "px"; fr.style.height = h + "px"; win.dispatchEvent(new win.Event("resize")); };
 }
 main().catch((e) => { window.__result.errors.push(String(e.message)); log("FATAL " + e.message); });
 </script>

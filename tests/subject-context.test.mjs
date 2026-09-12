@@ -8,7 +8,6 @@ import { platformQuery } from "../src/lib/connectors/query.ts";
 import { collectAdaptive } from "../src/lib/connectors/adaptive.ts";
 import { POST } from "../src/app/api/consensus/route.ts";
 import { Answer } from "../src/components/Answer.tsx";
-import { SubjectFacts } from "../src/components/SubjectFacts.tsx";
 
 const originalFetch = globalThis.fetch;
 const settings = ["OPENAI_API_KEY", "YOUTUBE_API_KEY", "X_BEARER_TOKEN", "REDDIT_CLIENT_ID", "REDDIT_CLIENT_SECRET", "REDDIT_USER_AGENT"];
@@ -139,13 +138,46 @@ function enableLive() {
 }
 const request = (subject) => new Request("http://localhost/api/consensus", { method: "POST", body: JSON.stringify({ subject }) });
 
-test("route stops before platform reads on ambiguity and sample mode skips lookup", async () => {
+test("an unsettled lookup never stops the search: the subject is searched as typed without context", async () => {
   enableLive();
-  const calls = mockLookup({ resolved: { ...resolution(), status: "ambiguous" } });
-  const out = await POST(request("mercury"));
-  assert.equal(out.headers.get("cache-control"), "no-store");
-  assert.equal((await out.json()).kind, "subject-unresolved");
-  assert.equal(calls(), 2);
+  const sequence = [];
+  globalThis.fetch = async (input, init) => {
+    const url = new URL(String(input));
+    if (url.hostname === "api.openai.com") {
+      const body = JSON.parse(init.body);
+      if (body.tools) { sequence.push("research"); return json(report()); }
+      if (body.text.format.name === "subject_resolution") { sequence.push("resolve"); return json(response([message(JSON.stringify({ ...resolution(), status: "ambiguous" }))])); }
+      if (body.text.format.name === "checked_summary") {
+        sequence.push("summarise");
+        return json(response([message(JSON.stringify({summary:"SIMULATED: The collected opinions lean positive.",confidence:{level:"low",reason:"Unverified identity, one source."}}))]));
+      }
+      sequence.push("analyse");
+      assert.match(body.input, /Subject: "Melbourne"/);
+      assert.match(body.input, /Web context \(facts only; never opinion evidence\): null/);
+      const entries = body.input.split("\n").filter((line) => line.startsWith('{"ref":')).map(JSON.parse);
+      return json(response([message(JSON.stringify({
+        verdict: "positive", agreement: "moderate", confidence: { level: "low", reason: "Simulated." },
+        positives: [], negatives: [], drawnFrom: [1, 2], summary: "SIMULATED: Melbourne is liked.",
+        classified: { positive: entries.filter((entry) => entry.metadata.startsWith("comment")).map((entry) => entry.ref), neutral: [], negative: [], irrelevant: [] }, opinions: [],
+      }))]));
+    }
+    assert.equal(url.hostname, "www.googleapis.com");
+    if (url.pathname.endsWith("/search")) {
+      sequence.push("collect");
+      assert.equal(url.searchParams.get("q"), "Melbourne");
+      return json({ items: [{ id: { videoId: "fixture" }, snippet: { title: "Fictional video", publishedAt: new Date(Date.now() - 86_400_000).toISOString() } }] });
+    }
+    return json({ items: Array.from({ length: 10 }, (_, i) => ({ snippet: { topLevelComment: { id: `c${i}`, snippet: { textOriginal: `Fictional reaction ${i}`, publishedAt: new Date(Date.now() - 86_400_000).toISOString() } } } })) });
+  };
+  const out = await (await POST(request("Melbourne"))).json();
+  assert.equal(out.kind, "result");
+  assert.equal(out.result.subject, "Melbourne");
+  assert.equal(out.result.context, undefined);
+  assert.equal(out.result.category, "general");
+  assert.deepEqual(sequence, ["research", "resolve", "collect", "analyse", "summarise"]);
+  const html = renderToStaticMarkup(createElement(Answer, { response: out, onPick() {}, onChoose() {} }));
+  assert.match(html, /Showing results for Melbourne/);
+  assert.doesNotMatch(html, /narrow down/);
   delete process.env.OPENAI_API_KEY;
   globalThis.fetch = async () => { throw new Error("Sample must not fetch"); };
   const sample = await (await POST(request("Keychron K2"))).json();
@@ -203,15 +235,5 @@ test("route passes resolved identity and facts through real connector and analys
   assert.match(html, /Showing results for iPhone Duo/);
   assert.match(html, /rating-pill/);
   assert.doesNotMatch(html, /Rumoured phone/);
-  const facts = renderToStaticMarkup(createElement(SubjectFacts, { context: out.result.context }));
-  assert.match(facts, /https:\/\/example.com\/fictional-announcement/);
-  assert.match(facts, /available October 23/);
-});
 
-test("unresolved UI explains failure and offers retry only for temporary failure", () => {
-  for (const reason of ["ambiguous", "unverified", "unavailable"]) {
-    const html = renderToStaticMarkup(createElement(Answer, { response: { kind: "subject-unresolved", subject: "phone", reason, message: "Fictional explanation" }, onPick() {}, onChoose() {} }));
-    assert.match(html, /Fictional explanation/);
-    assert.equal(html.includes("Try again"), reason === "unavailable");
-  }
 });

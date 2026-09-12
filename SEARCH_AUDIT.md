@@ -1,6 +1,6 @@
 # Search quality, speed and cost audit — 12 September 2026
 
-Scope: milestones 6–8 and 10. This is an audit of the code and simulated provider responses, with local fixes. It does not claim that a new live result is accurate, faster, cheaper or representative of the public. BETA 0.13.0 has not been deployed.
+Scope: milestones 6–8 and 10. This is an audit of the code and simulated provider responses, with local fixes. It does not claim that a new live result is accurate, faster, cheaper or representative of the public. BETA 0.13.0 is awaiting push/deployment verification. The 13 September merge preserves the newer advisory lookup: if web verification fails, search the literal input without inferred identity, category or aliases and keep confidence low.
 
 ## Findings and fixes
 
@@ -61,3 +61,5 @@ Before judging the revised pipeline ready for broader use, run a bounded live co
 4. Compare median/slow-tail time and total cost with a baseline using the same bounded subjects. If classification is still weak, prioritise its prompt/model evaluation. If collection is the problem, test a more diverse bounded sampling method before adding more volume. Make those changes only against measured quality and cost.
 
 The current per-process X budget remains unsuitable as a whole-app spending cap. Its provider-side limit and the project’s outstanding public-search protections remain separate acceptance work; this change does not resolve them.
+
+The merge retains the newer compact default meter, phone spacing, narrower review-category rules and removal of About this answer. This audit’s equal-evidence scoring supersedes the intervening reaction-weighting experiment; likes do not become votes.

@@ -15,7 +15,7 @@ This is a simple consumer-facing, personal, non-commercial project. Visitors enc
 - Classify every collected opinion before summarising. Reject irrelevant, unclassified and duplicate evidence; derive meters, stars and the verdict from accepted counts. Recheck sufficiency after filtering. The final writer receives accepted findings, not unreviewed scraped material.
 - Keep collection counts internal. The four review categories show a compact star sentiment score derived from the same checked evidence as the meter; it is not a submitted review average.
 - Links to representative source material.
-- All categories use the default answer layout. Films/media, products, places and apps replace the overall meter with a star pill in the source-icon row, of equal height. Every result shows “Showing results for …”. An unresolved live identity asks for clarification before collection. Any did-you-mean suggestion pulses subtly and accepts a click or Tab, with reduced-motion support.
+- All categories use the default answer layout. Films/media, products, places and apps replace the overall meter with a star pill in the source-icon row, of equal height. Every result shows “Showing results for …”. An unresolved live identity preserves the literal input, uses the general category and lowers confidence. Any did-you-mean suggestion pulses subtly and accepts a click or Tab, with reduced-motion support.
 - Clear warnings for unavailable sources.
 
 Consensus describes the collected sample, not every person's opinion. Distinguish a positive result from strong agreement. When evidence is insufficient, show that clearly instead of forcing a verdict.
@@ -28,7 +28,7 @@ The default view prioritises the short answer. Keep the overall sentiment meter,
 - Mix daily news subjects with niche evergreen examples in that rotation. News suggestions load independently, are grounded in dated publisher headlines, and fall back to evergreen examples when unavailable.
 - Submitting the search expands the same glass container smoothly downward. The search field stays in place at the top of that container.
 - Show the one-to-three-sentence answer inside the expanded container.
-- Before live collection, check the subject against cited current web sources; preserve its official name and search supported aliases within existing source limits. Pass dated facts separately to analysis, distinguish speculation from confirmed announcements and availability, and stop explicitly when identity cannot be verified. Web facts never count as opinions.
+- Before live collection, check the subject against cited current web sources; preserve its official name and search supported aliases within existing source limits. Pass dated facts separately to analysis, distinguish speculation from confirmed announcements and availability, and preserve the literal input without invented context if identity cannot be verified (the advisory lookup refinement from BETA 0.12.5). Web facts never count as opinions.
 - Search accepts only a subject. No platform, time-period, audience or demographic refinement controls are offered.
 - Collect from all connected sources using 3 months initially, then 12 months and 3 years when fewer than 50 opinions are collected. Retain and deduplicate earlier findings, report the actual window, and respect source-specific coverage limits.
 - Mobile and desktop are equally important. The page stays within one screen; details may scroll internally.
