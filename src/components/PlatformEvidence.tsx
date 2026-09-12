@@ -1,73 +1,34 @@
-import { sourceName, type SourceAnalysis, type SourceStatus, type Theme } from "@/lib/types";
-import { AGREEMENT_TEXT, CONFIDENCE_TEXT, VERDICT_TEXT } from "@/lib/labels";
+"use client";
+import { useState } from "react";
+import { sourceName, type SourceAnalysis, type SourceThread } from "@/lib/types";
+import { sourceUrl } from "@/lib/analysis/evidence";
+import { SentimentBar } from "./SentimentBar";
 import { Logo } from "./Logo";
-
-/* One platform's own evidence, kept simple: its verdict on one line, a
-   line of confidence, what people liked and did not as plain lists, and
-   the titles it drew on. In the prototype the titles are fictional and
-   one line says so; nothing is linked. */
-export function PlatformEvidence({ analysis, status }: { analysis: SourceAnalysis; status: SourceStatus }) {
-  const name = sourceName(analysis.source);
-
-  return (
-    <div className="inset p-4 sm:p-5 flex flex-col gap-5">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <span className="inline-flex items-center gap-2 text-[15px] font-semibold text-ink">
-          <Logo id={analysis.source} size={22} />
-          {name}
-        </span>
-        <span className={`verdict verdict-${analysis.verdict}`}>{VERDICT_TEXT[analysis.verdict]}</span>
-        <span className="text-[13px] text-muted">
-          {AGREEMENT_TEXT[analysis.agreement]}, {status.itemsAnalysed} opinions
-        </span>
-      </div>
-
-      <p className="m-0 text-[13px] leading-[1.55] text-muted">
-        <span className="font-semibold text-ink capitalize">{CONFIDENCE_TEXT[analysis.confidence.level]} confidence.</span>{" "}
-        {analysis.confidence.reason}
-      </p>
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Themes label="Liked" items={analysis.positives} colour="var(--sentPos)" />
-        <Themes label="Did not like" items={analysis.negatives} colour="var(--sentNeg)" />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <span className="label">Drawn from</span>
-        <ul className="list-none m-0 p-0 flex flex-col">
-          {analysis.threads.map((th, i) => (
-            <li key={i} className="thread">
-              {th.url && !th.fictional ? <a href={th.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{th.title}</a> : th.title}
-              {th.author && !th.fictional ? <span className="text-faint"> — {th.author}</span> : null}
-            </li>
-          ))}
-        </ul>
-        {analysis.threads.some((thread) => thread.fictional) && (
-          <p className="m-0 text-[12px] leading-[1.5] text-faint">Fictional titles for this prototype, so nothing is linked.</p>
-        )}
-      </div>
-    </div>
-  );
+export function PlatformEvidence({ analysis }: { analysis: SourceAnalysis }) {
+  return <div className="platform-evidence">
+    <div className="platform-heading"><span role="img" aria-label={sourceName(analysis.source)}><Logo id={analysis.source} size={30} /></span><SentimentBar split={analysis.sentiment} /></div>
+    <PostList threads={analysis.threads} source={analysis.source} />
+  </div>;
 }
-
-/* Titles only. Where the platform's sample supported fewer than three, the
-   list is simply shorter. */
-function Themes({ label, items, colour }: { label: string; items: Theme[]; colour: string }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <span className="label">{label}</span>
-      {items.length > 0 ? (
-        <ul className="list-none m-0 p-0 flex flex-col gap-2">
-          {items.map((t) => (
-            <li key={t.title} className="flex gap-3 text-[14px] leading-[1.45] text-ink">
-              <span aria-hidden="true" className="mt-[7px] w-[7px] h-[7px] rounded-full flex-none" style={{ background: colour }} />
-              <span>{t.title}</span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="m-0 text-[13px] text-faint">Nothing that the sample supported.</p>
-      )}
-    </div>
-  );
+export function PostList({ threads, source }: { threads: SourceThread[]; source?: SourceAnalysis["source"] }) {
+  const [all, setAll] = useState(false);
+  return <>
+    {threads.length === 0 ? <p className="quiet">No supporting posts are available for this opinion.</p> : <ul className="post-list">
+      {threads.slice(0, all ? undefined : 5).map((thread, index) => {
+        const url = !thread.fictional && source ? sourceUrl(thread.url, source) : undefined;
+        const content = <>
+          <h3>{thread.title}</h3>
+          {thread.author && <p className="post-attribution">{thread.author}</p>}
+          {thread.comments?.length ? <div className="comment-pills">{thread.comments.slice(0, 3).map((comment) => <blockquote key={comment.id} className={`comment-pill opinion-${comment.sentiment ?? "unclassified"}`}>
+            <span className={comment.sentiment ? "sr-only" : "unclassified-note"}>{comment.sentiment ?? "Sentiment unavailable"}: </span>
+            {comment.text.length > 260 ? <>{comment.text.slice(0, 260)}<span aria-label="Excerpt continues">…</span></> : comment.text}
+            {comment.author && <cite className="comment-attribution">{comment.author}</cite>}
+          </blockquote>)}</div> : <p className="quiet">Comment excerpts are unavailable for this post.</p>}
+          {thread.fictional && <span className="post-note">Illustrative post and comments</span>}
+        </>;
+        return <li key={thread.id ?? index}>{url ? <a className="post-section" href={url} target="_blank" rel="noopener noreferrer" aria-label={`${thread.title}. Open original post in a new tab.`}>{content}</a> : <article className="post-section">{content}</article>}</li>;
+      })}
+    </ul>}
+    {threads.length > 5 && <button className="text-action" type="button" onClick={() => setAll((value) => !value)} aria-expanded={all}>{all ? "Show less" : "Show more"}</button>}
+  </>;
 }

@@ -13,6 +13,15 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.10.0", date: "12 September 2026",
+    items: [
+      ["changed", "Turquoise and peach liquid glass, with a flowing search animation."],
+      ["new", "Recurring opinions settle around the answer. Tap one to explore its supporting posts."],
+      ["changed", "Platform logos open a full-screen sentiment bar and original posts with coloured comment excerpts."],
+      ["removed", "Analysed totals, repeated platform headings and dots in opinion bubbles."],
+    ],
+  },
+  {
     v: "0.9.5",
     date: "12 September 2026",
     items: [

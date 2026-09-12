@@ -547,3 +547,44 @@ export const SAMPLES: SampleEntry[] = [
     },
   },
 ];
+
+// Illustrative evidence for the design flow. No real quotations or URLs.
+for (const entry of SAMPLES) {
+  const result = entry.result;
+  for (const reading of result.bySource) {
+    reading.sentiment = reading.verdict === "negative"
+      ? { positive: .2, neutral: .25, negative: .55 }
+      : reading.verdict === "mixed" ? { positive: .38, neutral: .27, negative: .35 }
+      : { positive: .65, neutral: .2, negative: .15 };
+    reading.threads.forEach((thread, index) => {
+      thread.id = `sample:${reading.source}:${index}`;
+      thread.comments = [
+        ...reading.positives.slice(0, 2).map((theme, i) => ({ id: `${thread.id}:positive:${i}`, text: theme.detail, sentiment: "positive" as const })),
+        ...reading.negatives.slice(0, 1).map((theme, i) => ({ id: `${thread.id}:negative:${i}`, text: theme.detail, sentiment: "negative" as const })),
+      ];
+    });
+  }
+  result.opinions = [
+    ...result.positives.map((theme, i) => ({ id: `positive-${i}`, sentence: theme.detail, sentiment: "positive" as const, evidenceIds: result.bySource.flatMap((source) => source.threads.slice(0, 1).map((thread) => thread.id!)) })),
+    ...result.negatives.map((theme, i) => ({ id: `negative-${i}`, sentence: theme.detail, sentiment: "negative" as const, evidenceIds: result.bySource.flatMap((source) => source.threads.slice(-1).map((thread) => thread.id!)) })),
+  ];
+}
+
+// Concise fictional sentences keep the keyboard demonstration readable on mobile.
+const keyboard = SAMPLES.find((entry) => entry.display === "the Keychron K2");
+if (keyboard) {
+  keyboard.result.summary = "The Keychron K2 is widely liked for its typing feel and compact layout. The main reservations are its height, stock keycaps and Bluetooth wake-up delay.";
+  const examples = [
+    ["The typing feel is satisfying for the price.", "positive"],
+    ["The tall case benefits from a wrist rest.", "negative"],
+    ["The Mac layout feels familiar from the start.", "positive"],
+    ["Bluetooth can be slow to wake up.", "negative"],
+    ["The switch choice changes the sound.", "neutral"],
+    ["Replaceable switches make it easy to personalise.", "positive"],
+    ["The stock keycaps feel less premium than the case.", "negative"],
+  ] as const;
+  keyboard.result.opinions = examples.map(([sentence, sentiment], index) => ({
+    id: `keyboard-opinion-${index}`, sentence, sentiment,
+    evidenceIds: keyboard.result.bySource.flatMap((reading) => reading.threads.slice(0, 1).map((thread) => thread.id!)),
+  }));
+}

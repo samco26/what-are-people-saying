@@ -70,7 +70,7 @@ async function collectArchive(opts: CollectOptions, to: Date): Promise<Collected
       });
       completedWindow = { from: from.toISOString(), to: to.toISOString(), months };
       const items: SourceItem[] = (res.data ?? []).map((p) => ({
-        id: `x:post:${p.id}`, source: "x", kind: "post", text: tidy(p.text),
+        id: `x:post:${p.id}`, source: "x", kind: "post", text: p.text,
         url: `https://x.com/i/status/${p.id}`, publishedAt: p.created_at,
         engagement: (p.public_metrics?.like_count ?? 0) + (p.public_metrics?.retweet_count ?? 0),
       }));

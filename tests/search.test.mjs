@@ -80,7 +80,7 @@ const reading = {
   verdict: "positive", agreement: "moderate", confidence: { level: "medium", reason: "Fictional evidence." },
   positives: [{ title: "Design", detail: "Fictional praise." }], negatives: [], drawnFrom: [1, 299, 300, 9999, 0, 1],
 };
-const analysisOutput = { ...reading, summary: "Excitement for the fictional phone is substantial.", sentiment: { positive: 0.6, neutral: 0.2, negative: 0.2 } };
+const analysisOutput = { ...reading, classified: Array.from({ length: 300 }, (_, i) => ({ ref: i + 1, sentiment: "positive" })), opinions: [{ sentence: "The design is appealing.", sentiment: "positive", refs: [1, 2, 299, 9999] }], summary: "Excitement for the fictional phone is substantial.", sentiment: { positive: 0.6, neutral: 0.2, negative: 0.2 } };
 function mockOpenAI(makeOutput, inspect) {
   process.env.OPENAI_API_KEY = "test-placeholder-not-a-key";
   globalThis.fetch = async (input, init) => {
@@ -110,15 +110,18 @@ test("all 300 opinions reach OpenAI and one-source evidence is generated only on
   assert.equal(result.sources[0].itemsAnalysed, 300);
   assert.equal(result.bySource.length, 1);
   assert.deepEqual(result.bySource[0].positives, result.positives);
-  assert.equal(result.bySource[0].threads.length, 3); // invalid, duplicate and context references excluded
-  assert.ok(result.bySource[0].threads.every((thread) => thread.kind === "comment"));
+  assert.equal(result.bySource[0].threads.length, 1); // grouped under the original video
+  assert.equal(result.bySource[0].threads[0].comments.length, 300);
+  assert.equal(result.bySource[0].threads[0].kind, "video");
+  assert.equal(result.opinions.length, 1);
+  assert.deepEqual(result.bySource[0].sentiment, { positive: 1, neutral: 0, negative: 0 });
 });
 
 test("multi-source analysis preserves opinions and attribution without sending authors to OpenAI", async () => {
   const items = [...sample(), { id: "x1", source: "x", kind: "post", text: "Fictional X reaction", author: "public_test_author", url: "https://x.com/i/status/fictional" }];
   mockOpenAI(() => {
     const { drawnFrom, ...overall } = analysisOutput;
-    return { ...overall, bySource: [{ ...reading, source: "youtube", drawnFrom: [1, 301] }, { ...reading, source: "x", drawnFrom: [301, 1] }] };
+    return { ...overall, classified: [...overall.classified, { ref: 301, sentiment: "negative" }], bySource: [{ ...reading, source: "youtube", drawnFrom: [1, 301] }, { ...reading, source: "x", drawnFrom: [301, 1] }] };
   }, (body) => {
     assert.ok(body.text.format.schema.properties.bySource);
     assert.match(body.input, /Fictional opinion 299/);

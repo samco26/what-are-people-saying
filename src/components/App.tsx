@@ -14,8 +14,8 @@ export function App() {
   const [log, setLog] = useState(false);
 
   return (
-    <div className="h-[100dvh] flex flex-col px-5 pb-5 sm:px-8 overflow-hidden">
-      <header className="flex-none flex items-center justify-between py-5">
+    <div className="app-shell">
+      <header className="app-header">
         <button
           type="button"
           onClick={() => setSession((n) => n + 1)}
@@ -41,7 +41,7 @@ export function App() {
         </div>
       </header>
 
-      <main className="flex-1 min-h-0 w-full max-w-[1180px] mx-auto flex flex-col pt-[clamp(12px,6vh,72px)]">
+      <main className="app-main">
         <SearchCard key={session} />
       </main>
 

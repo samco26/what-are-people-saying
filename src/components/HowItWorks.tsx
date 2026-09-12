@@ -1,35 +1,9 @@
-/* The short explanation behind "How does this work". Written for someone
-   who has never seen the site. It is honest about version one: every answer
-   is a labelled sample until the live sources and the analysis arrive.
-   Each paragraph is a row that rises in a beat after the last. */
 export function HowItWorks() {
-  return (
-    <div className="flex flex-col gap-4 max-w-[76ch] text-[15px] leading-[1.6] text-ink">
-      <p className="mrow m-0">
-        Type a subject. What People Think collects a small, bounded sample of what people
-        are saying about it on YouTube, X and Reddit, reads it, and gives you one to three plain
-        sentences on where opinion sits.
-      </p>
-      <p className="mrow m-0">
-        The percentages above the bar estimate how the relevant opinions split between positive, neutral and
-        negative. The three logos open each platform on its own: its verdict, what people liked
-        and did not, and the threads it drew on.
-      </p>
-      <p className="mrow m-0">
-        An answer describes the sample, not everyone. A positive result is not the same as
-        strong agreement, and when the evidence is thin it says so rather than forcing a
-        verdict. Video titles provide context and are not counted as opinions. YouTube reads up to
-        30 comments from each of the 10 most-viewed matching videos, including older videos with
-        recent discussion. Searches start with the last 3 months and widen to 12 months, then
-        3 years if fewer than 50 opinions are collected. The answer shows the window used. Source coverage explains any missing comments or platforms.
-      </p>
-      <p className="mrow m-0 text-[13px] text-faint">
-        The rotating examples mix niche interests with subjects from today’s{" "}
-        <a href="https://www.bbc.com/news" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">BBC News</a>
-        {" "}headlines, using Melbourne’s calendar day. If news is unavailable, evergreen examples remain.
-        Suggestions are ideas to search, not a promise that enough discussion will be available.
-        When live search is disconnected, only the six built-in fictional samples can return a result, clearly labelled.
-      </p>
-    </div>
-  );
+  return <div className="how-copy">
+    <p>Enter a subject to explore discussion from YouTube, X and Reddit. The central answer gives the overall takeaway.</p>
+    <p>The floating sentences describe recurring opinions: green for positive, grey for neutral and red for negative. Tap an opinion to see the discussion behind it.</p>
+    <p>Open a platform to see its sentiment bar and original posts. The coloured comment excerpts retain the collected wording. Open a post to read it in context on its original platform.</p>
+    <p>This is a sample, not everyone’s view. The search may include older discussion when recent evidence is sparse. Missing platforms and limited coverage are stated alongside the answer.</p>
+    <p>When live search is disconnected, the available examples are fictional and labelled. Source material is not permanently stored.</p>
+  </div>;
 }

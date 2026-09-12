@@ -55,6 +55,7 @@ export interface SourceItem {
   source: SourceId;
   kind: "video" | "comment" | "post" | "reply" | "thread";
   text: string;
+  title?: string;
   author?: string;
   url?: string;
   publishedAt?: string;
@@ -84,18 +85,35 @@ export interface Theme {
 /* A thread, video or post the analysis drew on. In the prototype these are
    fictional titles and say so; a live result carries the real url. */
 export interface SourceThread {
+  id?: string;
   title: string;
   kind: SourceItem["kind"];
   /* Kept out of the AI prompt, then restored server-side for attribution. */
   author?: string;
   url?: string;
   fictional?: true;
+  comments?: EvidenceComment[];
+}
+
+export type OpinionSentiment = "positive" | "neutral" | "negative";
+export interface EvidenceComment {
+  id: string;
+  author?: string;
+  text: string;
+  sentiment?: OpinionSentiment;
+}
+export interface RecurringOpinion {
+  id: string;
+  sentence: string;
+  sentiment: OpinionSentiment;
+  evidenceIds: string[];
 }
 
 /* One platform's own reading of the sample: what that platform's users
    thought, on its own, before the platforms are combined. */
 export interface SourceAnalysis {
   source: SourceId;
+  sentiment?: SentimentSplit;
   verdict: Verdict;
   agreement: Agreement;
   confidence: Confidence;
@@ -118,6 +136,7 @@ export interface ConsensusResult {
   window?: SearchWindow;
   /* One to three qualitative sentences. The default view shows only this. */
   summary: string;
+  opinions?: RecurringOpinion[];
   sentiment: SentimentSplit;
   verdict: Verdict;
   agreement: Agreement;

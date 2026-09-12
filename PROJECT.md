@@ -2,7 +2,7 @@
 
 ## Purpose
 
-A user enters the name of a subject. The application retrieves a controlled sample from YouTube, X and Reddit, analyses relevant discussion, and returns a short qualitative consensus with supporting themes and source counts available on expansion. The name is What People Think. It was The General Consensus until 11 September 2026.
+A user enters the name of a subject. The application retrieves a controlled sample from YouTube, X and Reddit, analyses relevant discussion, and returns a short qualitative consensus with supporting recurring opinions and linked source evidence available on expansion. The name is What People Think. It was The General Consensus until 11 September 2026.
 
 This is a simple consumer-facing, personal, non-commercial project. Visitors encounter the search function immediately.
 
@@ -10,15 +10,15 @@ This is a simple consumer-facing, personal, non-commercial project. Visitors enc
 
 - A default answer of one to three qualitative sentences about the sampled discussion.
 - Positive, mixed or negative classification.
-- Three positives and three negatives when supported by evidence. If fewer are supported, explicitly state that rather than inventing themes to fill the slots.
+- Up to twenty distinct recurring opinions, each consolidated into one sentence and classified positive, neutral or negative. Aim for five to twenty only when supported by repeated evidence; never pad the result or force an equal balance.
 - Confidence level, with a brief explanation based on the available evidence.
-- Number of items analysed per source.
+- Keep collection counts internal. Do not show analysed totals or numbered post totals in the interface.
 - Links to representative source material.
 - Clear warnings for unavailable sources.
 
 Consensus describes the collected sample, not every person's opinion. Distinguish a positive result from strong agreement. When evidence is insufficient, show that clearly instead of forcing a verdict.
 
-The default view prioritises the short answer. Keep supporting classification, confidence, themes and detailed source counts expandable. Surface unavailable-source notices unobtrusively with the answer.
+The default view prioritises the short answer. Keep the overall sentiment meter, confidence and supporting evidence expandable. Surface unavailable-source notices unobtrusively with the answer.
 
 ## Search interaction
 
@@ -28,7 +28,12 @@ The default view prioritises the short answer. Keep supporting classification, c
 - Show the one-to-three-sentence answer inside the expanded container.
 - Search accepts only a subject. No platform, time-period, audience or demographic refinement controls are offered.
 - Collect from all connected sources using 3 months initially, then 12 months and 3 years when fewer than 50 opinions are collected. Retain and deduplicate earlier findings, report the actual window, and respect source-specific coverage limits.
-- Mobile and desktop are equally important.
+- Mobile and desktop are equally important. The page stays within one screen; details may scroll internally.
+- On desktop show the strongest recurring opinions in glass pills around the main card; on mobile initially show three beneath it. Pills float into place and settle, without dots. Show more reveals the remaining supported opinions.
+- Source controls use platform logos only. Opening one replaces the main answer with an expanded view; Back restores it and the subject remains editable in a compact control.
+- A platform view starts with its logo and a full-width sentiment bar, without repeated titles or analysed totals. Show up to five original post/video sections initially, with Show more for the rest.
+- Each post section uses the actual title, followed by a few verbatim collected comment excerpts in sentiment-coloured pills. The entire section links to the original post. X entries use their own text when no replies were collected; never invent comments.
+- An opinion pill can reveal its supporting posts. Loading uses an indeterminate liquid bar, with reduced-motion support.
 
 ## Sources and data
 
@@ -78,6 +83,6 @@ Save each working checkpoint as a Git commit. Deployment and integrations must b
 
 ## Visual direction
 
-See DESIGN.md for the agreed midnight-blue palette, Helvetica typography, rounded liquid-glass surfaces and interaction details. The first interactive mockup is ready for refinement before application implementation.
+See DESIGN.md for the turquoise, shell-pink, peach and salmon palette, Helvetica typography, rounded liquid-glass surfaces and fluid interaction details. The user refined the interactive mockup and authorized implementation on 12 September 2026.
 
 Accounts, payments and demographic inference remain excluded. Further source expansion requires evaluating access; the current source list is YouTube, X and Reddit.

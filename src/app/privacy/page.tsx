@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="relative min-h-[100dvh] px-5 py-10 sm:px-8 page-ink">
+    <main className="relative h-[100dvh] overflow-y-auto px-5 py-10 sm:px-8 page-ink">
       <article className="mx-auto max-w-[720px] rounded-[32px] border border-white/70 bg-white/55 p-6 shadow-[0_24px_80px_rgba(38,43,48,0.12)] backdrop-blur-xl sm:p-10">
         <a href="/" className="text-[13px] font-semibold underline underline-offset-4">← What People Think</a>
         <h1 className="mb-3 mt-8 text-[clamp(32px,6vw,52px)] font-semibold tracking-[-0.04em]">Privacy</h1>

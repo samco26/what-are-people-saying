@@ -1,8 +1,6 @@
 import { sourceInfo, type SourceId } from "@/lib/types";
 
-/* A platform's mark, from public/logos. Decorative wherever the platform's
-   name is printed beside it, which is everywhere it is used, so alt is
-   empty and the name carries the meaning. */
+/* Decorative mark; each containing control or section supplies an accessible name. */
 export function Logo({ id, size = 18 }: { id: SourceId; size?: number }) {
   const s = sourceInfo(id);
   return (

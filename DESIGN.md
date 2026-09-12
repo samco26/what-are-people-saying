@@ -1,3 +1,11 @@
+# Current direction — 12 September 2026
+
+The user refined the interactive mockup and requested implementation and push. Use turquoise with shell-pink/peach light and salmon accents; retain green, charcoal and red exclusively for sentiment. Keep Helvetica, translucent glass, soft highlights and rounded pills. The main answer remains central; recurring opinions float into place once and settle. No dots inside opinion pills, no analysed counts and no platform text next to logos.
+
+On mobile keep the full answer, three strongest opinions and logo controls initially. Allow minimal internal scrolling, never document scrolling. Platform evidence replaces the main answer inside the available screen, with Back and a compact editable subject. Its header is only the platform icon and full-width sentiment bar. Post sections have original titles and a few verbatim comment excerpts in sentiment-coloured pills, and the entire section opens the original post. Show more reveals remaining posts. The overall bar moves into About this answer. Loading is a liquid, indeterminate bar; reduced-motion users receive a static state.
+
+Earlier entries below are historical and superseded where they differ.
+
 # What People Think — design record
 
 ## Current change: 0.9.3

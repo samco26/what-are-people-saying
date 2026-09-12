@@ -17,7 +17,7 @@
 
 import type { SourceItem } from "../types";
 import { env, envInt } from "../env";
-import { getJson, getOnce, inWindow, reasonFor, statusFor, tidy, type Collected, type CollectOptions, type Connector } from "./shared";
+import { getJson, getOnce, inWindow, reasonFor, statusFor, type Collected, type CollectOptions, type Connector } from "./shared";
 
 const AUTH = "https://www.reddit.com/api/v1/access_token";
 const API = "https://oauth.reddit.com";
@@ -102,7 +102,8 @@ async function collect(opts: CollectOptions): Promise<Collected> {
     id: `reddit:post:${p.id}`,
     source: "reddit",
     kind: "thread",
-    text: tidy(`${p.title}. ${p.selftext ?? ""}`),
+    text: `${p.title}\n${p.selftext ?? ""}`.trim(),
+    title: p.title,
     author: attribution(p.author, p.subreddit),
     url: p.permalink ? `https://www.reddit.com${p.permalink}` : undefined,
     publishedAt: isoFromUtc(p.created_utc),
@@ -129,7 +130,8 @@ async function collect(opts: CollectOptions): Promise<Collected> {
             id: `reddit:comment:${c.id}`,
             source: "reddit",
             kind: "comment",
-            text: tidy(c.body ?? ""),
+            text: c.body ?? "",
+            parentId: `reddit:post:${p.id}`,
             author: attribution(c.author, c.subreddit ?? p.subreddit),
             url: c.permalink ? `https://www.reddit.com${c.permalink}` : undefined,
             publishedAt: isoFromUtc(c.created_utc),

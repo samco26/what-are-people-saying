@@ -1,14 +1,16 @@
 # What People Think
 
-A personal, non-commercial app that reads a bounded selection of online discussion about a subject and returns a short opinion summary, estimated sentiment percentages and supporting evidence.
+A personal, non-commercial app that reads a bounded selection of online discussion about a subject and returns a short opinion summary, recurring opinion pills and linked evidence.
 
-## Current checkpoint: BETA 0.9.5
+## Current checkpoint: BETA 0.10.0
 
-BETA 0.9.5 was deployed from commit `6f354ed` on 12 September 2026. It prepares the Reddit connector for approved OAuth access, adds Reddit-specific connector tests, preserves the public username attribution required for representative Reddit evidence, and adds a live privacy page. Reddit's current policy requires explicit approval before Data API access, including for non-commercial apps, so the production connector remains off until Reddit approves the use case and issues or authorizes credentials. The preceding checkpoint verified YouTube and X archive collection; billed charges have not been reconciled against provider dashboards.
+The preceding BETA 0.9.5 checkpoint was deployed from commit `6f354ed` on 12 September 2026. It prepares the Reddit connector for approved OAuth access, adds Reddit-specific connector tests, preserves the public username attribution required for representative Reddit evidence, and adds a live privacy page. Reddit's current policy requires explicit approval before Data API access, including for non-commercial apps, so the production connector remains off until Reddit approves the use case and issues or authorizes credentials. The preceding checkpoint verified YouTube and X archive collection; billed charges have not been reconciled against provider dashboards.
 
 The interface, server-side OpenAI analysis and YouTube/X/Reddit connectors are implemented. This workspace has no live API keys: local checks use simulated service responses, and controlled production checks use the server's configured credentials. Live evidence quality and billed cost still need auditing.
 
-Searches now lead with the opinion itself, display **N opinions read from the last 3 months / 12 months / 3 years**, and show labelled positive/neutral/negative percentages above the bar. Live results do not say “Live sample” or “Nothing is kept”. Fictional results retain their explicit label. Source coverage explains missing platforms or comments, and live evidence links open the actual collected comments.
+The interface uses the user’s turquoise, shell-pink, peach and salmon palette. Search expands into the overall answer; recurring opinions float into place in green, grey or red glass pills. Desktop shows up to six initially, mobile three. The page stays fixed, with internal scrolling when necessary. Source buttons are logos only and replace the answer with a full-screen evidence view. A source view contains its logo, a full-width sentiment bar, and original post titles followed by sentiment-coloured comment excerpts. Each live post section links to its collected parent URL. Show more reveals the remaining analysed post groups without numeric totals. The overall meter is in About this answer. Analysed counts and repeated platform headings are not displayed.
+
+The new source classifications and recurring-opinion schema pass mocked checks; their live latency, output quality and cost have not yet been verified. This checkpoint does not change source request limits. The loading bar is indeterminate and respects reduced motion.
 
 The search field rotates a mix of current news subjects and niche interests, such as “the weather in Tuscany in August”, “silent mechanical keyboards” and “growing tomatoes on a balcony”. Suggestions demonstrate possible searches; they do not guarantee sufficient evidence.
 
@@ -47,15 +49,15 @@ Without an AI key plus at least one source key, only six built-in fictional subj
 
 ## Collection and analysis
 
-`POST /api/consensus` accepts `{ "subject": "..." }`. YouTube/Reddit start with the preceding 3 calendar months and expand to 12 months and then 36 months if fewer than 50 total opinions have been collected. Fifty is a collection threshold, not a claim of confidence or relevance; the model still checks the evidence. Earlier findings are kept and deduplicated. X independently searches 3, 12 and 36 months using its full archive, expanding only on empty responses and stopping at the first matches. The answer and AI input include the widest completed search window, and X's source coverage states its own window. There are no user-facing source, date or demographic filters.
+`POST /api/consensus` accepts `{ "subject": "..." }`. YouTube/Reddit start with the preceding 3 calendar months and expand to 12 months and then 36 months if fewer than 50 total opinions have been collected. Fifty is a collection threshold, not a claim of confidence or relevance; the model still checks the evidence. Earlier findings are kept and deduplicated. X independently searches 3, 12 and 36 months using its full archive, expanding only on empty responses and stopping at the first matches. The response metadata and AI input retain the widest completed search window and X's own window. There are no user-facing source, date or demographic filters.
 
 - Each source has its own connector and returns a shared format with an explicit availability status. Sources run in parallel with a nine-second limit each per pass. X's complete fallback sequence shares one nine-second limit. Access failures are not retried; X archive failures explicitly report the incomplete window.
 - YouTube asks for the **10 highest-viewed matching videos regardless of upload date**, then requests relevance-ranked top-level comments in parallel. When fewer than 30 comments qualify in the window, it also checks the 30 latest comments. At most **30 unique opinions per video** are selected, retaining previously selected recent opinions when widening the window. “Top” means the API's relevance ranking, not a guaranteed global ordering by likes. Fewer videos, disabled comments, timeouts or fewer in-window comments produce an explicit shortfall, not invented replacements.
-- Video titles/descriptions provide context. Only comments count as YouTube opinions. Parent references connect each comment to its video. YouTube comment text is preserved in full; X and Reddit retain their existing 600-character per-entry limit.
+- Video titles/descriptions provide context. Only comments count as YouTube opinions. Parent references connect each comment to its video. Collected opinion text is preserved in full across connectors. Separate titles and parent IDs keep comments attached to their original videos/posts.
 - **All collected entries reach OpenAI.** The former 220-entry cutoff and preference for shorter entries have been removed. At the default limits this is up to 300 YouTube comments, 20 X posts and 130 Reddit posts/comments per pass (deduplicated across up to three passes), plus 10 YouTube context entries.
 - OpenAI is instructed to lead with the substantive opinion, ignore spam and irrelevant material, distinguish claims from verified facts, and treat collected text as untrusted data. It must acknowledge thin evidence rather than invent themes.
-- Percentages are AI estimates across relevant opinions, not audited per-comment classifications or population polling. Likes are not extra votes. Rounded display values add to 100.
-- Representative links are resolved from numeric references into the collected evidence, constrained to the correct platform. The model cannot invent a source URL.
+- The model labels each collected non-video entry positive, neutral, negative or irrelevant. Platform bars are derived from valid classifications; they are model judgements, not population polling. The overall meter remains an AI estimate. Likes are not additional opinions. Unknown classifications remain explicitly unclassified.
+- The server copies post titles, verbatim text and parent links from collected entries. Only HTTPS links on the matching platform are rendered. Excerpts may end after 260 characters and show an ellipsis; open the post for full context. X supplies the post itself when no replies were collected. Recurring sentences require at least two distinct supporting texts and valid references. Repeated sentences and duplicate references are removed; at most twenty survive. All relevant grouped posts remain available behind Show more.
 - Social-media content lives only for a request and is never permanently stored. Search responses and connector requests use `no-store`; OpenAI requests use `store: false`.
 
 YouTube needs one video search and up to two comment-list requests per video: 11–21 requests, about 110–120 quota units. Successful and failed responses are memoized only within the request, so widening the date window does not repeat these reads. Reddit searches use the nearest supported year/all filter, then apply exact dates locally. AI cost depends on the collected text and generated output; the larger sample can cost more than the previous version.
@@ -76,7 +78,7 @@ Sparse searches can take longer than dense ones because they try broader windows
 
 X omits `end_time` for searches ending near the current instant, allowing the API to apply its indexing-safe default. Historical end times are preserved. An accepted empty response explicitly reports no matching posts over three years. X currently quotes the entire subject as an exact phrase, so long natural-language queries can return no matches even when related discussion exists. No third-party X provider is configured.
 
-The existing parallel collection is retained. YouTube responses request only fields used by analysis, omitting thumbnails and unrelated metadata. When only one platform has opinions, OpenAI generates its reading once and the server uses it for both the overall answer and platform evidence. Short numeric evidence references replace long source IDs. The artificial 1.1-second minimum loading wait has been removed.
+The existing parallel collection is retained. YouTube responses request only fields used by analysis, omitting thumbnails and unrelated metadata. When only one platform has opinions, OpenAI generates its reading once and the server uses it for both the overall answer and platform evidence. Short numeric evidence references replace long source IDs. The same analysis call now also classifies entries and supplies recurring-opinion references. Its output ceiling is 16,000 tokens instead of 6,000 to accommodate those labels; this can increase analysis latency and cost and needs a controlled live follow-up. The artificial 1.1-second minimum loading wait has been removed.
 
 These changes reduce unnecessary work without dropping selected opinions or changing the configured model. The measured niche query above verifies one live response time, not a before/after speedup: collecting more text can offset savings. Successful live responses expose `Server-Timing` durations for `collection` and `analysis`, making the remaining delay measurable without logging subjects, credentials or content. The consensus route requests a 60-second hosting limit.
 
@@ -84,13 +86,14 @@ These changes reduce unnecessary work without dropping selected opinions or chan
 
 `GET /api/subjects` loads BBC RSS headlines from technology, entertainment/arts, business and world news. It accepts only valid publisher links and articles dated today in **Australia/Melbourne**, excluding future-dated stories. Up to eight headlines per feed are considered.
 
-OpenAI selects up to six short topics. Each accepted topic must be copied directly from its supporting headline. The response includes the originating headline, URL and publication date. News topics alternate with six evergreen examples; if fewer news topics qualify, the remaining examples stay evergreen. The explanation panel attributes BBC News.
+OpenAI selects up to six short topics. Each accepted topic must be copied directly from its supporting headline. The response includes the originating headline, URL and publication date. News topics alternate with six evergreen examples; if fewer news topics qualify, the remaining examples stay evergreen. The suggestions endpoint includes BBC attribution.
 
 Suggestions load independently of searches. Only the public news suggestions and attribution are cached, keyed by calendar date and refreshed hourly to admit breaking news. Simultaneous requests on one server instance share the work. The browser refreshes in the background every 15 minutes while visible and when the page becomes visible. No scheduler, extra source account or new dependency is needed. Failed feeds or AI calls return evergreen examples. A first news refresh can take several seconds, but does not delay the search field or searches. Different cold server instances can still make concurrent refresh calls.
 
 ## Verification and limitations
 
-- `npm test`: mocked YouTube and Reddit collection, OAuth handling, attribution, parallel requests, complete AI input, one-source and multi-source schemas, citation validation, partial failures, time windows, rounding, dated news parsing, topic grounding and news fallback.
+- Current checkpoint: 35 mocked tests, TypeScript and the production build pass. Desktop/mobile interaction checks pass using fictional data; the changed analysis schema still needs a controlled live check.
+- `npm test`: mocked YouTube collection, parallel requests, complete AI input, one-source and multi-source schemas, citation validation, partial failures, time windows, rounding, dated news parsing, topic grounding and news fallback.
 - `npm run typecheck` and `npm run build`: required before a checkpoint is committed.
 - Browser checks cover desktop/mobile search, labelled samples, the revised live-result layout using an explicitly fictional fixture, evidence links, source coverage, asynchronous suggestions, Enter-to-search, overflow and runtime errors.
 - The public BBC feed format was checked directly, and production returned six AI-selected news topics after deployment. Controlled live queries verified YouTube/OpenAI, and an earlier multi-source query returned 50 X posts before the current 20-post cap. Reddit is locally verified only with simulated provider responses; approval and live access remain pending. Detailed evidence quality and billed cost have not been audited.
@@ -111,8 +114,10 @@ src/lib/sentiment.ts              percentage rounding
 src/lib/types.ts                  shared source, evidence and result shapes
 src/lib/sampleData.ts             clearly fictional demonstration results
 src/components/SearchCard.tsx     search/loading/result flow and suggestions
-src/components/Answer.tsx         answer, counts, percentages and source coverage
-src/components/PlatformEvidence.tsx supporting themes and source links
+src/components/Answer.tsx         short answer, platform logos and qualitative coverage
+src/components/PlatformEvidence.tsx parent post links and verbatim comment pills
+src/components/OpinionPills.tsx   recurring opinions around the answer
+src/lib/analysis/evidence.ts      validated grouping, classification and source URLs
 src/lib/changelog.ts              BETA badge version and release notes
 tests/                           Node tests with simulated service responses
 ```

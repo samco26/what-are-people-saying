@@ -68,6 +68,7 @@ async function collect(opts: CollectOptions): Promise<Collected> {
       source: "youtube",
       kind: "video",
       text: tidy(`${s.title ?? ""}. ${s.description ?? ""}`, Infinity),
+      title: s.title,
       author: s.channelTitle,
       url: `https://www.youtube.com/watch?v=${id}`,
       publishedAt: s.publishedAt,
@@ -101,7 +102,7 @@ async function collect(opts: CollectOptions): Promise<Collected> {
         if (!inWindow(c.publishedAt, opts.from, opts.to)) return [];
         return [{
           id: `youtube:comment:${comment.id}`, source: "youtube", kind: "comment",
-          text: tidy(text, Infinity), parentId: `youtube:video:${id}`,
+          text, parentId: `youtube:video:${id}`,
           author: c.authorDisplayName,
           url: `https://www.youtube.com/watch?v=${id}&lc=${comment.id}`,
           publishedAt: c.publishedAt, engagement: c.likeCount,
