@@ -13,9 +13,16 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.11.0", date: "12 September 2026",
+    items: [
+      ["new", "Before searching, the subject is turned into the words people actually use for it, so a question typed in plain English finds real posts on each platform. If that step fails the subject is searched as typed."],
+      ["changed", "X posts are chosen by X's relevance ranking instead of newest first, so a busy subject is not reduced to its last few hours."],
+    ],
+  },
+  {
     v: "0.10.3", date: "12 September 2026",
     items: [
-      ["changed", "Searches should be quicker: the analysis returns its classification as compact reference lists and only the representative posts per platform, and YouTube reads top and recent comments together."],
+      ["changed", "The analysis returns its classification as compact reference lists and only the representative posts per platform, and YouTube reads top and recent comments together. The answer is unchanged; the measured search time is about the same."],
       ["new", "A small note above the sentiment bar when fewer than 50 opinions were found."],
       ["changed", "On phones every recurring opinion is listed under the answer and the list scrolls on its own. Show more opinions is desktop only."],
     ],
