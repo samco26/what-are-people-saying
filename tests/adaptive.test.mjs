@@ -16,6 +16,17 @@ test('50 opinions stop after three months; one calendar window reaches analysis'
  assert.equal(calls,1); assert.equal(result.window.months,3);
 });
 
+test('planned queries reach every collection pass unchanged', async () => {
+ const queries={youtube:'fictional keyboard review',x:'("fictional keyboard" OR K2)',reddit:'fictional keyboard'};
+ const seen=[];
+ await collectAdaptive('the fictional keyboard everyone talks about',['youtube'],to,async(sources,opts)=>{
+  seen.push(opts.queries); assert.equal(opts.subject,'the fictional keyboard everyone talks about');
+  return batch(seen.length<3?[]:[opinion('late')]);
+ },queries);
+ assert.equal(seen.length,3);
+ for(const q of seen)assert.deepEqual(q,queries);
+});
+
 test('an independent X expansion reaches the answer window even with abundant YouTube evidence', async () => {
  const result = await collectAdaptive('test', ['youtube', 'x'], to, async () => ({
   items: [...Array.from({length:50}, (_,i)=>opinion(String(i))), opinion('older-x', 'x')],

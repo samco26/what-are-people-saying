@@ -85,7 +85,7 @@ async function collect(opts: CollectOptions): Promise<Collected> {
   const headers = { Authorization: `bearer ${bearer}`, "User-Agent": agent };
 
   const search = new URL(`${API}/search`);
-  search.searchParams.set("q", opts.subject);
+  search.searchParams.set("q", opts.queries?.reddit ?? opts.subject);
   search.searchParams.set("sort", "relevance");
   search.searchParams.set("t", opts.from && opts.to && opts.to.getTime() - opts.from.getTime() <= 366 * 86_400_000 ? "year" : "all");
   search.searchParams.set("limit", String(maxPosts));

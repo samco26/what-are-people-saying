@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { EXAMPLE_SUBJECTS, findSample } from "@/lib/subjects";
 import { liveEnabled } from "@/lib/env";
 import { collectAdaptive } from "@/lib/connectors/adaptive";
+import { collectAll } from "@/lib/connectors";
+import { planSearch } from "@/lib/searchPlan";
 import { analyse } from "@/lib/analysis/analyse";
 import { SOURCES, type ConsensusResponse } from "@/lib/types";
 
@@ -65,8 +67,13 @@ export async function POST(request: Request) {
   }
 
   const to = new Date();
+  /* First work out what to search for on each platform, then collect. The
+     plan falls back to the subject as typed if that step cannot complete. */
+  const planStarted = performance.now();
+  const plan = await planSearch(subject);
+  const planMs = performance.now() - planStarted;
   const collectionStarted = performance.now();
-  const { items, statuses, window } = await collectAdaptive(subject, SOURCES.map((source) => source.id), to);
+  const { items, statuses, window } = await collectAdaptive(subject, SOURCES.map((source) => source.id), to, collectAll, plan.queries);
   const collectionMs = performance.now() - collectionStarted;
   const opinionCount = items.filter((item) => item.kind !== "video").length;
 
@@ -87,13 +94,13 @@ export async function POST(request: Request) {
 
   try {
     const analysisStarted = performance.now();
-    const result = await analyse(subject, items, statuses, window);
+    const result = await analyse(subject, items, statuses, window, plan.interpretation);
     const analysisMs = performance.now() - analysisStarted;
     result.window = window;
     const response: ConsensusResponse = { kind: "result", result };
     return NextResponse.json(response, { headers: {
       ...noStore.headers,
-      "Server-Timing": `collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}`,
+      "Server-Timing": `plan;dur=${planMs.toFixed(0)}, collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}`,
     } });
   } catch (err) {
     const message = err instanceof Error ? err.message : "The analysis failed.";

@@ -17,6 +17,8 @@ export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
     items: [
       ["new", "Before searching, the subject is turned into the words people actually use for it, so a question typed in plain English finds real posts on each platform. If that step fails the subject is searched as typed."],
       ["changed", "X posts are chosen by X's relevance ranking instead of newest first, so a busy subject is not reduced to its last few hours."],
+      ["changed", "When a YouTube video has more comments in the period than the 30 that are read, the ones viewers liked most are kept."],
+      ["changed", "Searches that find nothing on X, or cannot reach it, no longer use up the daily X reading budget."],
     ],
   },
   {

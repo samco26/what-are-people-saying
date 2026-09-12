@@ -46,7 +46,29 @@ test("YouTube fetches 10 by views and reads top and recent comments for every vi
   assert.equal(result.status.availability, "ok");
   const opinions = result.items.filter((item) => item.kind === "comment");
   assert.ok(opinions.every((item) => item.text.endsWith("END") && item.parentId));
-  assert.equal(opinions[0].url, "https://www.youtube.com/watch?v=v0&lc=v0c0");
+  // The most-liked comment of each video comes first.
+  assert.equal(opinions[0].url, "https://www.youtube.com/watch?v=v0&lc=v0c29");
+  assert.equal(opinions[0].engagement, 29);
+});
+
+test("when top and recent comments together exceed 30, the most-liked are kept and previous selections stay", async () => {
+  const stamped = (id, prefix, n, likes) => ({ items: Array.from({ length: n }, (_, i) => ({ snippet: { topLevelComment: { id: `${id}${prefix}${i}`, snippet: { textOriginal: `Fictional opinion ${prefix}${i}`, publishedAt: date, likeCount: likes(i) } } } })) });
+  globalThis.fetch = async (input) => {
+    const url = new URL(String(input));
+    if (url.pathname.endsWith("/search")) return json({ items: videos.items.slice(0, 1) });
+    const id = url.searchParams.get("videoId");
+    // 20 top comments with 0–19 likes; 20 recent comments with 100–119 likes.
+    return json(url.searchParams.get("order") === "time" ? stamped(id, "r", 20, (i) => 100 + i) : stamped(id, "t", 20, (i) => i));
+  };
+  const previous = [{ id: "youtube:comment:v0t0", source: "youtube", kind: "comment", text: "kept", parentId: "youtube:video:v0", engagement: 0 }];
+  const result = await youtube.collect({ ...opts(), previousItems: previous });
+  const chosen = result.items.filter((item) => item.kind === "comment");
+  assert.equal(chosen.length, 30);
+  assert.equal(chosen[0].id, "youtube:comment:v0t0", "an earlier selection is retained first");
+  assert.equal(chosen[1].id, "youtube:comment:v0r19", "then the most-liked of the rest");
+  assert.equal(chosen.filter((item) => item.id.includes(":v0r")).length, 20);
+  assert.equal(chosen.filter((item) => item.id.includes(":v0t")).length, 10);
+  assert.ok(!chosen.some((item) => item.id === "youtube:comment:v0t1"), "the least-liked top comments are left out");
 });
 
 test("a failed comment section preserves other videos and reports the shortfall", async () => {
@@ -106,8 +128,9 @@ test("all 300 opinions reach OpenAI and one-source evidence is generated only on
     assert.equal(lines.at(-1).parent, 0);
     assert.match(body.instructions, /Lead immediately/);
     assert.match(body.instructions, /untrusted data/);
+    assert.match(body.input, /^Subject: "fictional phone"\nTaken to mean: "A fictional phone, for the test\."\nOpinion window:/);
   });
-  const result = await analyse("fictional phone", sample(), [{ source: "youtube", availability: "ok", itemsAnalysed: 301 }]);
+  const result = await analyse("fictional phone", sample(), [{ source: "youtube", availability: "ok", itemsAnalysed: 301 }], undefined, "A fictional phone, for the test.");
   assert.equal(result.sources[0].itemsAnalysed, 300);
   assert.equal(result.bySource.length, 1);
   assert.equal(result.bySource[0].source, "youtube");

@@ -116,12 +116,19 @@ async function collect(opts: CollectOptions): Promise<Collected> {
       // An old video's top comments can also be old, so its recent comments are
       // requested at the same time rather than after the top ones arrive.
       const recent: Promise<{ res?: CommentThreadsResponse; err?: unknown }> = read("time").then((res) => ({ res }), (err: unknown) => ({ err }));
-      add(convert(await read("relevance")));
-      if (selected.size < perVideo) {
+      const pool = new Map<string, SourceItem>();
+      const consider = (batch: SourceItem[]) => {
+        for (const item of batch) if (!selected.has(item.id)) pool.set(item.id, item);
+      };
+      consider(convert(await read("relevance")));
+      if (selected.size + pool.size < perVideo) {
         const outcome = await recent;
-        if (outcome.res) add(convert(outcome.res));
+        if (outcome.res) consider(convert(outcome.res));
         else failures.push(reasonFor(outcome.err, opts.signal.aborted));
       }
+      // Fill the remaining places with the comments viewers endorsed most.
+      // No minimum: a small subject's unliked comments still count.
+      add([...pool.values()].sort((a, b) => (b.engagement ?? 0) - (a.engagement ?? 0)));
       return [...selected.values()];
     } catch (err) {
       failures.push(reasonFor(err, opts.signal.aborted));

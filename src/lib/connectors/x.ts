@@ -2,8 +2,18 @@
    of other sources, widening only after an empty response. Stop at the
    first nonempty response: at most 20 paid post reads in total.
 
+   The query is the planned search terms (see searchPlan.ts), or the subject
+   as an exact phrase when no plan exists, plus fixed operators. Results are
+   asked for by X's relevance ranking rather than the default newest-first,
+   so a busy subject is not reduced to its last few hours. Relevance costs
+   the same: billing is per post returned, not per ordering.
+
    The daily reservation is per server instance, not a whole-app spending
-   cap. No posts are persisted; memoization lasts only for this request. */
+   cap: 20 posts are reserved before the first request and whatever was not
+   returned is given back afterwards, so empty and failed searches cost no
+   budget. The enforceable ceiling is the monthly spend limit in X's
+   developer console. No posts are persisted; memoization lasts only for
+   this request. */
 
 import { setTimeout as delay } from "node:timers/promises";
 import type { SourceItem, SearchWindow } from "../types";
@@ -40,6 +50,23 @@ function spend(n: number): boolean {
   return true;
 }
 
+/* X bills per post returned, so a search that returned fewer than it
+   reserved (or nothing, or failed) gives the difference back. */
+function refund(n: number): void {
+  if (n > 0 && budgetDay === new Date().toISOString().slice(0, 10)) spentToday = Math.max(0, spentToday - n);
+}
+
+/* Tests only: the counter is otherwise per process and per day. */
+export function resetDailyBudget(): void {
+  budgetDay = "";
+  spentToday = 0;
+}
+
+/* The terms X is searched for, before the fixed operators. */
+export function xTerms(opts: Pick<CollectOptions, "subject" | "queries">): string {
+  return opts.queries?.x ?? `"${opts.subject.replace(/"/g, "")}"`;
+}
+
 async function collectArchive(opts: CollectOptions, to: Date): Promise<Collected> {
   const token = env("X_BEARER_TOKEN") ?? "";
   // Enforce the agreed US$0.10 post-read budget even with an older env value.
@@ -58,7 +85,8 @@ async function collectArchive(opts: CollectOptions, to: Date): Promise<Collected
       opts.signal.throwIfAborted();
       const from = monthsBefore(to, months);
       const url = new URL(API);
-      url.searchParams.set("query", `"${opts.subject.replace(/"/g, "")}" -is:retweet lang:en`);
+      url.searchParams.set("query", `${xTerms(opts)} -is:retweet lang:en`);
+      url.searchParams.set("sort_order", "relevancy");
       url.searchParams.set("max_results", String(max));
       url.searchParams.set("tweet.fields", "created_at,public_metrics");
       url.searchParams.set("start_time", from.toISOString());
@@ -79,10 +107,12 @@ async function collectArchive(opts: CollectOptions, to: Date): Promise<Collected
         ? `Read ${items.length} of up to ${max} X posts from the last ${period}.`
         : `No matching X posts were found in the last ${period}.`;
       if (items.length || months === 36) {
+        refund(max - items.length);
         return { items, canExpand: false, status: { ...statusFor("x", items.length, max), note, window: completedWindow } };
       }
       // No posts were returned (or billed), so the next window can still read max.
     } catch (error) {
+      refund(max);
       return {
         items: [], canExpand: false,
         status: {
@@ -101,6 +131,6 @@ export const x: Connector = {
   configured: () => Boolean(env("X_BEARER_TOKEN")),
   collect: (opts) => {
     const to = opts.to ?? new Date();
-    return getOnce(`x:archive:${opts.subject}:${to.toISOString()}`, opts, () => collectArchive(opts, to));
+    return getOnce(`x:archive:${xTerms(opts)}:${to.toISOString()}`, opts, () => collectArchive(opts, to));
   },
 };
