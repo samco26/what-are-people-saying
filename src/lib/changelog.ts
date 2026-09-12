@@ -13,6 +13,13 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.12.1", date: "12 September 2026",
+    items: [
+      ["changed", "A did-you-mean suggestion now carries the kind of thing it is, so accepting it lands on the right card (a product stays a product) instead of the usual answer; and a name is only called ambiguous when it is shared by genuinely different things, not when a product is rumoured, unreleased or a concept."],
+      ["changed", "The heading reads Find the popular opinion on, the rotating examples have no question mark, and on phones the top left shows Privacy instead of the title."],
+    ],
+  },
+  {
     v: "0.12.0", date: "12 September 2026",
     items: [
       ["new", "A film, product, place or app gets a card shaped like the site people would normally check for it, with a star rating out of five worked out from the sentiment, each platform's own rating beside its logo, and the common opinions with how many posts back each one. Everything else keeps the usual answer."],

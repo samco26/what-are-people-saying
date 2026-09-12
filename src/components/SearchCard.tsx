@@ -99,7 +99,9 @@ export function SearchCard() {
     }
     setHistory((current) => [...current, next]);
   };
-  const search = async (subject: string) => {
+  /* categoryHint travels with a subject accepted from a did-you-mean
+     suggestion, so the answer lands on the card that reading deserves. */
+  const search = async (subject: string, categoryHint?: string) => {
     const value = subject.trim();
     if (!value || phase.name === "loading") return;
     request.current?.abort();
@@ -107,7 +109,7 @@ export function SearchCard() {
     request.current = controller;
     setQuery(value); setHistory([]); setGeneral(false); setPhase({ name: "loading", subject: value });
     try {
-      const response = await fetch("/api/consensus", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ subject: value }), signal: controller.signal, cache: "no-store" });
+      const response = await fetch("/api/consensus", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ subject: value, ...(categoryHint ? { categoryHint } : {}) }), signal: controller.signal, cache: "no-store" });
       if (!response.ok) throw new Error("Search failed");
       const data = await response.json() as ConsensusResponse;
       if (!controller.signal.aborted) setPhase({ name: "done", subject: value, response: data });
@@ -118,7 +120,7 @@ export function SearchCard() {
   const onShow = useCallback((subject: string) => { shown.current = subject; }, []);
   const submit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); void search(query || shown.current); };
   /* Tab accepts the did-you-mean suggestion, as in a search engine. */
-  const onKey = (event: ReactKeyboardEvent<HTMLInputElement>) => { if (event.key === "Tab" && suggestion) { event.preventDefault(); void search(suggestion); } };
+  const onKey = (event: ReactKeyboardEvent<HTMLInputElement>) => { if (event.key === "Tab" && suggestion) { event.preventDefault(); void search(suggestion, result?.suggestionCategory); } };
   const edit = () => { setHistory([]); requestAnimationFrame(() => { input.current?.focus(); input.current?.select(); }); };
   const source = view?.kind === "source" ? result?.bySource.find((reading) => reading.source === view.source) : undefined;
   const opinions = result?.opinions ?? [];
@@ -126,12 +128,12 @@ export function SearchCard() {
   return <div className="search-scene" ref={scene} style={{ "--panel-x": origin.x, "--panel-y": origin.y } as CSSProperties}>
     <div className="search-home" hidden={Boolean(view)} data-result={Boolean(result)}>
       <div className={category ? "search-stack wide" : "search-stack"}>
-        <h1>How do people feel about</h1>
+        <h1>Find the popular opinion on</h1>
         <section className="glass main-card" aria-label="Search and overall opinion">
           <form className="field ctl" role="search" onSubmit={submit}>
             <input ref={input} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={onKey} aria-label="Subject" maxLength={200} autoComplete="off" enterKeyHint="search" />
             {!query && <span className="ghost"><RotatingSubjects subjects={examples} paused={reduced || phase.name !== "idle"} onShow={onShow} /></span>}
-            {suggestion && <span className="ghost ghost-suggest" aria-hidden="true"><span className="ghost-mirror">{query}</span><button type="button" tabIndex={-1} className="ghost-accept" onClick={() => void search(suggestion)}>did you mean {suggestion}?</button><kbd>Tab</kbd></span>}
+            {suggestion && <span className="ghost ghost-suggest" aria-hidden="true"><span className="ghost-mirror">{query}</span><button type="button" tabIndex={-1} className="ghost-accept" onClick={() => void search(suggestion, result?.suggestionCategory)}>did you mean {suggestion}?</button><kbd>Tab</kbd></span>}
             <button type="submit" className="go" aria-label="Search" disabled={phase.name === "loading"}><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 16V4m-5 5 5-5 5 5" /></svg></button>
           </form>
           <div className="result-unfold" data-open={unfolded} data-settled={settled}><div>

@@ -37,6 +37,7 @@ const parts = {
   kind: "",
   ambiguous: false,
   suggestion: "",
+  suggestionCategory: "general",
 };
 
 test("a planned search turns a natural-language subject into platform terms", async () => {
@@ -116,15 +117,32 @@ test("a category and its kind line come through; an unknown category is general"
 });
 
 test("an ambiguous name gets the general card and a suggestion, never a guessed category", () => {
-  const plan = planFromParts("dune", { ...parts, subject: "Dune", category: "film", kind: "Film · 2026", ambiguous: true, suggestion: "Dune: Part Three (2026 film)" });
+  const plan = planFromParts("dune", { ...parts, subject: "Dune", category: "film", kind: "Film · 2026", ambiguous: true, suggestion: "Dune: Part Three (2026 film)", suggestionCategory: "film" });
   assert.equal(plan.category, "general");
   assert.equal(plan.kind, undefined);
   assert.equal(plan.suggestion, "Dune: Part Three (2026 film)");
+  assert.equal(plan.suggestionCategory, "film");
+  // An unknown category for the suggestion is carried as general.
+  const odd = planFromParts("dune", { ...parts, ambiguous: true, suggestion: "Dune (novel)", suggestionCategory: "book" });
+  assert.equal(odd.suggestion, "Dune (novel)");
+  assert.equal(odd.suggestionCategory, "general");
   // A suggestion that only repeats the subject is not offered.
-  const same = planFromParts("Dune", { ...parts, ambiguous: true, suggestion: " dune " });
+  const same = planFromParts("Dune", { ...parts, ambiguous: true, suggestion: " dune ", suggestionCategory: "film" });
   assert.equal(same.suggestion, undefined);
+  assert.equal(same.suggestionCategory, undefined);
   // Not ambiguous: the suggestion is ignored even if the model filled it.
   const clear = planFromParts("Spotify", { ...parts, category: "app", kind: "Music streaming", ambiguous: false, suggestion: "Spotify Premium" });
   assert.equal(clear.category, "app");
   assert.equal(clear.suggestion, undefined);
+});
+
+test("a confirmed reading tells the model the name is settled", async () => {
+  let input = "";
+  mockOpenAI(() => ({ ...parts, subject: "iPhone Duo", category: "product", kind: "Product · foldable phone" }), (body) => { input = body.input; });
+  const plan = await planSearch("iphone duo concept", { confirmed: true });
+  assert.match(input, /chose this exact reading/);
+  assert.equal(plan.category, "product");
+  mockOpenAI(() => parts, (body) => { input = body.input; });
+  await planSearch("iphone duo");
+  assert.doesNotMatch(input, /chose this exact reading/);
 });

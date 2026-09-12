@@ -18,12 +18,16 @@ export function App() {
           type="button"
           onClick={() => setSession((n) => n + 1)}
           aria-label="Sentiment analyser. Return to search."
-          className="rounded-full px-3 py-2 -ml-3 text-[13px] font-semibold tracking-[-0.01em] page-ink hover:bg-[color:var(--pageSoft)] transition-colors"
+          className="brand rounded-full px-3 py-2 -ml-3 text-[13px] font-semibold tracking-[-0.01em] page-ink hover:bg-[color:var(--pageSoft)] transition-colors"
         >
           Sentiment analyser
         </button>
+        {/* On phones the title gives way to the Privacy link, which then sits on the left. */}
+        <a href="/privacy" className="privacy privacy-left text-[12px] font-medium page-ink opacity-70 hover:opacity-100 transition-opacity">
+          Privacy
+        </a>
         <div className="flex items-center gap-3">
-          <a href="/privacy" className="text-[12px] font-medium page-ink opacity-70 hover:opacity-100 transition-opacity">
+          <a href="/privacy" className="privacy privacy-right text-[12px] font-medium page-ink opacity-70 hover:opacity-100 transition-opacity">
             Privacy
           </a>
           <span className="beta" aria-label={`Beta version ${CHANGELOG[0].v}`}>

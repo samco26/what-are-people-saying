@@ -148,8 +148,10 @@ export interface ConsensusResult {
      "Film · 2026 · dir. Denis Villeneuve". */
   kind?: string;
   /* When the typed name could mean several things, the most likely specific
-     subject, offered as ghost text in the search field. */
+     subject, offered as ghost text in the search field, and what kind of
+     thing that reading is, sent back with the search when it is accepted. */
   suggestion?: string;
+  suggestionCategory?: Category;
   /* Actual collection bounds, supplied by the server for live searches. */
   window?: SearchWindow;
   /* One to three qualitative sentences. The default view shows only this. */

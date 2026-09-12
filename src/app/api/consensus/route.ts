@@ -5,9 +5,9 @@ import { collectAdaptive } from "@/lib/connectors/adaptive";
 import { collectAll } from "@/lib/connectors";
 import { planSearch } from "@/lib/searchPlan";
 import { analyse } from "@/lib/analysis/analyse";
-import { SOURCES, type ConsensusResponse } from "@/lib/types";
+import { CATEGORIES, SOURCES, type Category, type ConsensusResponse } from "@/lib/types";
 
-/* POST /api/consensus  { subject: string }
+/* POST /api/consensus  { subject: string; categoryHint?: Category }
 
    Two paths, chosen by what keys exist on the server:
 
@@ -35,6 +35,15 @@ function readSubject(body: unknown): string {
   if (typeof body !== "object" || body === null) return "";
   const value = (body as { subject?: unknown }).subject;
   return typeof value === "string" ? value.trim().slice(0, 200) : "";
+}
+
+/* When the subject was accepted from a did-you-mean suggestion, the browser
+   sends the category the plan gave that reading. Only a known category
+   counts; anything else is treated as no hint. */
+function readCategoryHint(body: unknown): Category | undefined {
+  if (typeof body !== "object" || body === null) return undefined;
+  const value = (body as { categoryHint?: unknown }).categoryHint;
+  return typeof value === "string" && (CATEGORIES as ReadonlyArray<string>).includes(value) ? value as Category : undefined;
 }
 
 export async function POST(request: Request) {
@@ -70,7 +79,8 @@ export async function POST(request: Request) {
   /* First work out what to search for on each platform, then collect. The
      plan falls back to the subject as typed if that step cannot complete. */
   const planStarted = performance.now();
-  const plan = await planSearch(subject);
+  const categoryHint = readCategoryHint(body);
+  const plan = await planSearch(subject, { confirmed: Boolean(categoryHint) });
   const planMs = performance.now() - planStarted;
   const collectionStarted = performance.now();
   const { items, statuses, window } = await collectAdaptive(subject, SOURCES.map((source) => source.id), to, collectAll, plan.queries);
@@ -100,9 +110,10 @@ export async function POST(request: Request) {
     /* The plan decided what kind of thing this is; the screen picks the
        card from it. An ambiguous name gets the general card and a
        suggestion for the search field. */
-    result.category = plan.category;
+    result.category = plan.category === "general" && categoryHint ? categoryHint : plan.category;
     if (plan.kind) result.kind = plan.kind;
-    if (plan.suggestion) result.suggestion = plan.suggestion;
+    /* A confirmed reading is never offered another suggestion. */
+    if (plan.suggestion && !categoryHint) { result.suggestion = plan.suggestion; result.suggestionCategory = plan.suggestionCategory; }
     const response: ConsensusResponse = { kind: "result", result };
     return NextResponse.json(response, { headers: {
       ...noStore.headers,
