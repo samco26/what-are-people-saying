@@ -13,6 +13,14 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.12.8", date: "12 September 2026",
+    items: [
+      ["changed", "On the usual answer the sentiment bar sits on the same line as the platform buttons, to their right, without the Positive, Neutral, Negative legend, so the whole answer fits without scrolling inside the card."],
+      ["changed", "Show more opinions now sits under the answer card beside How it works, where it is always in view, instead of floating at the foot of the screen."],
+      ["changed", "On phones the heading has a little more room above it once a search is underway, and the search field is centred exactly on the landing screen."],
+    ],
+  },
+  {
     v: "0.12.7", date: "12 September 2026",
     items: [
       ["changed", "On phones a category card keeps only the summary and the rating; the common opinions sit under the card as the same scrolling pills the usual answer has, with no heading."],

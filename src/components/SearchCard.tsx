@@ -148,9 +148,13 @@ export function SearchCard() {
               : <Answer response={phase.response} onPick={(subject) => void search(subject)} onChoose={(id) => open({ kind: "source", source: id })} />)}
           </div></div>
         </section>
-        <div className="under-card"><button className="text-action" onClick={() => open({ kind: "how" })}>How it works</button></div>
+        {/* Show more opinions sits under the card, desktop only (phones list every pill), where it is always in view. */}
+        <div className="under-card">
+          {result && !category && opinions.length > 6 && <button className="text-action more-link" onClick={() => open({ kind: "opinions" })}>Show more opinions</button>}
+          <button className="text-action how-link" onClick={() => open({ kind: "how" })}>How it works</button>
+        </div>
       </div>
-      {result && (!category || phone) && <OpinionPills opinions={opinions} onSelect={(opinion) => open({ kind: "opinion", opinion })} onMore={() => open({ kind: "opinions" })} />}
+      {result && (!category || phone) && <OpinionPills opinions={opinions} onSelect={(opinion) => open({ kind: "opinion", opinion })} />}
     </div>
     {view && <section className="glass evidence-screen" ref={panel} tabIndex={-1} aria-label={view.kind === "source" ? `${view.source} evidence` : "Supporting details"}>
       <div className="evidence-nav"><button type="button" className="back-button" onClick={back}><span aria-hidden="true">←</span> Back</button><button className="subject-chip ctl" onClick={edit} aria-label={`Edit subject ${query || "search"}`}><span>{result?.subject || query || "Search"}</span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m4 13 9-9 3 3-9 9-4 1 1-4ZM11 6l3 3" /></svg></button></div>

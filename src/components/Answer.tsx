@@ -22,10 +22,12 @@ export function Answer({ response, onPick, onChoose }: { response: ConsensusResp
     <p className="overall-answer">Not enough people are talking about “{response.subject}” to say what they think.</p>
     <p className="quiet">{response.message}</p>
     <Coverage sources={response.sources} />
-    <div className="source-buttons" aria-label="Explore a platform">
-      {SOURCES.map((source) => <button key={source.id} type="button" className="srcbtn ctl" disabled aria-label={`${source.name} has nothing to show`}><Logo id={source.id} size={23} /></button>)}
+    <div className="source-row">
+      <div className="source-buttons" aria-label="Explore a platform">
+        {SOURCES.map((source) => <button key={source.id} type="button" className="srcbtn ctl" disabled aria-label={`${source.name} has nothing to show`}><Logo id={source.id} size={23} /></button>)}
+      </div>
+      <SentimentBar compact />
     </div>
-    <SentimentBar />
   </div>;
   const result = response.result;
   const analysed = result.sources.reduce((total, status) => total + (status.relevant ?? status.itemsAnalysed), 0);
@@ -33,12 +35,16 @@ export function Answer({ response, onPick, onChoose }: { response: ConsensusResp
     {result.illustrative && <p className="sample-label">Illustrative sample · fictional opinions</p>}
     {result.context && <p className="sample-label">Showing results for {result.subject}</p>}
     <p className="overall-answer">{result.summary}</p>
-    <div className="source-buttons" aria-label="Explore a platform">
-      {SOURCES.map((source) => {
-        const available = result.sources.some((status) => status.source === source.id && status.availability !== "unavailable") && result.bySource.some((reading) => reading.source === source.id);
-        return <button key={source.id} type="button" className="srcbtn ctl" disabled={!available} aria-label={available ? `Explore ${source.name}` : `${source.name} unavailable`} onClick={() => onChoose(source.id)}><Logo id={source.id} size={23} /></button>;
-      })}
+    {/* The platform buttons and the bar share one line, so the whole answer
+        fits without scrolling inside the card. */}
+    <div className="source-row">
+      <div className="source-buttons" aria-label="Explore a platform">
+        {SOURCES.map((source) => {
+          const available = result.sources.some((status) => status.source === source.id && status.availability !== "unavailable") && result.bySource.some((reading) => reading.source === source.id);
+          return <button key={source.id} type="button" className="srcbtn ctl" disabled={!available} aria-label={available ? `Explore ${source.name}` : `${source.name} unavailable`} onClick={() => onChoose(source.id)}><Logo id={source.id} size={23} /></button>;
+        })}
+      </div>
+      <SentimentBar compact split={result.sentiment} note={analysed < LIMITED_BELOW ? "Limited results on subject found" : undefined} />
     </div>
-    <SentimentBar split={result.sentiment} note={analysed < LIMITED_BELOW ? "Limited results on subject found" : undefined} />
   </div>;
 }

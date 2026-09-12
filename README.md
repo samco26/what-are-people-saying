@@ -2,7 +2,9 @@
 
 A personal, non-commercial app that reads a bounded selection of online discussion about a subject and returns a short opinion summary, recurring opinion pills and linked evidence.
 
-## Current checkpoint: BETA 0.12.7
+## Current checkpoint: BETA 0.12.8
+
+BETA 0.12.8 tidies the usual answer. Its platform buttons and sentiment bar share one line (`.source-row`), the bar taking the remaining width with no legend (`SentimentBar` gains `compact`), so the answer no longer needs scrolling inside the card. Show more opinions moves from a floating link at the foot of the screen to the row under the card beside How it works, desktop only. On phones the heading gets 18px above it once a result is shown, and on the landing screen the search field is centred exactly (the flex centring is offset for the heading above the card and the header above that). `usePhone` was unchanged.
 
 BETA 0.12.7 trims the category cards further. The sentiment bar is gone from all four (the star rating is their measure; the usual answer keeps its bar). On phones a category card holds only the summary and the rating strip, and `SearchCard` draws the common opinions under it as the same scrolling pill list the usual answer uses, with no heading; the phone-only opinion box and its CSS are gone. The About this answer link, its view and the `SubjectFacts` panel are removed (the web fact-check still runs and still feeds the analysis; its facts are no longer shown). `usePhone` also follows `resize`, and the harness's `__size` now dispatches a resize event, because the pane never fires resize or matchMedia change events for a restyled frame.
 
@@ -114,7 +116,8 @@ Suggestions load independently of searches. Only the public news suggestions and
 
 ## Verification and limitations
 
-- Current checkpoint (0.12.7): layout only; the harness parsed 36 files, mounted the app, and at 390 by 740 the product and app cards ended at 300 and 359px with the pill list filling the rest of a 740px page and no bar, while the Tuscany answer kept its bar; at 1280 by 800 the product card kept its opinions inside and had no bar. Not run under Node.js here.
+- Current checkpoint (0.12.8): layout only; in the harness at 1280 by 800 a forced nine-opinion answer drew the buttons and bar on one line with six pills visible, Show more opinions under the card opened the full list, and at 390 by 740 and 390 by 660 the landing field's centre matched the screen's centre to the pixel while the result kept its bar beside the buttons. Not run under Node.js here.
+- Preceding checkpoint (0.12.7): layout only; the harness parsed 36 files, mounted the app, and at 390 by 740 the product and app cards ended at 300 and 359px with the pill list filling the rest of a 740px page and no bar, while the Tuscany answer kept its bar; at 1280 by 800 the product card kept its opinions inside and had no bar. Not run under Node.js here.
 - Preceding checkpoint (0.12.6): layout only; the harness parsed 37 files, mounted the app and measured the strip on the three sample cards and the phone column. Not run under Node.js here.
 - Preceding checkpoint (0.12.5): the route test for an ambiguous lookup now asserts the search continues to plan, collection and analysis with no context and no confirmed flag, and the unresolved-screen test is gone; the harness parsed and mounted the app. Not run under Node.js here. The live check is searching "Melbourne" and getting the usual answer.
 - Preceding checkpoint (0.12.4): the plan-instruction test asserts the listing rule and its exclusions, and the harness parsed 37 files, mounted the app and drew the new Harbour Lane Burgers place card and the relabelled Melbourne answer; nothing ran under Node.js here. Whether the model applies the rule to real names (smartphones, Rome, Apple, McDonald's) is the live check to make.
