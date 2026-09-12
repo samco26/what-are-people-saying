@@ -4,10 +4,10 @@ import { configured, liveEnabled } from "@/lib/env";
 import { collectAdaptive } from "@/lib/connectors/adaptive";
 import { collectAll } from "@/lib/connectors";
 import { fallbackPlan } from "@/lib/searchPlan";
-import { resolveSubject } from "@/lib/subjectContext";
+import { needsQueryPlanning, researchSubject, resolveSubject, type SubjectResearch } from "@/lib/subjectContext";
 import { AnalysisFailure } from "@/lib/analysis/failure";
 import { analyse } from "@/lib/analysis/analyse";
-import { SOURCES, type ConsensusResponse } from "@/lib/types";
+import { SOURCES, type ConsensusResponse, type SubjectContext } from "@/lib/types";
 
 /* POST /api/consensus  { subject: string; categoryHint?: Category }
 
@@ -74,51 +74,68 @@ export async function POST(request: Request) {
     return NextResponse.json(response, noStore);
   }
 
-  const to = new Date();
-  const lookupStarted = performance.now();
-  const lookup = await resolveSubject(subject, to);
-  const lookupMs = performance.now() - lookupStarted;
-  const context = lookup.status === "resolved" ? lookup.context : undefined;
-  const name = context?.name ?? subject;
-  // Verified extraction already planned queries. Otherwise preserve the literal input.
-  const plan = lookup.status === "resolved" ? lookup.plan : fallbackPlan(subject);
-  const collectionStarted = performance.now();
-  const { items, statuses, window } = await collectAdaptive(name, SOURCES.map((source) => source.id), to, collectAll, plan.queries, context?.aliases.map((alias) => alias.text));
-  const collectionMs = performance.now() - collectionStarted;
-  const opinionCount = items.filter((item) => item.kind !== "video").length;
-
-  const minItems = Math.max(MIN_ITEMS_DEFAULT, Number.parseInt(process.env.MIN_ITEMS ?? "", 10) || MIN_ITEMS_DEFAULT);
-  if (opinionCount < minItems) {
-    const response: ConsensusResponse = {
-      kind: "insufficient",
-      subject: name,
-      context,
-      message:
-        opinionCount === 0
-          ? "Nothing came back from the platforms that could be reached, so there is nothing to describe."
-          : `Only ${opinionCount} opinion${opinionCount === 1 ? "" : "s"} came back, which is too few to describe honestly.`,
-      sources: statuses,
-      window,
-    };
-    return NextResponse.json(response, noStore);
-  }
-
   try {
+    const to = new Date();
+    let lookupMs = 0, collectionMs = 0;
+    let context: SubjectContext | undefined;
+    let research: SubjectResearch | undefined;
+    let plan = fallbackPlan(subject);
+    let collected: Awaited<ReturnType<typeof collectAdaptive>>;
+    const planned = needsQueryPlanning(subject);
+    const collect = async (name: string, aliases?: string[]) => {
+      const begin = performance.now();
+      const result = await collectAdaptive(name, SOURCES.map(({ id }) => id), to, collectAll, plan.queries, aliases);
+      collectionMs = performance.now() - begin;
+      return result;
+    };
+    const lookupStarted = performance.now();
+    if (planned) {
+      const lookup = await resolveSubject(subject, to);
+      lookupMs = performance.now() - lookupStarted;
+      if (lookup.status === "resolved") { context = lookup.context; plan = lookup.plan; }
+      collected = await collect(context?.name ?? subject, context?.aliases.map(({ text }) => text));
+    } else {
+      // Neither independent operation waits for the other; no speculative re-fetch.
+      [research, collected] = await Promise.all([
+        researchSubject(subject, to).then((value) => { lookupMs = performance.now() - lookupStarted; return value; }),
+        collect(subject),
+      ]);
+    }
+    const name = context?.name ?? subject;
+    const { items, statuses, window } = collected;
+    const opinionCount = items.filter((item) => item.kind !== "video").length;
+
+    const minItems = Math.max(MIN_ITEMS_DEFAULT, Number.parseInt(process.env.MIN_ITEMS ?? "", 10) || MIN_ITEMS_DEFAULT);
+    if (opinionCount < minItems) {
+      const response: ConsensusResponse = {
+        kind: "insufficient",
+        subject: name,
+        context,
+        message:
+          opinionCount === 0
+            ? "Nothing came back from the platforms that could be reached, so there is nothing to describe."
+            : `Only ${opinionCount} opinion${opinionCount === 1 ? "" : "s"} came back, which is too few to describe honestly.`,
+        sources: statuses,
+        window,
+      };
+      return NextResponse.json(response, noStore);
+    }
+
+    const timings: string[] = [];
     const analysisStarted = performance.now();
-    const result = await analyse(name, items, statuses, window, plan.interpretation, context, Math.max(1, 55_000 - (performance.now() - started)));
+    const result = await analyse(name, items, statuses, window, plan.interpretation, context, Math.max(1, 55_000 - (performance.now() - started)), research, (stage, ms) => timings.push(`${stage};dur=${ms.toFixed(0)}`));
     const analysisMs = performance.now() - analysisStarted;
     if (result.sources.reduce((sum, source) => sum + source.itemsAnalysed, 0) < minItems) {
-      const response: ConsensusResponse = { kind: "insufficient", subject: name, context, sources: result.sources, window, message: "Too few unique, relevant opinions remained after checking the collected discussion." };
+      const response: ConsensusResponse = { kind: "insufficient", subject: result.subject, context: result.context, sources: result.sources, window, message: "Too few unique, relevant opinions remained after checking the collected discussion." };
       return NextResponse.json(response, noStore);
     }
     result.window = window;
     /* Verified category changes only the score presentation. */
-    result.category = plan.category;
-    if (plan.kind) result.kind = plan.kind;
+    if (planned) { result.category = plan.category; if (plan.kind) result.kind = plan.kind; }
     const response: ConsensusResponse = { kind: "result", result };
     return NextResponse.json(response, { headers: {
       ...noStore.headers,
-      "Server-Timing": `lookup;dur=${lookupMs.toFixed(0)}, collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}`,
+      "Server-Timing": `lookup;dur=${lookupMs.toFixed(0)}, collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}, ${timings.join(", ")}, total;dur=${(performance.now() - started).toFixed(0)}, flow;desc="${planned ? "planned" : "parallel"}"`,
     } });
   } catch (error) {
     const code = error instanceof AnalysisFailure ? error.code : "analysis_failed";

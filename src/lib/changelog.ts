@@ -12,6 +12,11 @@ export interface ChangeEntry {
 }
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
+  { v: "0.14.0", date: "13 September 2026", items: [
+    ["changed", "Short subject searches collect discussion alongside web research and combine identity checks with opinion analysis."],
+    ["changed", "Analysis returns less internal data; checked themes determine which source comments appear first."],
+    ["changed", "The page uses the supplied Tiffany-blue gradient background."],
+  ] },
   { v: "0.13.1", date: "13 September 2026", items: [
     ["changed", "Opinion checking uses a required slot for each comment to prevent interrupted searches caused by missing or repeated references."],
     ["changed", "Loading messages rotate through connected platforms and discussion checks with a left-to-right sweep and reduced-motion support."],

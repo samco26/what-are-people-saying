@@ -3,7 +3,7 @@ import { test, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
-import { resolveSubject } from "../src/lib/subjectContext.ts";
+import { resolveSubject, researchSubject, needsQueryPlanning, contextFromIdentity } from "../src/lib/subjectContext.ts";
 import { platformQuery } from "../src/lib/connectors/query.ts";
 import { collectAdaptive } from "../src/lib/connectors/adaptive.ts";
 import { GET, POST } from "../src/app/api/consensus/route.ts";
@@ -93,7 +93,7 @@ test("missing search execution or unsafe citations cannot masquerade as verified
   for (const url of ["javascript:alert(1)", "http://example.com/", "https://user:secret@example.com/"]) {
     const research = report(); research.output[1] = message("Unverified claim https://example.com/invented", [{ ...citation, url }]);
     const calls = mockLookup({ research });
-    assert.equal((await resolveSubject("phone")).status, "unverified");
+    assert.equal((await resolveSubject("phone")).status, "unavailable");
     assert.equal(calls(), 1);
   }
 });
@@ -158,7 +158,7 @@ test("an unsettled lookup never stops the search: the subject is searched as typ
       return json(response([message(JSON.stringify({
         verdict: "positive", agreement: "moderate", confidence: { level: "low", reason: "Simulated." },
         positives: [], negatives: [], drawnFrom: [1, 2], summary: "SIMULATED: Melbourne is liked.",
-        classified: Object.fromEntries(entries.filter((entry) => entry.metadata.startsWith("comment")).map((entry) => [`r${entry.ref}`, "positive"])), opinions: [],
+        classified: Object.fromEntries(entries.filter((entry) => entry.metadata.startsWith("comment")).map((entry) => [`r${entry.ref}`, "p"])), opinions: [],
       }))]));
     }
     assert.equal(url.hostname, "www.googleapis.com");
@@ -184,14 +184,16 @@ test("an unsettled lookup never stops the search: the subject is searched as typ
   assert.equal(sample.result.illustrative, true);
 });
 
-test("route passes resolved identity and facts through real connector and analysis code", async () => {
+test("fast route overlaps research and collection, then resolves identity with analysis in three AI calls", {timeout:2000}, async () => {
   enableLive();
   const sequence = [];
+  let releaseResearch;
+  const collectionStarted = new Promise(resolve => { releaseResearch = resolve; });
   globalThis.fetch = async (input, init) => {
     const url = new URL(String(input));
     if (url.hostname === "api.openai.com") {
       const body = JSON.parse(init.body);
-      if (body.tools) { sequence.push("research"); return json(report()); }
+      if (body.tools) { sequence.push("research"); await collectionStarted; return json(report()); }
       if (body.text.format.name === "subject_resolution") { sequence.push("resolve"); return json(response([message(JSON.stringify(resolution()))])); }
       if (body.text.format.name === "checked_summary") {
         sequence.push("summarise");
@@ -201,22 +203,22 @@ test("route passes resolved identity and facts through real connector and analys
         return json(response([message(JSON.stringify({ summary: "SIMULATED: The sampled opinions lean positive.", confidence: { level: "low", reason: "Fictional evidence on one platform." } }))]));
       }
       sequence.push("analyse");
-      assert.match(body.input, /Subject: "iPhone Duo"/);
-      assert.match(body.input, /available October 23/);
+      assert.match(body.input, /Subject: "iphone fold"/);
+      assert.match(body.input, /availability October 23/);
       assert.match(body.instructions, /never sentiment/);
       assert.match(body.instructions, /pre-announcement speculation/);
       const entries = body.input.split("\n").filter((line) => line.startsWith('{"ref":')).map(JSON.parse);
       assert.equal(entries.length, 11);
       return json(response([message(JSON.stringify({
-        verdict: "mixed", agreement: "weak", confidence: { level: "low", reason: "Simulated pre-announcement and recent reactions are mixed." },
+        identity: {...resolution(),category:"product"}, verdict: "mixed", agreement: "weak", confidence: { level: "low", reason: "Simulated pre-announcement and recent reactions are mixed." },
         positives: [], negatives: [], drawnFrom: [1, 2], summary: "SIMULATED: Reactions to the announced phone are mixed.", sentiment: { positive: 0.5, neutral: 0, negative: 0.5 },
-        classified: Object.fromEntries(entries.filter((entry) => entry.metadata.startsWith("comment")).map((entry) => [`r${entry.ref}`, "positive"])), opinions: [],
+        classified: Object.fromEntries(entries.filter((entry) => entry.metadata.startsWith("comment")).map((entry) => [`r${entry.ref}`, "p"])), opinions: [],
       }))]));
     }
     assert.equal(url.hostname, "www.googleapis.com");
     if (url.pathname.endsWith("/search")) {
-      sequence.push("collect");
-      assert.equal(url.searchParams.get("q"), '"iPhone Duo"|"iPhone Fold"');
+      sequence.push("collect"); releaseResearch();
+      assert.equal(url.searchParams.get("q"), "iphone fold");
       assert.equal(url.searchParams.get("maxResults"), "10");
       return json({ items: [{ id: { videoId: "fixture" }, snippet: { title: "Fictional video", publishedAt: new Date(Date.now() - 86_400_000).toISOString() } }] });
     }
@@ -229,7 +231,9 @@ test("route passes resolved identity and facts through real connector and analys
   assert.equal(out.result.context.original, "iphone fold");
   assert.equal(out.result.category, "product");
   assert.equal(out.result.kind, resolution().description.text);
-  assert.deepEqual(sequence, ["research", "resolve", "collect", "analyse", "summarise"]);
+  assert.deepEqual(sequence.slice(0,2).sort(), ["collect","research"]);
+  assert.deepEqual(sequence.slice(2), ["analyse","summarise"]);
+  assert.match(apiResponse.headers.get("server-timing"), /flow;desc="parallel"/);
   assert.match(apiResponse.headers.get("server-timing"), /lookup;dur=/);
   const html = renderToStaticMarkup(createElement(Answer, { response: out, onPick() {}, onChoose() {} }));
   assert.match(html, /Showing results for iPhone Duo/);
@@ -249,4 +253,26 @@ test("loading capabilities expose only connected source IDs without provider req
   assert.deepEqual(await (await GET()).json(),{sources:["youtube","x"]});
   delete process.env.OPENAI_API_KEY;
   assert.deepEqual(await (await GET()).json(),{sources:[]});
+});
+
+
+test("only short multiword inputs use the direct parallel path", () => {
+  for (const subject of ["iphone fold", "Keychron K2", "Dune Part Two"]) assert.equal(needsQueryPlanning(subject),false);
+  for (const subject of ["Mercury", "Jaguar", "Notion", "the weather in Tuscany in August", "iPhone vs Pixel", "how is Spotify?"]) assert.equal(needsQueryPlanning(subject),true);
+});
+
+test("identity claims must reference actual research citations; unsafe aliases and facts are discarded", () => {
+  const research = {report:"SIMULATED",sources:[{url:citation.url,title:citation.title}],checkedAt:"2026-09-13T00:00:00Z"};
+  const identity = {...resolution(),category:"product"};
+  for(const refs of [[],[-1],[0.5],[99]]) assert.equal(contextFromIdentity("iphone fold",{...identity,name:claim("invented",refs)},research),undefined);
+  assert.equal(contextFromIdentity("mercury",{...identity,status:"ambiguous"},research),undefined);
+  const checked=contextFromIdentity("iphone fold",{...identity,aliases:[claim("unverified",[99])],facts:[claim("unsupported",[])]},research);
+  assert.deepEqual(checked.aliases,[]); assert.deepEqual(checked.facts,[]);
+});
+
+test("fast research performs one bounded request and carries only actual citation annotations", async () => {
+  const calls=mockLookup({inspect(body){ assert.equal(body.max_output_tokens,1200); assert.match(body.instructions,/at most 120 words/); }});
+  const result=await researchSubject("iphone fold");
+  assert.equal(calls(),1); assert.equal(result.sources[0].url,citation.url);
+  assert.match(result.report,/SIMULATED/);
 });

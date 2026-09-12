@@ -58,3 +58,10 @@ test('opinion references retain exact comments and preferred quotes are actually
   assert.deepEqual(result.opinions[0].evidenceCommentIds,['youtube:a','youtube:b']);
   assert.equal(result.threadsFor('youtube')[0].comments[0].id,'b');
 });
+
+
+test('source excerpts are selected from accepted theme support without AI preferred references', () => {
+  const result=buildEvidence(items,classifications,[{sentence:'The layout is liked.',sentiment:'positive',refs:[2,1]}]);
+  assert.deepEqual(result.threadsFor('youtube')[0].comments.map(c=>c.id),['b','a']);
+  assert.deepEqual(result.counts,{positive:2,neutral:0,negative:1});
+});

@@ -72,6 +72,16 @@ export function buildEvidence(items: SourceItem[], classifications: Classificati
     .slice(0, 20)
     /* Support counts stay internal; the writer uses them to avoid overstating themes. */
     .map((opinion): RecurringOpinion => opinion);
+  // Rank source excerpts from the validated themes, without another AI selection.
+  if (!preferred.length) {
+    const refsById = new Map(acceptedRefs.map((ref) => [`${items[ref].source}:${items[ref].id}`, ref]));
+    preferred = [...new Set(opinions.flatMap((opinion) => opinion.evidenceCommentIds ?? []))]
+      .flatMap((id) => refsById.has(id) ? [refsById.get(id)!] : []);
+    preferred.forEach((ref, rank) => {
+      const group = groups.get(groupForRef.get(ref)!);
+      if (group) group.rank = Math.min(group.rank, rank);
+    });
+  }
   return {
     opinions, splits, acceptedRefs,
     counts: Object.values(splits).reduce((sum, split) => ({ positive: sum.positive + split.positive, neutral: sum.neutral + split.neutral, negative: sum.negative + split.negative }), { positive: 0, neutral: 0, negative: 0 }),

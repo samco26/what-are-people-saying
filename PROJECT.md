@@ -28,7 +28,7 @@ The default view prioritises the short answer. Keep the overall sentiment meter,
 - Mix daily news subjects with niche evergreen examples in that rotation. News suggestions load independently, are grounded in dated publisher headlines, and fall back to evergreen examples when unavailable.
 - Submitting the search expands the same glass container smoothly downward. The search field stays in place at the top of that container.
 - Show the one-to-three-sentence answer inside the expanded container.
-- Before live collection, check the subject against cited current web sources; preserve its official name and search supported aliases within existing source limits. Pass dated facts separately to analysis, distinguish speculation from confirmed announcements and availability, and preserve the literal input without invented context if identity cannot be verified (the advisory lookup refinement from BETA 0.12.5). Web facts never count as opinions.
+- For short multiword subjects, start bounded platform collection with the cleaned original term alongside a short cited web lookup. Resolve identity and category from that report in the opinion-analysis request. Single-word, longer and question/comparison/conditional inputs retain researched platform queries before collection. This is a conservative routing heuristic, not an ambiguity detector. Do not automatically re-fetch platforms if the original wording misses relevant discussion. Preserve the literal input and general category when identity cannot be verified. Pass dated facts separately from opinions, distinguish speculation from confirmed announcements and availability, and never count web facts as opinions.
 - Search accepts only a subject. No platform, time-period, audience or demographic refinement controls are offered.
 - Collect from all connected sources using 3 months initially, then 12 months and 3 years when fewer than 50 opinions are collected. Retain and deduplicate earlier findings, report the actual window, and respect source-specific coverage limits.
 - Mobile and desktop are equally important. The page stays within one screen; details may scroll internally.
@@ -86,6 +86,6 @@ Save each working checkpoint as a Git commit. Deployment and integrations must b
 
 ## Visual direction
 
-See DESIGN.md for the turquoise, shell-pink, peach and salmon palette, Helvetica typography, rounded liquid-glass surfaces and fluid interaction details. The user refined the interactive mockup and authorized implementation on 12 September 2026.
+Use the user-supplied Tiffany-blue gradient image as the page background, with the existing peach/salmon controls, Helvetica typography, rounded liquid-glass surfaces and fluid interaction details. See DESIGN.md. The user refined the interactive mockup and authorized implementation on 12 September 2026.
 
 Accounts, payments and demographic inference remain excluded. Further source expansion requires evaluating access; the current source list is YouTube, X and Reddit.

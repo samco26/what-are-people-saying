@@ -93,8 +93,8 @@ test("without a key, on an error, or on an empty answer the subject is searched 
   assert.equal(fallback.interpretation, undefined);
   assert.equal(fallback.category, "general");
   assert.equal(fallback.queries.x, '"best budget laptop"');
-  assert.equal(fallback.queries.youtube, 'best "budget" laptop');
-  assert.equal(fallback.queries.reddit, 'best "budget" laptop');
+  assert.equal(fallback.queries.youtube, 'best budget laptop');
+  assert.equal(fallback.queries.reddit, 'best budget laptop');
 
   mockOpenAI(() => json({ error: { message: "fixture failure" } }, 500));
   assert.equal((await planSearch("fictional phone")).planned, false);

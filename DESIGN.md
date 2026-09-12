@@ -1,3 +1,7 @@
+# Tiffany-blue background — 13 September 2026
+
+The user supplied an AVIF gradient and requested it replace the page background. Serve the exact image as `public/tiffany-gradient.avif`, centred with cover sizing. Remove the earlier peach background overlays; retain the existing glass cards, typography, controls and sentiment colours. The supplied file is 763 bytes and 740×246 pixels.
+
 # Merged refinements — 13 September 2026
 
 The uniform BETA 0.13.0 layout retains BETA 0.12.8's compact default meter beside the source icons, Show more opinions directly under the card, phone spacing and the phone header stepping aside after search. About this answer stays removed. The star categories use only the compact star pill and the same source icons, as requested in the latest layout change.

@@ -157,7 +157,8 @@ export function buildRedditQuery(subject: string, parts: Pick<PlanParts, "subjec
 }
 
 export function fallbackPlan(subject: string): SearchPlan {
-  return { subject, planned: false, category: "general", queries: { youtube: subject, x: buildXTerms(subject, { phrases: [], keywords: [], exclude: [] }), reddit: subject } };
+  const literal = clean(subject, 200, 200) ?? "";
+  return { subject, planned: false, category: "general", queries: { youtube: literal, x: buildXTerms(literal, { phrases: [], keywords: [], exclude: [] }), reddit: literal } };
 }
 
 export function planFromParts(subject: string, parts: PlanParts): SearchPlan {

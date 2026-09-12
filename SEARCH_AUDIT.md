@@ -2,6 +2,8 @@
 
 Scope: milestones 6–8 and 10. This is an audit of the code and simulated provider responses, with local fixes. It does not claim that a new live result is accurate, faster, cheaper or representative of the public. BETA 0.13.0 was deployed from merge `04c3a31` on 13 September; GitHub/Vercel reported success and the production homepage returned HTTP 200 with the new version. A later live failure investigation reproduced “iphone fold” HTTP 502 twice and identified incomplete/inconsistent classification references. The BETA 0.13.1 fix gives each opinion a required enum slot. Deployed commit `9eb7b96` returned a successful live product result for “iphone fold” in 24.67 seconds (27 accepted YouTube opinions, 4 X opinions, 9 themes); no social content was persisted. Semantic accuracy and billed cost remain unevaluated. The 13 September merge preserves the newer advisory lookup: if web verification fails, search the literal input without inferred identity, category or aliases and keep confidence low.
 
+BETA 0.14.0 is locally verified; the new live timing comparison is pending deployment.
+
 ## Findings and fixes
 
 | Finding | Consequence | Change |
@@ -15,28 +17,23 @@ Scope: milestones 6–8 and 10. This is an audit of the code and simulated provi
 | X post text appeared as both a title and a coloured quote. | Every quote appeared duplicated. | Suppress matching headings and duplicate attribution; retain the coloured original text. |
 | Identity extraction and query planning were separate serial requests. | An extra round trip before collection. | Combine extraction and planning using the same cited report. |
 
-## Implemented flow
+## Implemented flow — BETA 0.14.0
 
-`input → current web evidence → verified identity + category + platform queries → parallel bounded collection → classify every item + propose supported themes → validate/deduplicate/count → write from checked findings → shared result layout`
+Short multiword subjects now use:
 
-Web facts establish identity and dates, never votes. The successful path still makes four Responses API requests:
+`input → [short cited web research || bounded collection with cleaned original term] → identity/category + classify all items + themes → validate/deduplicate/count/select source excerpts → checked summary`
 
-| Request | Earlier pipeline | Revised pipeline |
-| --- | --- | --- |
-| 1 | Web research | Web research |
-| 2 | Cited identity extraction | Cited identity extraction and platform planning |
-| 3 | Platform planning | Full collection classification and recurring themes |
-| 4 | Combined analysis/summary/estimated score | Short summary from validated themes and calculated scores |
+The direct path uses three AI requests: research, analysis, summary. Research is asked for at most 120 words (1,200-token ceiling). Analysis retains required per-reference slots with compact `p/u/n/i` labels. Code selects representative excerpts using validated theme references, removing `drawnFrom` and `bySource` generation. The 16,000-token analysis ceiling remains to prevent truncation. All collected items still reach analysis; insufficient accepted evidence skips the summary.
 
-Platform collection runs between requests 2 and 3 in the revised pipeline. The short writer receives no raw comments, just checked themes, their support counts, sentiment counts, platform/group totals, dates and factual context. Every collected item still reaches the classifier. Each opinion now has its own required classification field, so a reference cannot be omitted, duplicated or invented by the classifier. Invalid output still fails explicitly, with no automatic paid retry. This slightly enlarges the schema/output; it adds no model calls or platform reads. Fewer than eight accepted opinions skips writing and returns insufficient evidence. A higher configured minimum is also enforced before returning a result.
+Single-word names, more than five words, questions/comparisons and conditional wording keep the researched-query path with an extra extraction/planning request before collection. This conservative heuristic cannot detect every ambiguous input or typo. The direct path can miss discussion under corrected names or aliases; filtering cannot recover material that was never collected. There is no routine second platform search, factual cache, smaller sample or streaming-summary change. Citation provenance, category rules, low-confidence fallback and the separate count-grounded writer remain.
 
 The score is `1 + 4 × (positive + 0.5 × neutral) / accepted`. The qualitative direction uses the same balance: positive at 60% or more, negative at 40% or less, mixed otherwise. Neutral means an explicit mixed/indifferent assessment, not unrelated chatter. These are transparent interface conventions, not a scientific population estimator or submitted star reviews.
 
 ## Efficiency judgement
 
-This is a reasonable starting tradeoff, not a demonstrated optimum. Combining preparation requests offsets the extra verification boundary before writing. Parallel source collection, request-local reuse, compact numeric labels, bounded output and existing source caps remain. There is no new dependency, source expansion, permanent social-content store or increase in X's 20-post cap.
+This is a reasonable starting tradeoff, not a demonstrated optimum. The direct path removes one serial AI request and overlaps research with collection. Parallel source collection, request-local reuse, compact numeric labels, bounded output and existing source caps remain. There is no new dependency, source expansion, permanent social-content store or increase in X's 20-post cap.
 
-Keeping related work together and independent work parallel follows [OpenAI's latency guidance](https://developers.openai.com/api/docs/guides/latency-optimization). The same number of requests does not guarantee the same time or price. The combined extraction has a 2,600-token ceiling; classification retains 16,000 and the short writer has 700. Actual token usage and provider time must be measured. Output ceilings are limits, not expected consumption.
+Keeping related work together and independent work parallel follows [OpenAI's latency guidance](https://developers.openai.com/api/docs/guides/latency-optimization). The same number of requests does not guarantee the same time or price. The cautious-path extraction has a 2,600-token ceiling; classification retains 16,000 and the short writer has 700. Actual token usage and provider time must be measured. Output ceilings are limits, not expected consumption.
 
 Do not lower the model quality, reduce the selected sample or skip factual verification solely to claim speed. First measure where time and errors occur. The app already exposes lookup (including planning), collection and analysis (classification plus summary) in `Server-Timing`. Compare median and slow-tail latency, not a single fast search. The two failed live searches took 23.4 and 25.7 seconds; the post-fix search succeeded in 24.67 seconds. That request spent 9.559 seconds in lookup, 0.657 in collection and 13.406 in analysis. One successful request is not a latency benchmark; billed cost has not been measured.
 
@@ -51,7 +48,7 @@ Do not lower the model quality, reduce the selected sample or skip factual verif
 
 ## Verification and next acceptance check
 
-Local evidence: 65 simulated-provider tests pass, TypeScript passes and the production build passes. Browser checks cover all five categories at 1440×900, 390×844 and 320×660, equal-height rating/icon controls, no page/row overflow, quote deduplication, Back, clickable suggestions and reduced motion, with no runtime errors. Provider tests verify combined research/planning, full-item input, strict classification, filtering, calculated counts and summary input. BETA 0.13.1 adds per-reference slot/coverage tests and browser loading-rotation checks with reduced motion, stable heights and cleanup. These do not measure real model accuracy.
+Local evidence: 70 simulated-provider tests pass, TypeScript passes and the production build passes. Browser checks cover all five categories at 1440×900, 390×844 and 320×660, equal-height rating/icon controls, no page/row overflow, quote deduplication, Back, clickable suggestions and reduced motion, with no runtime errors. Provider tests verify combined research/planning, full-item input, strict classification, filtering, calculated counts and summary input. BETA 0.13.1 adds per-reference slot/coverage tests and browser loading-rotation checks with reduced motion, stable heights and cleanup. BETA 0.14.0 adds gated concurrency/three-request checks, compact-label attribution, citation rejection, deterministic excerpt selection and the supplied AVIF browser check. These do not measure real model accuracy.
 
 Before judging the revised pipeline ready for broader use, run a bounded live comparison over roughly 12 subjects: examples from all five categories, ambiguous names, sparse topics and recently announced/versioned products. Include the user's failing queries when available. For each search:
 

@@ -117,7 +117,7 @@ function mockOpenAI(makeOutput, inspect) {
     }
     inspect?.(body);
     return json({ id: "resp_fixture", object: "response", status: "completed", model: body.model,
-      output: [{ id: "msg_fixture", type: "message", role: "assistant", status: "completed", content: [{ type: "output_text", text: JSON.stringify(makeOutput()), annotations: [] }] }],
+      output: [{ id: "msg_fixture", type: "message", role: "assistant", status: "completed", content: [{ type: "output_text", text: JSON.stringify((() => { const out = makeOutput(); return {...out, classified:Object.fromEntries(Object.entries(out.classified).map(([key,value])=>[key,({positive:"p",neutral:"u",negative:"n",irrelevant:"i"})[value]??value]))}; })()), annotations: [] }] }],
       usage: { input_tokens: 1, output_tokens: 1, total_tokens: 2 } });
   };
 }
@@ -131,7 +131,7 @@ test("all 300 opinions reach OpenAI and one-source evidence is generated only on
     assert.deepEqual(Object.keys(contract.properties), Array.from({ length: 300 }, (_, i) => `r${i+1}`));
     assert.deepEqual(contract.required, Object.keys(contract.properties));
     assert.equal(contract.additionalProperties, false);
-    assert.deepEqual(contract.properties.r1.enum, ["positive", "neutral", "negative", "irrelevant"]);
+    assert.deepEqual(contract.properties.r1.enum, ["p", "u", "n", "i"]);
     const lines = body.input.split("\n").filter((line) => line.startsWith('{"ref":')).map(JSON.parse);
     assert.equal(lines.length, 301);
     assert.equal(lines.at(-1).text, "Fictional opinion 299");
@@ -158,8 +158,8 @@ test("multi-source analysis preserves opinions and attribution without sending a
     const { drawnFrom, ...overall } = analysisOutput;
     return { ...overall, classified: { ...overall.classified, r301: "negative" }, bySource: [{ source: "youtube", drawnFrom: [1, 301] }, { source: "x", drawnFrom: [301, 1] }] };
   }, (body) => {
-    assert.ok(body.text.format.schema.properties.bySource);
-    assert.deepEqual(Object.keys(body.text.format.schema.properties.bySource.items.properties), ["source", "drawnFrom"]);
+    assert.equal(body.text.format.schema.properties.bySource, undefined);
+    assert.equal(body.text.format.schema.properties.drawnFrom, undefined);
     assert.match(body.input, /Fictional opinion 299/);
     assert.match(body.input, /Fictional X reaction/);
     assert.doesNotMatch(body.input, /public_test_author/);
@@ -225,4 +225,11 @@ test("classification slots stay attached to their references across interleaved 
   assert.deepEqual(result.sources.map(s=>s.itemsAnalysed),[2,1]);
   const labels = Object.fromEntries(result.bySource.flatMap(s=>s.threads.flatMap(t=>t.comments.map(c=>[c.id,c.sentiment]))));
   assert.equal(labels.c1,"positive"); assert.equal(labels.x1,"negative"); assert.equal(labels.c3,"neutral"); assert.equal(labels.c2,undefined);
+});
+
+
+test("unsupported fast-path identity cannot reach the final writer", async () => {
+  const research={report:"SIMULATED cited phone report",sources:[{url:"https://example.com/fixture",title:"Fixture"}],checkedAt:"2026-09-13T00:00:00Z"};
+  mockOpenAI(()=>({...analysisOutput,identity:{status:"resolved",name:{text:"Invented name",refs:[999]},description:{text:"Fixture",refs:[0]},aliases:[],facts:[],category:"product"}}));
+  await assert.rejects(analyse("fictional phone",sample(),[{source:"youtube",availability:"ok",itemsAnalysed:300}],undefined,undefined,undefined,30000,research),error=>error.code==="identity_references");
 });
