@@ -1,30 +1,22 @@
 "use client";
 import { SOURCES, type ConsensusResult, type SourceId } from "@/lib/types";
-import { starRating } from "@/lib/stars";
 import { Logo } from "./Logo";
-import { Stars } from "./Stars";
 
-/* Each platform's logo button with that platform's own star rating beside
-   it, from its share of the classification. A platform that returned
-   nothing is shown greyed and cannot be opened, as on the default card.
-   A column on desktop; a row of three on phones (CSS). */
-export function PlatformStack({ result, onChoose, fill }: { result: ConsensusResult; onChoose: (id: SourceId) => void; fill?: boolean }) {
+/* The three platform logo buttons on a category card. A platform that
+   returned nothing is shown greyed and cannot be opened, as on the default
+   card. Platforms carry no rating of their own; the card's one rating sits
+   beside this row and the buttons stretch to its height (CSS .rating-strip). */
+export function PlatformStack({ result, onChoose }: { result: ConsensusResult; onChoose: (id: SourceId) => void }) {
   return (
-    <div className={fill ? "pstack pstack-fill" : "pstack"} aria-label="Explore a platform">
+    <div className="pstack" aria-label="Explore a platform">
       {SOURCES.map((source) => {
         const reading = result.bySource.find((entry) => entry.source === source.id);
         const status = result.sources.find((entry) => entry.source === source.id);
         const available = Boolean(reading) && status?.availability !== "unavailable";
-        const count = status?.relevant ?? status?.itemsAnalysed ?? 0;
-        const rating = reading?.sentiment ? starRating(reading.sentiment, count) : undefined;
         return (
-          <div className="prow" key={source.id}>
-            <button type="button" className="srcbtn srcbtn-sm ctl" disabled={!available} onClick={() => onChoose(source.id)}
-              aria-label={available ? `Explore ${source.name}${rating ? `, ${rating.stars.toFixed(1)} stars` : ""}` : `${source.name} unavailable`}>
-              <Logo id={source.id} size={20} />
-            </button>
-            {rating ? <><b>{rating.stars.toFixed(1)}</b><Stars value={rating.stars} size="xs" /></> : <span className="prow-none">no opinions</span>}
-          </div>
+          <button type="button" key={source.id} className="srcbtn ctl" disabled={!available} onClick={() => onChoose(source.id)} aria-label={available ? `Explore ${source.name}` : `${source.name} unavailable`}>
+            <Logo id={source.id} size={24} />
+          </button>
         );
       })}
     </div>

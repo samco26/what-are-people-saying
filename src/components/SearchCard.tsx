@@ -127,7 +127,8 @@ export function SearchCard() {
   const source = view?.kind === "source" ? result?.bySource.find((reading) => reading.source === view.source) : undefined;
   const opinions = result?.opinions ?? [];
 
-  return <div className="search-scene" ref={scene} style={{ "--panel-x": origin.x, "--panel-y": origin.y } as CSSProperties}>
+  /* data-searched lets the phone header step aside once a search is underway (CSS). */
+  return <div className="search-scene" ref={scene} data-searched={unfolded} style={{ "--panel-x": origin.x, "--panel-y": origin.y } as CSSProperties}>
     <div className="search-home" hidden={Boolean(view)} data-result={Boolean(result)}>
       <div className={category ? "search-stack wide" : "search-stack"}>
         <h1>Find the popular opinion on</h1>

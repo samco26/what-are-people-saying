@@ -118,21 +118,18 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
 .ctitle{font-size:24px;letter-spacing:-.7px;line-height:1.15;text-wrap:balance}
 .answer-small{font-size:17px;letter-spacing:-.3px;line-height:1.45;margin-top:8px;text-wrap:pretty}
 .ccard .label{display:block;margin-bottom:8px}.csection{margin-top:14px}
-.two{display:grid;grid-template-columns:170px 1fr;gap:22px;align-items:stretch}
-.side{display:flex;flex-direction:column;gap:14px;min-height:0}
+/* The rating strip: a compact tile on the left, the platform buttons beside it stretched to the tile's height, so the row reads as one line. */
+.rating-strip{display:flex;align-items:stretch;gap:10px;margin:10px 0 14px}
+.tile.tile-strip{flex-direction:row;justify-content:flex-start;text-align:left;gap:14px;padding:8px 20px 8px 18px;border-radius:99px}
+.tile-strip .score-md{font-size:36px}.tile-meta{display:flex;flex-direction:column;align-items:flex-start;gap:3px}.tile-strip .approval{font-size:11.5px;white-space:nowrap}
+.pstack{display:flex;align-items:stretch;gap:8px}.pstack .srcbtn{width:58px;height:auto;border-radius:99px}
 .tile{border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:18px 14px}
-.tile-poster{aspect-ratio:2/3}.tile-place{padding:22px 14px}.score-tile{padding:10px 14px;gap:4px;margin:0 0 4px}.score-tile .score-md{font-size:38px}.side .pstack{gap:6px}
 .score{font-variant-numeric:tabular-nums;letter-spacing:-1.5px;line-height:1}
 .score-xl{font-size:64px}.score-md{font-size:44px}.score-sm{font-size:20px;letter-spacing:-.6px;color:var(--ink)}
 .den{font-size:22px;letter-spacing:-.5px;color:var(--muted);margin-left:2px}
 .approval{font-size:12px;color:var(--muted);line-height:1.3}
 .stars{display:inline-block;font-size:18px;letter-spacing:1px;line-height:1;background:linear-gradient(90deg,var(--star) var(--fill),var(--starEmpty) var(--fill));-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
 .stars-lg{font-size:26px}.stars-xs{font-size:12px;letter-spacing:.5px}
-.opinion-pill .stars{--star:currentColor}
-.pstack{display:flex;flex-direction:column;gap:8px}.pstack-fill{justify-content:space-evenly;flex:1}
-.prow{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-.prow b{color:var(--ink);font-weight:500;font-size:14px}.prow-none{font-size:11px}
-.srcbtn-sm{width:36px;height:36px}
 /* Desktop opinion boxes: capped, fading out, scrolling in place, so up to
    twenty opinions stay reachable while the card keeps to one screen. */
 .list,.chips,.cards{max-height:190px;overflow:auto;overscroll-behavior:contain;scrollbar-width:none;padding-bottom:18px;-webkit-mask-image:linear-gradient(#000 calc(100% - 18px),transparent);mask-image:linear-gradient(#000 calc(100% - 18px),transparent)}
@@ -145,17 +142,15 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
 .revmeta{display:flex;align-items:center;gap:8px;font-size:10.5px;opacity:.85;white-space:nowrap;font-variant-numeric:tabular-nums}
 .chips{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start}
 .opinion-pill.chip{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:99px;font-size:13px}
-.opinion-pill .n{font-size:11px;opacity:.7;font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0}.opinion-pill.chip>.mark{flex-shrink:0}.opinion-pill .mark{font-size:12px;font-weight:600}
-.rating-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 12px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}.rating-row .dot{opacity:.5}
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px;align-items:start}
-.grid2{display:grid;grid-template-columns:170px 1fr;grid-template-rows:auto auto;gap:12px 22px;align-items:start}
+.opinion-pill .n{font-size:11px;opacity:.7;font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0}
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .opinion-pill.card{border-radius:18px;padding:10px 12px;height:100%;font-size:13.5px;display:block;width:100%}
 .opinion-pill.card .ttl{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;margin-bottom:3px;opacity:.85}
 .apphead{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
 .apphead .sub{font-size:13px;color:var(--muted);margin:3px 0 4px}.apphead .general{align-self:start}
 .appicon{width:56px;height:56px;border-radius:15px;background:linear-gradient(135deg,#f9d6c5,var(--accent));border:1px solid #ffe6dc;box-shadow:inset 0 1px 0 #ffffffbb,0 6px 16px #885a4a29;display:grid;place-items:center;font-size:26px;letter-spacing:-1px;color:var(--ink)}
-.apphead~.two{margin-top:8px}
+.apphead~.rating-strip{margin-top:12px}
+.ccard>.label{margin-top:2px}.ccard .csection{margin-top:10px}
 .foot{margin-top:14px}.ccard .sentiment,.pbody .sentiment{margin:0}.ccard h2.ctitle{margin-bottom:0}
 /* Did you mean: the typed text is mirrored invisibly so the suggestion
    starts exactly where the typing ends; Tab or a click accepts it. */
@@ -175,8 +170,10 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
   .pbody{display:flex;flex-direction:column;gap:10px;height:100%;padding:10px 10px 4px;overflow:hidden}
   .pbody>*{flex-shrink:0}
   /* The rating tile sits directly above the platform row, fixed like it. */
-  .pbody .tile{flex-direction:row;justify-content:flex-start;text-align:left;padding:8px 12px;gap:12px;flex-wrap:wrap;margin-bottom:-2px}
-  .pbody .score-md{font-size:36px}.pbody .approval{text-align:left;font-size:11px}
+  .pbody .rating-strip{margin:0;gap:6px}.pbody .tile-strip{flex:1 1 auto;min-width:0;padding:6px 12px;gap:10px}.pbody .tile-strip .score-md{font-size:30px}.pbody .tile-strip .approval{font-size:10.5px;white-space:normal;line-height:1.2}.pbody .tile-meta{min-width:0}.pbody .tile-strip .stars{font-size:15px}
+  .pbody .pstack{gap:5px}.pbody .pstack .srcbtn{width:44px}
+  /* Once a search is underway the header goes, giving the card its 46px. */
+  .app-shell:has(.search-scene[data-searched="true"]) .app-header{display:none}
   .pbody .answer-small{font-size:13px;line-height:1.4;margin-top:0}
   .opn{flex:1 1 auto;min-height:60px;display:flex;flex-direction:column;gap:6px}.opn .label{margin:0}
   .opbox{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:none;padding-bottom:22px;-webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent)}
@@ -186,8 +183,6 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
   .opbox-cards{display:grid;grid-template-columns:1fr;gap:6px}
   .opinion-pill.rev{border-radius:20px;padding:8px 12px;font-size:12.5px;gap:10px}
   .opinion-pill.chip{font-size:12px;padding:7px 11px}.opinion-pill.card{padding:9px 12px}
-  .pbody .pstack{flex-direction:row;justify-content:space-between;gap:6px}
-  .pbody .prow{flex:1;justify-content:center;gap:5px;font-size:11px;min-width:0}.pbody .prow b{font-size:12px}.pbody .stars-xs{font-size:9.5px;letter-spacing:.2px}
   .pbody .foot{margin-top:0}.pbody .sentbar{height:10px}
   .ghost-suggest kbd{display:none}
 }

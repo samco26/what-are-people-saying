@@ -13,6 +13,14 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.12.6", date: "12 September 2026",
+    items: [
+      ["changed", "On every category card the star rating is a compact tile on the left with the three platform buttons beside it, stretched to the same height so the row reads as one line."],
+      ["removed", "The star rating beside each platform's logo, the tick, cross and dash marks on opinion bubbles and the little stars on opinion rows and cards: the colour says the same thing. The number of posts behind each opinion stays."],
+      ["removed", "On phones, the Privacy link and BETA badge once a search is underway, giving the answer the room."],
+    ],
+  },
+  {
     v: "0.12.5", date: "12 September 2026",
     items: [
       ["changed", "A search is never stopped because the web fact-check could not settle the name. Melbourne, a generic topic or a name the check cannot verify is simply searched as typed and gets the usual answer; verified names still bring their facts along."],
