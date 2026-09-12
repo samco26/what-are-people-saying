@@ -24,14 +24,9 @@ const DEFAULT_MODEL = "gpt-5.6-luna";
 const Confidence = z.object({ level: z.enum(["low", "medium", "high"]), reason: z.string() });
 const LABELS = ["positive", "neutral", "negative", "irrelevant"] as const;
 const Refs = z.array(z.number().int());
-const Classified = z.object({ positive: Refs, neutral: Refs, negative: Refs, irrelevant: Refs });
 const Common = z.object({
-  // Classify before proposing themes. The summary is a separate, checked step.
-  classified: Classified,
   opinions: z.array(z.object({ sentence: z.string(), sentiment: z.enum(["positive", "neutral", "negative"]), refs: Refs })),
 });
-const SingleAnalysis = Common.extend({ drawnFrom: Refs });
-const Analysis = Common.extend({ bySource: z.array(z.object({ source: z.enum(["youtube", "x", "reddit"]), drawnFrom: Refs })) });
 const Synthesis = z.object({ summary: z.string(), confidence: Confidence });
 
 const SYSTEM = `You read a sample of public discussion about a subject and describe where opinion sits. You write for a general reader in plain English. Never use first person plural ("we").
@@ -43,7 +38,7 @@ Rules:
 - Use the entry dates to distinguish older and newer reactions. Do not combine different product generations or describe historical opinions as current. Explain dated or mixed-generation evidence in confidence.
 - Do not estimate a score or write a summary in this step. Classification counts will determine the score. Video titles and descriptions are context only, never opinions or votes. Likes indicate engagement, not additional votes. A parent reference links a comment to its video context.
 - For each platform that has opinions, list in bySource its drawnFrom: the numeric references of four to eight representative opinions from that platform, most representative first. Only references from that platform. When there is one platform, return drawnFrom once at the top level using the supplied schema.
-- Classify EVERY supplied non-video entry exactly once by putting its numeric reference in one of the four classified lists: positive, neutral, negative or irrelevant. Classify its opinion about the searched subject, not its tone. Never list a missing reference. Do not repeat comment text in the output.
+- Classify EVERY supplied non-video entry in its required classified field: entry ref 7 belongs in r7, for example. Each field must be positive, neutral, negative or irrelevant. The schema gives every opinion exactly one slot and excludes video context. Read the matching entry before filling each field; do not shift labels between entries. Classify its opinion about the searched subject, not its tone. Do not repeat comment text in the output.
 - Extract up to 20 distinct recurring opinions across the relevant entries, ideally 5 to 20 only when supported. Each opinion is a concise single sentence (preferably under 100 characters), its positive/neutral/negative sentiment, and the refs that actually support it. Require at least two independent relevant opinions per recurring sentence. Combine paraphrases, do not force equal positive/negative counts, and return fewer or none when evidence is thin. Sort by recurrence. Never invent references, evidence or quotations. A neutral recurring opinion must describe the same balanced or indifferent assessment in each supporting entry, never unrelated positive and negative comments.
 - Irrelevant includes spam, adverts, news relays, bare facts, questions without a stated view, jokes with no clear judgement, creator/video praise ("great video"), and discussion of other subjects or generations. A relevant parent video does NOT make every comment relevant. A positive tone is not a positive opinion about the subject. If you cannot identify a clear subject-specific assessment, exclude it. Neutral is reserved for an explicit balanced, indifferent or mixed assessment of the subject, not absence of an opinion.
 - Only accepted relevant references may support a theme or drawnFrom. Theme references must share that theme's sentiment. Do not repeat identical or copied opinions as independent support. Read every item, including low-engagement comments. Likes are never extra votes.`;
@@ -70,7 +65,13 @@ export async function analyse(subject: string, items: SourceItem[], statuses: So
   const signal = AbortSignal.timeout(Math.max(1, Math.floor(timeoutMs)));
   const seen = new Set(sample.filter((it) => it.kind !== "video").map((it) => it.source));
   const singleSource = seen.size === 1 ? [...seen][0] : undefined;
-  const format = singleSource ? zodTextFormat(SingleAnalysis, "single_source_analysis") : zodTextFormat(Analysis, "consensus_analysis");
+  // Required per-reference fields prevent omitted, repeated or invented labels.
+  // The provider enforces the shape while generating; no repair request is needed.
+  const opinionRefs = sample.flatMap((item, ref) => item.kind === "video" ? [] : [ref]);
+  const Classified = z.object(Object.fromEntries(opinionRefs.map((ref) => [`r${ref}`, z.enum(LABELS)]))).strict();
+  const Base = z.object({ classified: Classified }).extend(Common.shape);
+  const schema = singleSource ? Base.extend({ drawnFrom: Refs }) : Base.extend({ bySource: z.array(z.object({ source: z.enum(["youtube", "x", "reddit"]), drawnFrom: Refs })) });
+  const format = zodTextFormat(schema, singleSource ? "single_source_analysis" : "consensus_analysis");
 
   const response = await client.responses.parse({
     model,
@@ -97,14 +98,11 @@ export async function analyse(subject: string, items: SourceItem[], statuses: So
     ? [{ source: singleSource, drawnFrom: out.drawnFrom }]
     : "bySource" in out ? out.bySource : [];
 
-  const classifications = LABELS.flatMap((sentiment) => out.classified[sentiment].map((ref) => ({ ref, sentiment })));
-  const evidence = buildEvidence(sample, classifications, out.opinions, readings.flatMap((reading) => reading.drawnFrom.filter((ref) => sample[ref]?.source === reading.source)));
-  // Never silently turn missed/duplicated labels into evidence. No paid automatic retry.
-  const refs = classifications.map((entry) => entry.ref);
-  if (refs.some((ref) => !sample[ref] || sample[ref].kind === "video") ||
-      new Set(refs).size !== refs.length || sample.some((item, ref) => item.kind !== "video" && !refs.includes(ref))) {
+  if (!Classified.safeParse(out.classified).success) {
     throw new AnalysisFailure("classification_references", "Some discussion could not be checked consistently. Please try again.");
   }
+  const classifications = opinionRefs.map((ref) => ({ ref, sentiment: out.classified[`r${ref}`] }));
+  const evidence = buildEvidence(sample, classifications, out.opinions, readings.flatMap((reading) => reading.drawnFrom.filter((ref) => sample[ref]?.source === reading.source)));
   const sentiment = normalise(evidence.counts);
   const verdict = sentimentVerdict(sentiment);
   const accepted = evidence.acceptedRefs.length;

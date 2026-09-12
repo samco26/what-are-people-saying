@@ -102,7 +102,7 @@ const reading = {
   verdict: "positive", agreement: "moderate", confidence: { level: "medium", reason: "Fictional evidence." },
   positives: [{ title: "Design", detail: "Fictional praise." }], negatives: [], drawnFrom: [1, 299, 300, 9999, 0, 1],
 };
-const analysisOutput = { ...reading, classified: { positive: Array.from({ length: 300 }, (_, i) => i + 1), neutral: [], negative: [], irrelevant: [] }, opinions: [{ sentence: "The design is appealing.", sentiment: "positive", refs: [1, 2, 299, 9999] }], summary: "Excitement for the fictional phone is substantial.", sentiment: { positive: 0.6, neutral: 0.2, negative: 0.2 } };
+const analysisOutput = { ...reading, classified: Object.fromEntries(Array.from({ length: 300 }, (_, i) => [`r${i+1}`, "positive"])), opinions: [{ sentence: "The design is appealing.", sentiment: "positive", refs: [1, 2, 299, 9999] }], summary: "Excitement for the fictional phone is substantial.", sentiment: { positive: 0.6, neutral: 0.2, negative: 0.2 } };
 function mockOpenAI(makeOutput, inspect) {
   process.env.OPENAI_API_KEY = "test-placeholder-not-a-key";
   globalThis.fetch = async (input, init) => {
@@ -127,7 +127,11 @@ const sample = () => [{ id: "video0", source: "youtube", kind: "video", text: "F
 test("all 300 opinions reach OpenAI and one-source evidence is generated only once", async () => {
   mockOpenAI(() => analysisOutput, (body) => {
     assert.ok(!body.text.format.schema.properties.bySource);
-    assert.deepEqual(Object.keys(body.text.format.schema.properties.classified.properties), ["positive", "neutral", "negative", "irrelevant"]);
+    const contract = body.text.format.schema.properties.classified;
+    assert.deepEqual(Object.keys(contract.properties), Array.from({ length: 300 }, (_, i) => `r${i+1}`));
+    assert.deepEqual(contract.required, Object.keys(contract.properties));
+    assert.equal(contract.additionalProperties, false);
+    assert.deepEqual(contract.properties.r1.enum, ["positive", "neutral", "negative", "irrelevant"]);
     const lines = body.input.split("\n").filter((line) => line.startsWith('{"ref":')).map(JSON.parse);
     assert.equal(lines.length, 301);
     assert.equal(lines.at(-1).text, "Fictional opinion 299");
@@ -152,7 +156,7 @@ test("multi-source analysis preserves opinions and attribution without sending a
   const items = [...sample(), { id: "x1", source: "x", kind: "post", text: "Fictional X reaction", author: "public_test_author", url: "https://x.com/i/status/fictional" }];
   mockOpenAI(() => {
     const { drawnFrom, ...overall } = analysisOutput;
-    return { ...overall, classified: { ...overall.classified, negative: [301] }, bySource: [{ source: "youtube", drawnFrom: [1, 301] }, { source: "x", drawnFrom: [301, 1] }] };
+    return { ...overall, classified: { ...overall.classified, r301: "negative" }, bySource: [{ source: "youtube", drawnFrom: [1, 301] }, { source: "x", drawnFrom: [301, 1] }] };
   }, (body) => {
     assert.ok(body.text.format.schema.properties.bySource);
     assert.deepEqual(Object.keys(body.text.format.schema.properties.bySource.items.properties), ["source", "drawnFrom"]);
@@ -182,22 +186,43 @@ test("percentage rounding totals 100 for thirds, tiny segments and uneven splits
   }
 });
 
-test("missing or conflicting classifications fail rather than passing unchecked evidence to the summary", async () => {
+test("missing, invalid and unexpected classification slots fail before summary", async () => {
   for (const classified of [
-    {...analysisOutput.classified, positive:[1]},
-    {...analysisOutput.classified, negative:[1]},
-    {...analysisOutput.classified, irrelevant:[999]},
+    {r1:"positive"},
+    {...analysisOutput.classified, r1:"unknown"},
+    {...analysisOutput.classified, r0:"positive"},
+    {...analysisOutput.classified, r999:"irrelevant"},
   ]) {
     mockOpenAI(() => ({...analysisOutput, classified}));
-    await assert.rejects(analyse("fictional phone",sample(),[{source:"youtube",availability:"ok",itemsAnalysed:300}]),/could not be checked consistently/);
+    await assert.rejects(analyse("fictional phone",sample(),[{source:"youtube",availability:"ok",itemsAnalysed:300}]),/could not finish|could not be checked consistently/);
   }
 });
 test("irrelevant evidence is removed before summary and cannot satisfy minimum evidence", async () => {
   let calls = 0;
-  mockOpenAI(() => ({...analysisOutput, classified:{positive:[1,2],neutral:[],negative:[],irrelevant:Array.from({length:298},(_,i)=>i+3)}}),()=>calls++);
+  mockOpenAI(() => ({...analysisOutput, classified:Object.fromEntries(Array.from({length:300},(_,i)=>[`r${i+1}`,i<2?"positive":"irrelevant"]))}),()=>calls++);
   const result = await analyse("fictional phone",sample(),[{source:"youtube",availability:"ok",itemsAnalysed:300}]);
   assert.equal(result.sources[0].itemsAnalysed,2);
   assert.equal(result.bySource[0].threads[0].comments.length,2);
   assert.match(result.summary,/Too few/);
   assert.equal(calls,1);
+});
+
+
+test("classification slots stay attached to their references across interleaved context and platforms", async () => {
+  const items = [
+    {id:"v1",source:"youtube",kind:"video",text:"Fictional context one"},
+    {id:"c1",source:"youtube",kind:"comment",parentId:"v1",text:"Fictional positive comment"},
+    {id:"x1",source:"x",kind:"post",text:"Fictional negative post"},
+    {id:"v2",source:"youtube",kind:"video",text:"Fictional context two"},
+    {id:"c2",source:"youtube",kind:"comment",parentId:"v2",text:"Fictional irrelevant comment"},
+    {id:"c3",source:"youtube",kind:"comment",parentId:"v2",text:"Fictional balanced comment"},
+  ];
+  mockOpenAI(() => ({classified:{r5:"neutral",r2:"negative",r4:"irrelevant",r1:"positive"},opinions:[],bySource:[]}), (body) => {
+    assert.deepEqual(body.text.format.schema.properties.classified.required,["r1","r2","r4","r5"]);
+  });
+  const result = await analyse("fictional phone",items,[{source:"youtube",availability:"ok",itemsAnalysed:3},{source:"x",availability:"ok",itemsAnalysed:1}]);
+  assert.deepEqual(result.sentiment,{positive:1/3,neutral:1/3,negative:1/3});
+  assert.deepEqual(result.sources.map(s=>s.itemsAnalysed),[2,1]);
+  const labels = Object.fromEntries(result.bySource.flatMap(s=>s.threads.flatMap(t=>t.comments.map(c=>[c.id,c.sentiment]))));
+  assert.equal(labels.c1,"positive"); assert.equal(labels.x1,"negative"); assert.equal(labels.c3,"neutral"); assert.equal(labels.c2,undefined);
 });

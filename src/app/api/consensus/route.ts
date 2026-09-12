@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { EXAMPLE_SUBJECTS, findSample } from "@/lib/subjects";
-import { liveEnabled } from "@/lib/env";
+import { configured, liveEnabled } from "@/lib/env";
 import { collectAdaptive } from "@/lib/connectors/adaptive";
 import { collectAll } from "@/lib/connectors";
 import { fallbackPlan } from "@/lib/searchPlan";
@@ -32,6 +32,11 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const MIN_ITEMS_DEFAULT = 8;
+
+// Only public capability flags, never credentials or a paid platform request.
+export async function GET() {
+  return NextResponse.json({ sources: liveEnabled() ? SOURCES.filter(({ id }) => configured[id]()).map(({ id }) => id) : [] }, { headers: { "Cache-Control": "no-store" } });
+}
 
 function readSubject(body: unknown): string {
   if (typeof body !== "object" || body === null) return "";

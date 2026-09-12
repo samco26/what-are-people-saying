@@ -6,7 +6,7 @@ import { createElement } from "react";
 import { resolveSubject } from "../src/lib/subjectContext.ts";
 import { platformQuery } from "../src/lib/connectors/query.ts";
 import { collectAdaptive } from "../src/lib/connectors/adaptive.ts";
-import { POST } from "../src/app/api/consensus/route.ts";
+import { GET, POST } from "../src/app/api/consensus/route.ts";
 import { Answer } from "../src/components/Answer.tsx";
 
 const originalFetch = globalThis.fetch;
@@ -158,7 +158,7 @@ test("an unsettled lookup never stops the search: the subject is searched as typ
       return json(response([message(JSON.stringify({
         verdict: "positive", agreement: "moderate", confidence: { level: "low", reason: "Simulated." },
         positives: [], negatives: [], drawnFrom: [1, 2], summary: "SIMULATED: Melbourne is liked.",
-        classified: { positive: entries.filter((entry) => entry.metadata.startsWith("comment")).map((entry) => entry.ref), neutral: [], negative: [], irrelevant: [] }, opinions: [],
+        classified: Object.fromEntries(entries.filter((entry) => entry.metadata.startsWith("comment")).map((entry) => [`r${entry.ref}`, "positive"])), opinions: [],
       }))]));
     }
     assert.equal(url.hostname, "www.googleapis.com");
@@ -210,7 +210,7 @@ test("route passes resolved identity and facts through real connector and analys
       return json(response([message(JSON.stringify({
         verdict: "mixed", agreement: "weak", confidence: { level: "low", reason: "Simulated pre-announcement and recent reactions are mixed." },
         positives: [], negatives: [], drawnFrom: [1, 2], summary: "SIMULATED: Reactions to the announced phone are mixed.", sentiment: { positive: 0.5, neutral: 0, negative: 0.5 },
-        classified: { positive: entries.filter((entry) => entry.metadata.startsWith("comment")).map((entry) => entry.ref), neutral: [], negative: [], irrelevant: [] }, opinions: [],
+        classified: Object.fromEntries(entries.filter((entry) => entry.metadata.startsWith("comment")).map((entry) => [`r${entry.ref}`, "positive"])), opinions: [],
       }))]));
     }
     assert.equal(url.hostname, "www.googleapis.com");
@@ -236,4 +236,17 @@ test("route passes resolved identity and facts through real connector and analys
   assert.match(html, /rating-pill/);
   assert.doesNotMatch(html, /Rumoured phone/);
 
+});
+
+
+test("loading capabilities expose only connected source IDs without provider requests or credentials", async () => {
+  enableLive();
+  globalThis.fetch = async () => { throw new Error("Capability lookup must not fetch"); };
+  let response = await GET();
+  assert.equal(response.headers.get("cache-control"),"no-store");
+  assert.deepEqual(await response.json(),{sources:["youtube"]});
+  process.env.X_BEARER_TOKEN = "test-secret-never-returned";
+  assert.deepEqual(await (await GET()).json(),{sources:["youtube","x"]});
+  delete process.env.OPENAI_API_KEY;
+  assert.deepEqual(await (await GET()).json(),{sources:[]});
 });

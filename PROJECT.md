@@ -36,7 +36,7 @@ The default view prioritises the short answer. Keep the overall sentiment meter,
 - Source controls use platform logos only. Opening one replaces the main answer with an expanded view; Back restores it and the subject remains editable in a compact control.
 - A platform view starts with its logo and a full-width sentiment bar, without repeated titles or analysed totals. Show up to five original post/video sections initially, with Show more for the rest.
 - Each post section uses the actual title, followed by a few verbatim collected comment excerpts in sentiment-coloured pills. Suppress a title when it duplicates the quote; an opinion drilldown shows only its supporting comments. The entire section links to the original post. X entries use their own text when no replies were collected; never invent comments.
-- An opinion pill can reveal its supporting posts. Loading uses an indeterminate liquid bar, with reduced-motion support.
+- An opinion pill can reveal its supporting posts. Loading uses an indeterminate liquid bar, starting with “Finding what people think…” and rotating connected-platform and discussion placeholders in a left-to-right sweep, with reduced-motion support.
 
 ## Sources and data
 

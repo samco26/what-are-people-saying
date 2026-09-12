@@ -1,6 +1,6 @@
 # Search quality, speed and cost audit — 12 September 2026
 
-Scope: milestones 6–8 and 10. This is an audit of the code and simulated provider responses, with local fixes. It does not claim that a new live result is accurate, faster, cheaper or representative of the public. BETA 0.13.0 was deployed from merge `04c3a31` on 13 September; GitHub/Vercel reported success and the production homepage returned HTTP 200 with the new version. Paid live searches remain unevaluated. The 13 September merge preserves the newer advisory lookup: if web verification fails, search the literal input without inferred identity, category or aliases and keep confidence low.
+Scope: milestones 6–8 and 10. This is an audit of the code and simulated provider responses, with local fixes. It does not claim that a new live result is accurate, faster, cheaper or representative of the public. BETA 0.13.0 was deployed from merge `04c3a31` on 13 September; GitHub/Vercel reported success and the production homepage returned HTTP 200 with the new version. A later live failure investigation reproduced “iphone fold” HTTP 502 twice and identified incomplete/inconsistent classification references. The BETA 0.13.1 fix gives each opinion a required enum slot; post-fix live verification is pending. Semantic accuracy and billed cost remain unevaluated. The 13 September merge preserves the newer advisory lookup: if web verification fails, search the literal input without inferred identity, category or aliases and keep confidence low.
 
 ## Findings and fixes
 
@@ -28,7 +28,7 @@ Web facts establish identity and dates, never votes. The successful path still m
 | 3 | Platform planning | Full collection classification and recurring themes |
 | 4 | Combined analysis/summary/estimated score | Short summary from validated themes and calculated scores |
 
-Platform collection runs between requests 2 and 3 in the revised pipeline. The short writer receives no raw comments, just checked themes, their support counts, sentiment counts, platform/group totals, dates and factual context. Every collected item still reaches the classifier. Missing/conflicting labels fail explicitly, with no automatic paid retry. Fewer than eight accepted opinions skips writing and returns insufficient evidence. A higher configured minimum is also enforced before returning a result.
+Platform collection runs between requests 2 and 3 in the revised pipeline. The short writer receives no raw comments, just checked themes, their support counts, sentiment counts, platform/group totals, dates and factual context. Every collected item still reaches the classifier. Each opinion now has its own required classification field, so a reference cannot be omitted, duplicated or invented by the classifier. Invalid output still fails explicitly, with no automatic paid retry. This slightly enlarges the schema/output; it adds no model calls or platform reads. Fewer than eight accepted opinions skips writing and returns insufficient evidence. A higher configured minimum is also enforced before returning a result.
 
 The score is `1 + 4 × (positive + 0.5 × neutral) / accepted`. The qualitative direction uses the same balance: positive at 60% or more, negative at 40% or less, mixed otherwise. Neutral means an explicit mixed/indifferent assessment, not unrelated chatter. These are transparent interface conventions, not a scientific population estimator or submitted star reviews.
 
@@ -38,7 +38,7 @@ This is a reasonable starting tradeoff, not a demonstrated optimum. Combining pr
 
 Keeping related work together and independent work parallel follows [OpenAI's latency guidance](https://developers.openai.com/api/docs/guides/latency-optimization). The same number of requests does not guarantee the same time or price. The combined extraction has a 2,600-token ceiling; classification retains 16,000 and the short writer has 700. Actual token usage and provider time must be measured. Output ceilings are limits, not expected consumption.
 
-Do not lower the model quality, reduce the selected sample or skip factual verification solely to claim speed. First measure where time and errors occur. The app already exposes lookup (including planning), collection and analysis (classification plus summary) in `Server-Timing`. Compare median and slow-tail latency, not a single fast search. There are no new measured latency or billed-cost results from this audit.
+Do not lower the model quality, reduce the selected sample or skip factual verification solely to claim speed. First measure where time and errors occur. The app already exposes lookup (including planning), collection and analysis (classification plus summary) in `Server-Timing`. Compare median and slow-tail latency, not a single fast search. The two failed live searches took 23.4 and 25.7 seconds; these are failure timings, not a successful-search benchmark. Billed cost has not been measured.
 
 ## Remaining sampling limits
 
@@ -51,7 +51,7 @@ Do not lower the model quality, reduce the selected sample or skip factual verif
 
 ## Verification and next acceptance check
 
-Local evidence: 63 simulated-provider tests pass, TypeScript passes and the production build passes. Browser checks cover all five categories at 1440×900, 390×844 and 320×660, equal-height rating/icon controls, no page/row overflow, quote deduplication, Back, clickable suggestions and reduced motion, with no runtime errors. Provider tests verify combined research/planning, full-item input, strict classification, filtering, calculated counts and summary input. These do not measure real model accuracy.
+Local evidence: 65 simulated-provider tests pass, TypeScript passes and the production build passes. Browser checks cover all five categories at 1440×900, 390×844 and 320×660, equal-height rating/icon controls, no page/row overflow, quote deduplication, Back, clickable suggestions and reduced motion, with no runtime errors. Provider tests verify combined research/planning, full-item input, strict classification, filtering, calculated counts and summary input. BETA 0.13.1 adds per-reference slot/coverage tests and browser loading-rotation checks with reduced motion, stable heights and cleanup. These do not measure real model accuracy.
 
 Before judging the revised pipeline ready for broader use, run a bounded live comparison over roughly 12 subjects: examples from all five categories, ambiguous names, sparse topics and recently announced/versioned products. Include the user's failing queries when available. For each search:
 

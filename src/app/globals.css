@@ -86,6 +86,10 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
 .all-opinions{display:grid;grid-template-columns:1fr 1fr;gap:14px}.all-opinions .opinion-pill{position:static;max-width:100%;animation:none}
 .how-copy{font-size:16px;line-height:1.6;display:flex;flex-direction:column;gap:22px;max-width:730px}
 .loading-state{padding:33px 17px 24px;animation:resolve 350ms var(--easeOut) both}.loading-state p{font-size:13px;color:var(--muted);margin-top:17px}
+.loading-message{overflow:hidden;min-height:2.8em;line-height:1.4}
+.loading-message span{display:block;animation:loading-message-swipe 3600ms ease both}
+@keyframes loading-message-swipe{0%{opacity:0;transform:translateX(-24px);clip-path:inset(0 100% 0 0)}12%,88%{opacity:1;transform:translateX(0);clip-path:inset(0 0 0 0)}100%{opacity:0;transform:translateX(24px);clip-path:inset(0 0 0 100%)}}
+@media(prefers-reduced-motion:reduce){.loading-message span{animation:none}}
 .liquid-track{height:13px;border-radius:99px;position:relative;overflow:hidden;background:#17565f1c;box-shadow:inset 0 1px 4px #17464a20,inset 0 -1px 0 #fff9;isolation:isolate}
 .liquid-track span{position:absolute;inset:0;width:55%;border-radius:99px;background:linear-gradient(90deg,transparent,#8bb9b5 15%,#ffd7c2 55%,#edaa99 80%,transparent);filter:blur(.5px);animation:liquid-flow 2200ms cubic-bezier(.45,0,.55,1) infinite}
 .liquid-track span+span{opacity:.7;animation-delay:-1100ms;mix-blend-mode:screen}

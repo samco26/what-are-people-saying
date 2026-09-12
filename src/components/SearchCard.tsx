@@ -8,6 +8,7 @@ import { PlatformEvidence, PostList } from "./PlatformEvidence";
 import { OpinionPills } from "./OpinionPills";
 import { HowItWorks } from "./HowItWorks";
 import { Logo } from "./Logo";
+import { SearchProgress } from "./SearchProgress";
 
 type Phase = { name: "idle" } | { name: "loading"; subject: string } | { name: "done"; subject: string; response: ConsensusResponse } | { name: "error"; subject: string };
 type View = { kind: "source"; source: SourceId } | { kind: "opinion"; opinion: RecurringOpinion } | { kind: "opinions" | "how" };
@@ -132,7 +133,7 @@ export function SearchCard() {
             <button type="submit" className="go" aria-label="Search" disabled={phase.name === "loading"}><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 16V4m-5 5 5-5 5 5" /></svg></button>
           </form>
           <div className="result-unfold" data-open={unfolded} data-settled={settled}><div>
-            {phase.name === "loading" && <div className="loading-state"><div className="liquid-track" role="progressbar" aria-label="Searching discussion" aria-valuetext="Searching"><span /><span /></div><p>Finding what people think…</p></div>}
+            {phase.name === "loading" && <SearchProgress />}
             {phase.name === "error" && <div className="result-copy"><h2>Something interrupted the search.</h2><p>Please try again.</p><button type="button" className="text-action" onClick={() => void search(phase.subject)}>Try again</button></div>}
             {phase.name === "done" && <Answer response={phase.response} onPick={(subject) => void search(subject)} onChoose={(id) => open({ kind: "source", source: id })} />}
           </div></div>
