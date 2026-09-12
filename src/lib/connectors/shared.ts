@@ -13,6 +13,9 @@ export interface CollectOptions {
   /* Request-local only: reused while expanding the same search, never persisted. */
   memo?: Map<string, Promise<unknown>>;
   previousItems?: SourceItem[];
+  /* Planned search terms per platform (see searchPlan.ts). A connector
+     without an entry searches the subject as typed. */
+  queries?: Partial<Record<SourceId, string>>;
 }
 
 export interface Collected {
