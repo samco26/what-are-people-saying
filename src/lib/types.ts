@@ -132,6 +132,7 @@ export interface SentimentSplit {
 
 export interface ConsensusResult {
   subject: string;
+  context?: SubjectContext;
   /* Actual collection bounds, supplied by the server for live searches. */
   window?: SearchWindow;
   /* One to three qualitative sentences. The default view shows only this. */
@@ -154,8 +155,20 @@ export interface ConsensusResult {
 
 export type ConsensusResponse =
   | { kind: "result"; result: ConsensusResult }
+  | { kind: "subject-unresolved"; subject: string; reason: "ambiguous" | "unverified" | "unavailable"; message: string }
   /* No live sources are connected and the subject is not one of the
      samples. */
   | { kind: "no-live-search"; subject: string; message: string; examples: string[] }
   /* Live sources ran but too little came back to describe honestly. */
-  | { kind: "insufficient"; subject: string; message: string; sources: SourceStatus[]; window?: ConsensusResult["window"] };
+  | { kind: "insufficient"; subject: string; message: string; sources: SourceStatus[]; window?: ConsensusResult["window"]; context?: SubjectContext };
+
+export interface SubjectContext {
+  original: string;
+  name: string;
+  nameRefs: number[];
+  description: { text: string; refs: number[] };
+  aliases: Array<{ text: string; refs: number[] }>;
+  facts: Array<{ text: string; refs: number[] }>;
+  sources: Array<{ title: string; url: string }>;
+  checkedAt: string;
+}

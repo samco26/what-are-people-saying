@@ -8,6 +8,7 @@
 import { setTimeout as delay } from "node:timers/promises";
 import type { SourceItem, SearchWindow } from "../types";
 import { env, envInt } from "../env";
+import { platformQuery } from "./query";
 import { SEARCH_MONTHS, monthsBefore } from "../searchWindow";
 import { getJson, getOnce, reasonFor, statusFor, tidy, type Collected, type CollectOptions, type Connector } from "./shared";
 
@@ -58,7 +59,7 @@ async function collectArchive(opts: CollectOptions, to: Date): Promise<Collected
       opts.signal.throwIfAborted();
       const from = monthsBefore(to, months);
       const url = new URL(API);
-      url.searchParams.set("query", `"${opts.subject.replace(/"/g, "")}" -is:retweet lang:en`);
+      url.searchParams.set("query", `${platformQuery("x", opts)} -is:retweet lang:en`);
       url.searchParams.set("max_results", String(max));
       url.searchParams.set("tweet.fields", "created_at,public_metrics");
       url.searchParams.set("start_time", from.toISOString());

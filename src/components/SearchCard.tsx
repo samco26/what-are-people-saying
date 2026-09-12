@@ -9,6 +9,7 @@ import { OpinionPills } from "./OpinionPills";
 import { SentimentBar } from "./SentimentBar";
 import { HowItWorks } from "./HowItWorks";
 import { Logo } from "./Logo";
+import { SubjectFacts } from "./SubjectFacts";
 
 type Phase = { name: "idle" } | { name: "loading"; subject: string } | { name: "done"; subject: string; response: ConsensusResponse } | { name: "error"; subject: string };
 type View = { kind: "source"; source: SourceId } | { kind: "opinion"; opinion: RecurringOpinion } | { kind: "opinions" | "about" | "how" };
@@ -123,7 +124,7 @@ export function SearchCard() {
           const threads = reading.threads.filter((thread) => thread.id && view.opinion.evidenceIds.includes(thread.id));
           return threads.length ? <section key={reading.source} className="opinion-evidence" aria-label={reading.source}><Logo id={reading.source} size={24} /><PostList threads={threads} source={reading.source} /></section> : null;
         })}</>}
-        {view.kind === "about" && result && <><h2>About this answer</h2><SentimentBar split={result.sentiment} /><p className="quiet">This describes the collected discussion, not everyone’s view.</p><p className="quiet">{result.confidence.level.charAt(0).toUpperCase() + result.confidence.level.slice(1)} confidence · {result.agreement} agreement.</p><Coverage sources={result.sources} />{opinions.length < 5 && <p className="quiet">The sample supports fewer distinct recurring opinions. Only those supported are shown.</p>}</>}
+        {view.kind === "about" && result && <><h2>About this answer</h2><SentimentBar split={result.sentiment} /><p className="quiet">This describes the collected discussion, not everyone’s view.</p><p className="quiet">{result.confidence.level.charAt(0).toUpperCase() + result.confidence.level.slice(1)} confidence · {result.agreement} agreement. {result.confidence.reason}</p><Coverage sources={result.sources} />{opinions.length < 5 && <p className="quiet">The sample supports fewer distinct recurring opinions. Only those supported are shown.</p>}{result.context && <SubjectFacts context={result.context} />}</>}
         {view.kind === "how" && <><h2>How it works</h2><HowItWorks /></>}
       </div>
       {result?.illustrative && <p className="evidence-footer">Illustrative sample. Posts and comments are fictional.</p>}

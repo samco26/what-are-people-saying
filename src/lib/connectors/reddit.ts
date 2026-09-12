@@ -17,6 +17,7 @@
 
 import type { SourceItem } from "../types";
 import { env, envInt } from "../env";
+import { platformQuery } from "./query";
 import { getJson, getOnce, inWindow, reasonFor, statusFor, type Collected, type CollectOptions, type Connector } from "./shared";
 
 const AUTH = "https://www.reddit.com/api/v1/access_token";
@@ -85,7 +86,7 @@ async function collect(opts: CollectOptions): Promise<Collected> {
   const headers = { Authorization: `bearer ${bearer}`, "User-Agent": agent };
 
   const search = new URL(`${API}/search`);
-  search.searchParams.set("q", opts.subject);
+  search.searchParams.set("q", platformQuery("reddit", opts));
   search.searchParams.set("sort", "relevance");
   search.searchParams.set("t", opts.from && opts.to && opts.to.getTime() - opts.from.getTime() <= 366 * 86_400_000 ? "year" : "all");
   search.searchParams.set("limit", String(maxPosts));

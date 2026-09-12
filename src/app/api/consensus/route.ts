@@ -3,6 +3,7 @@ import { EXAMPLE_SUBJECTS, findSample } from "@/lib/subjects";
 import { liveEnabled } from "@/lib/env";
 import { collectAdaptive } from "@/lib/connectors/adaptive";
 import { analyse } from "@/lib/analysis/analyse";
+import { resolveSubject } from "@/lib/subjectContext";
 import { SOURCES, type ConsensusResponse } from "@/lib/types";
 
 /* POST /api/consensus  { subject: string }
@@ -10,6 +11,7 @@ import { SOURCES, type ConsensusResponse } from "@/lib/types";
    Two paths, chosen by what keys exist on the server:
 
    Live, when OPENAI_API_KEY and at least one source key are set: the
+   subject is first checked against cited web sources, then the
    available platforms are collected in parallel, each under its own
    timeout, then the sample goes to OpenAI once and the answer comes back
    in the shape the screen draws. A platform without a key is reported as
@@ -36,6 +38,7 @@ function readSubject(body: unknown): string {
 }
 
 export async function POST(request: Request) {
+  const started = performance.now();
   let body: unknown;
   try {
     body = await request.json();
@@ -65,8 +68,16 @@ export async function POST(request: Request) {
   }
 
   const to = new Date();
+  const lookupStarted = performance.now();
+  const lookup = await resolveSubject(subject, to);
+  const lookupMs = performance.now() - lookupStarted;
+  if (lookup.status !== "resolved") {
+    const response: ConsensusResponse = { kind: "subject-unresolved", subject, reason: lookup.status, message: lookup.message };
+    return NextResponse.json(response, noStore);
+  }
+  const context = lookup.context;
   const collectionStarted = performance.now();
-  const { items, statuses, window } = await collectAdaptive(subject, SOURCES.map((source) => source.id), to);
+  const { items, statuses, window } = await collectAdaptive(context.name, SOURCES.map((source) => source.id), to, undefined, context.aliases.map((alias) => alias.text));
   const collectionMs = performance.now() - collectionStarted;
   const opinionCount = items.filter((item) => item.kind !== "video").length;
 
@@ -74,7 +85,8 @@ export async function POST(request: Request) {
   if (opinionCount < minItems) {
     const response: ConsensusResponse = {
       kind: "insufficient",
-      subject,
+      subject: context.name,
+      context,
       message:
         opinionCount === 0
           ? "Nothing came back from the platforms that could be reached, so there is nothing to describe."
@@ -87,13 +99,14 @@ export async function POST(request: Request) {
 
   try {
     const analysisStarted = performance.now();
-    const result = await analyse(subject, items, statuses, window);
+    const remainingMs = Math.max(1, 55_000 - (performance.now() - started));
+    const result = await analyse(context.name, items, statuses, window, context, remainingMs);
     const analysisMs = performance.now() - analysisStarted;
     result.window = window;
     const response: ConsensusResponse = { kind: "result", result };
     return NextResponse.json(response, { headers: {
       ...noStore.headers,
-      "Server-Timing": `collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}`,
+      "Server-Timing": `lookup;dur=${lookupMs.toFixed(0)}, collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}`,
     } });
   } catch (err) {
     const message = err instanceof Error ? err.message : "The analysis failed.";

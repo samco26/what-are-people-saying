@@ -7,6 +7,7 @@ import ts from "typescript";
 const sourceRoot = new URL("../src/", import.meta.url).href;
 registerHooks({
   resolve(specifier, context, nextResolve) {
+    if (specifier === "next/server") specifier = "next/server.js";
     if (specifier.startsWith("@/")) specifier = new URL(specifier.slice(2), sourceRoot).href;
     try { return nextResolve(specifier, context); } catch (error) {
       if ((specifier.startsWith(".") || specifier.startsWith(sourceRoot)) && !/\.[cm]?[jt]sx?$/.test(specifier)) {

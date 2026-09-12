@@ -13,6 +13,14 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.10.1", date: "12 September 2026",
+    items: [
+      ["new", "Live searches first check the subject’s name and current facts against web sources."],
+      ["changed", "Supported alternative names help find discussion, and results use the verified spelling."],
+      ["new", "About this answer includes linked subject facts. Unclear subjects and failed fact-checks are explained before collecting discussion."],
+    ],
+  },
+  {
     v: "0.10.0", date: "12 September 2026",
     items: [
       ["changed", "Turquoise and peach liquid glass, with a flowing search animation."],

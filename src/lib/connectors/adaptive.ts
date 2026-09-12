@@ -8,6 +8,7 @@ export const EXPAND_BELOW = 50;
 export async function collectAdaptive(
   subject: string, sources: SourceId[], to = new Date(),
   collect: typeof collectAll = collectAll,
+  aliases: string[] = [],
 ) {
   const items = new Map<string, SourceItem>();
   const statuses = new Map<SourceId, SourceStatus>();
@@ -18,7 +19,7 @@ export async function collectAdaptive(
     if (!active.length) break;
     months = windowMonths;
     const batch = await collect(active, {
-      subject, from: monthsBefore(to, months), to, memo, previousItems: [...items.values()],
+      subject, aliases, from: monthsBefore(to, months), to, memo, previousItems: [...items.values()],
     });
     for (const item of batch.items) if (!items.has(item.id)) items.set(item.id, item);
     for (const status of batch.statuses) statuses.set(status.source, status);
