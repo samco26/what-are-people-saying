@@ -109,7 +109,13 @@ function mockOpenAI(makeOutput, inspect) {
     assert.match(String(input), /^https:\/\/api.openai.com\/v1\/responses/);
     const body = JSON.parse(init.body);
     assert.equal(body.store, false);
-    inspect(body);
+    if (body.text.format.name === "checked_summary") {
+      const checked = JSON.parse(body.input);
+      assert.ok(checked.counts.positive > 0);
+      assert.equal(body.store, false);
+      return json({ id: "resp_synthesis", object: "response", status: "completed", output: [{ id: "msg_summary", type: "message", role: "assistant", status: "completed", content: [{ type: "output_text", text: JSON.stringify({ summary: "The sampled discussion leans positive.", confidence: { level: "medium", reason: "Fictional fixture." } }), annotations: [] }] }] });
+    }
+    inspect?.(body);
     return json({ id: "resp_fixture", object: "response", status: "completed", model: body.model,
       output: [{ id: "msg_fixture", type: "message", role: "assistant", status: "completed", content: [{ type: "output_text", text: JSON.stringify(makeOutput()), annotations: [] }] }],
       usage: { input_tokens: 1, output_tokens: 1, total_tokens: 2 } });
@@ -126,12 +132,13 @@ test("all 300 opinions reach OpenAI and one-source evidence is generated only on
     assert.equal(lines.length, 301);
     assert.equal(lines.at(-1).text, "Fictional opinion 299");
     assert.equal(lines.at(-1).parent, 0);
-    assert.match(body.instructions, /Lead immediately/);
+    assert.match(body.instructions, /A relevant parent video does NOT make every comment relevant/);
     assert.match(body.instructions, /untrusted data/);
     assert.match(body.input, /^Subject: "fictional phone"\nTaken to mean: "A fictional phone, for the test\."\nWeb context \(facts only; never opinion evidence\): null\nOpinion window:/);
   });
   const result = await analyse("fictional phone", sample(), [{ source: "youtube", availability: "ok", itemsAnalysed: 301 }], undefined, "A fictional phone, for the test.");
   assert.equal(result.sources[0].itemsAnalysed, 300);
+  assert.deepEqual(result.sentiment, { positive: 1, neutral: 0, negative: 0 });
   assert.equal(result.bySource.length, 1);
   assert.equal(result.bySource[0].source, "youtube");
   assert.equal(result.bySource[0].threads.length, 1); // grouped under the original video
@@ -173,4 +180,24 @@ test("percentage rounding totals 100 for thirds, tiny segments and uneven splits
     assert.equal(result.reduce((sum, value) => sum + value, 0), 100);
     assert.ok(result.every((value) => Number.isInteger(value) && value >= 0));
   }
+});
+
+test("missing or conflicting classifications fail rather than passing unchecked evidence to the summary", async () => {
+  for (const classified of [
+    {...analysisOutput.classified, positive:[1]},
+    {...analysisOutput.classified, negative:[1]},
+    {...analysisOutput.classified, irrelevant:[999]},
+  ]) {
+    mockOpenAI(() => ({...analysisOutput, classified}));
+    await assert.rejects(analyse("fictional phone",sample(),[{source:"youtube",availability:"ok",itemsAnalysed:300}]),/could not be checked consistently/);
+  }
+});
+test("irrelevant evidence is removed before summary and cannot satisfy minimum evidence", async () => {
+  let calls = 0;
+  mockOpenAI(() => ({...analysisOutput, classified:{positive:[1,2],neutral:[],negative:[],irrelevant:Array.from({length:298},(_,i)=>i+3)}}),()=>calls++);
+  const result = await analyse("fictional phone",sample(),[{source:"youtube",availability:"ok",itemsAnalysed:300}]);
+  assert.equal(result.sources[0].itemsAnalysed,2);
+  assert.equal(result.bySource[0].threads[0].comments.length,2);
+  assert.match(result.summary,/Too few/);
+  assert.equal(calls,1);
 });

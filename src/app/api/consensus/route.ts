@@ -3,10 +3,9 @@ import { EXAMPLE_SUBJECTS, findSample } from "@/lib/subjects";
 import { liveEnabled } from "@/lib/env";
 import { collectAdaptive } from "@/lib/connectors/adaptive";
 import { collectAll } from "@/lib/connectors";
-import { planSearch } from "@/lib/searchPlan";
 import { resolveSubject } from "@/lib/subjectContext";
 import { analyse } from "@/lib/analysis/analyse";
-import { CATEGORIES, SOURCES, type Category, type ConsensusResponse } from "@/lib/types";
+import { SOURCES, type ConsensusResponse } from "@/lib/types";
 
 /* POST /api/consensus  { subject: string; categoryHint?: Category }
 
@@ -14,7 +13,7 @@ import { CATEGORIES, SOURCES, type Category, type ConsensusResponse } from "@/li
 
    Live, when OPENAI_API_KEY and at least one source key are set: the
    available platforms are collected in parallel, each under its own
-   timeout, then the sample goes to OpenAI once and the answer comes back
+   timeout, then OpenAI classifies the sample and writes a checked summary
    in the shape the screen draws. A platform without a key is reported as
    unavailable in the answer. Too little collected and the answer says so
    instead of guessing. Nothing collected is kept.
@@ -36,15 +35,6 @@ function readSubject(body: unknown): string {
   if (typeof body !== "object" || body === null) return "";
   const value = (body as { subject?: unknown }).subject;
   return typeof value === "string" ? value.trim().slice(0, 200) : "";
-}
-
-/* When the subject was accepted from a did-you-mean suggestion, the browser
-   sends the category the plan gave that reading. Only a known category
-   counts; anything else is treated as no hint. */
-function readCategoryHint(body: unknown): Category | undefined {
-  if (typeof body !== "object" || body === null) return undefined;
-  const value = (body as { categoryHint?: unknown }).categoryHint;
-  return typeof value === "string" && (CATEGORIES as ReadonlyArray<string>).includes(value) ? value as Category : undefined;
 }
 
 export async function POST(request: Request) {
@@ -86,18 +76,14 @@ export async function POST(request: Request) {
     return NextResponse.json(response, noStore);
   }
   const context = lookup.context;
-  /* Plan queries from the verified identity and facts. A failed plan falls
-     back to the verified name, never the unverified original input. */
-  const planStarted = performance.now();
-  const categoryHint = readCategoryHint(body);
-  const plan = await planSearch(context.name, { confirmed: true, context });
-  const planMs = performance.now() - planStarted;
+  // Identity extraction and platform planning share the same cited report and AI call.
+  const plan = lookup.plan;
   const collectionStarted = performance.now();
   const { items, statuses, window } = await collectAdaptive(context.name, SOURCES.map((source) => source.id), to, collectAll, plan.queries, context.aliases.map((alias) => alias.text));
   const collectionMs = performance.now() - collectionStarted;
   const opinionCount = items.filter((item) => item.kind !== "video").length;
 
-  const minItems = Number.parseInt(process.env.MIN_ITEMS ?? "", 10) || MIN_ITEMS_DEFAULT;
+  const minItems = Math.max(MIN_ITEMS_DEFAULT, Number.parseInt(process.env.MIN_ITEMS ?? "", 10) || MIN_ITEMS_DEFAULT);
   if (opinionCount < minItems) {
     const response: ConsensusResponse = {
       kind: "insufficient",
@@ -117,21 +103,21 @@ export async function POST(request: Request) {
     const analysisStarted = performance.now();
     const result = await analyse(context.name, items, statuses, window, plan.interpretation, context, Math.max(1, 55_000 - (performance.now() - started)));
     const analysisMs = performance.now() - analysisStarted;
+    if (result.sources.reduce((sum, source) => sum + source.itemsAnalysed, 0) < minItems) {
+      const response: ConsensusResponse = { kind: "insufficient", subject: context.name, context, sources: result.sources, window, message: "Too few unique, relevant opinions remained after checking the collected discussion." };
+      return NextResponse.json(response, noStore);
+    }
     result.window = window;
-    /* The plan decided what kind of thing this is; the screen picks the
-       card from it. An ambiguous name gets the general card and a
-       suggestion for the search field. */
-    result.category = plan.category === "general" && categoryHint ? categoryHint : plan.category;
+    /* Verified category changes only the score presentation. */
+    result.category = plan.category;
     if (plan.kind) result.kind = plan.kind;
-    /* A confirmed reading is never offered another suggestion. */
-    if (plan.suggestion && !categoryHint) { result.suggestion = plan.suggestion; result.suggestionCategory = plan.suggestionCategory; }
     const response: ConsensusResponse = { kind: "result", result };
     return NextResponse.json(response, { headers: {
       ...noStore.headers,
-      "Server-Timing": `lookup;dur=${lookupMs.toFixed(0)}, plan;dur=${planMs.toFixed(0)}, collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}`,
+      "Server-Timing": `lookup;dur=${lookupMs.toFixed(0)}, collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}`,
     } });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "The analysis failed.";
+  } catch {
+    const message = "The evidence check or summary could not finish. Please try again.";
     return NextResponse.json({ error: message }, { status: 502, ...noStore });
   }
 }

@@ -15,3 +15,11 @@ export function sentimentPercentages(split: SentimentSplit): number[] {
   for (let index = 0; index < missing; index++) rounded[order[index].index]++;
   return rounded;
 }
+
+/** All displayed judgements use these same accepted classification counts. */
+export function sentimentVerdict(split: SentimentSplit): "positive" | "mixed" | "negative" {
+  const total = split.positive + split.neutral + split.negative;
+  if (!total) return "mixed";
+  const balance = (split.positive + split.neutral * 0.5) / total;
+  return balance >= 0.6 ? "positive" : balance <= 0.4 ? "negative" : "mixed";
+}

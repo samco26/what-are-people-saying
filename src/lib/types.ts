@@ -41,7 +41,7 @@ export interface SearchWindow {
 export interface SourceStatus {
   source: SourceId;
   availability: SourceAvailability;
-  /* How many items from this source went into the analysis. */
+  /* Accepted unique relevant opinions after analysis; collected candidates before analysis. */
   itemsAnalysed: number;
   /* A plain-English reason when the source is partial or unavailable. */
   note?: string;
@@ -107,8 +107,9 @@ export interface RecurringOpinion {
   sentence: string;
   sentiment: OpinionSentiment;
   evidenceIds: string[];
-  /* How many distinct collected opinions support it. The category cards
-     print it beside the sentence; the default card keeps it internal. */
+  /* Exact supporting comments, namespaced by source; older samples omit this. */
+  evidenceCommentIds?: string[];
+  /* Number of distinct supporting opinions, kept internal. */
   support?: number;
 }
 
@@ -128,16 +129,14 @@ export interface SourceAnalysis {
 }
 
 /* The share of the sample that read as positive, neutral and negative.
-   Estimated fractions that sum to one, shown as rounded percentages. */
+   Fractions counted from accepted evidence, shown as rounded percentages. */
 export interface SentimentSplit {
   positive: number;
   neutral: number;
   negative: number;
 }
 
-/* What kind of thing the subject is, decided by the search plan. Four
-   categories get a card shaped like the site people would normally check
-   for that kind of thing; "general" is the default answer card. */
+/* Four categories use stars in the shared answer layout; general uses a meter. */
 export type Category = "film" | "product" | "place" | "app" | "general";
 export const CATEGORIES: ReadonlyArray<Category> = ["film", "product", "place", "app", "general"];
 

@@ -12,6 +12,11 @@ export interface ChangeEntry {
 }
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
+  { v: "0.13.0", date: "12 September 2026", items: [
+    ["changed", "Every subject uses the same answer layout; review categories show compact stars beside the platform icons."],
+    ["changed", "Search identity and platform queries are planned together; checked opinions determine the score before the summary is written."],
+    ["removed", "Repeated source quotes and the Tab badge on suggestions."],
+  ] },
   {
     v: "0.12.2", date: "12 September 2026",
     items: [

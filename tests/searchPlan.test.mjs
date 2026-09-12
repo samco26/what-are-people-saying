@@ -54,7 +54,7 @@ test("a planned search turns a natural-language subject into platform terms", as
   assert.equal(plan.category, "general");
   assert.equal(plan.kind, undefined);
   assert.equal(plan.suggestion, undefined);
-  assert.equal(plan.queries.x, '("Tuscany weather" OR "Tuscany in August" OR August OR heat) -recipe');
+  assert.equal(plan.queries.x, '("Tuscany weather" OR "Tuscany in August") -recipe');
   assert.equal(plan.queries.youtube, "Tuscany weather August -recipe");
   assert.equal(plan.queries.reddit, "Tuscany weather in August");
 });
@@ -72,7 +72,7 @@ test("operator characters from the model never reach a query, and exclusions can
     exclude: ["animal", "jaguar", '"car"'],
   });
   // "lang:fr" cleans to two words, so it is not a keyword and is dropped.
-  assert.equal(terms, '(jaguar OR "jaguar OR is verified" OR "jaguar is retweet" OR "jaguar f type" OR car OR "OR") -animal');
+  assert.equal(terms, '(jaguar OR "jaguar OR is verified" OR "jaguar is retweet" OR "jaguar f type") -animal -car');
   assert.equal(buildYouTubeQuery("jaguar", { youtubeQuery: "jaguar car | animal", subject: "Jaguar", exclude: ["animal", "car"] }), "jaguar car animal");
 });
 

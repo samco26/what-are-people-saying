@@ -30,8 +30,7 @@ test('recurring opinions require distinct relevant evidence, deduplicate referen
 test('irrelevant and unclassified evidence never establishes a recurring opinion or an invented sentiment', () => {
   const result=buildEvidence(items,[{ref:1,sentiment:'irrelevant'}],[{sentence:'Unsupported.',sentiment:'positive',refs:[1,2]}]);
   assert.equal(result.opinions.length,0);
-  assert.equal(result.threadsFor('youtube')[0].comments.length,1);
-  assert.equal(result.threadsFor('youtube')[0].comments[0].sentiment,undefined);
+  assert.equal(result.threadsFor('youtube').length,0);
 });
 test('source URL validation rejects script schemes, credentials, lookalike domains and cross-platform URLs', () => {
   for(const url of ['javascript:alert(1)','https://youtube.com.evil.test/video','https://user:password@youtube.com/watch','https://x.com/i/status/a','http://youtube.com/watch']) assert.equal(sourceUrl(url,'youtube'),undefined);
@@ -44,4 +43,18 @@ test('parent references cannot mix platforms and all grouped posts remain availa
   const result=buildEvidence([items[0],...sample],sample.map((_,i)=>({ref:i+1,sentiment:'neutral'})),[],[8]);
   assert.equal(result.threadsFor('x').length,8);
   assert.equal(result.threadsFor('x')[0].title,'Different post 7');
+});
+
+test('conflicting labels, copied text and opposite-sentiment support are excluded', () => {
+  const result = buildEvidence([...items, {...items[1], id:'copy'}], [...classifications, {ref:4,sentiment:'positive'}], [{sentence:'Everyone hates the layout.',sentiment:'negative',refs:[1,2]}]);
+  assert.equal(result.opinions.length,0);
+  assert.deepEqual(result.counts,{positive:2,neutral:0,negative:1});
+  assert.equal(result.acceptedRefs.length,3);
+  const conflict = buildEvidence(items,[...classifications,{ref:1,sentiment:'negative'}],[]);
+  assert.equal(conflict.threadsFor('youtube')[0].comments.length,1);
+});
+test('opinion references retain exact comments and preferred quotes are actually shown first', () => {
+  const result = buildEvidence(items,classifications,[{sentence:'The layout feels good.',sentiment:'positive',refs:[1,2]}],[2]);
+  assert.deepEqual(result.opinions[0].evidenceCommentIds,['youtube:a','youtube:b']);
+  assert.equal(result.threadsFor('youtube')[0].comments[0].id,'b');
 });

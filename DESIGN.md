@@ -1,3 +1,13 @@
+# Uniform results — 12 September 2026
+
+The user scrapped the different category layouts and refined the existing default layout: retain the central answer, source icons and floating common-opinion pills for every category. For film/media, product, place and app results, replace the overall sentiment meter with a compact star pill beside the original source icons, matching their height (44px desktop, 40px phone). General subjects keep the meter. No category-specific title tiles, columns, score panels, counts or General view switch remain.
+
+Every result prints “Showing results for …”, including general and fictional examples. Keep the colourful source quote once; suppress a duplicated post heading. Suggestions replace the Tab badge with a subtle pulsing glow, remain clickable and keyboard accessible, and stop animating under reduced motion. These are user-directed refinements to the already approved default mockup, implemented in milestone 10.
+
+Stars are explicitly a sentiment index (explained in How it works and the pill description), not collected customer star reviews. Negative=1, mixed/neutral=3, positive=5 with a linear weighted mean; show no score when there is no directional evidence. All categories use the same checked counts.
+
+Earlier entries below are historical and superseded where they differ.
+
 # Category cards — 12 September 2026
 
 The user asked for the answer to adapt to what the subject is, the way a review site would. Through the "Category Cards" mockup (seven revisions the same day) four categories were settled: a film reads like a Letterboxd page (poster-sized rating tile on the left, each platform's rating stacked beneath it, title and kind line, the summary, the common opinions as sentiment-tinted rows with stars and post counts, the bar across the foot); a product like Amazon (kind line and General view, title, a rating line with the opinion count and approval share, "People say", then two level columns "By platform" and "Common opinions" with tick-and-cross chips, the bar across the foot); a place like Google Maps on the film skeleton (tile and platform stack on the left, name, summary and "Common opinions" chips level with the first platform row); an app like the App Store (icon, name, kind and stars; a 3.1/5 score tile and platform stack beside review-style cards; the bar at the foot). Everything else keeps the usual answer.

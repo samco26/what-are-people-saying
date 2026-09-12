@@ -23,7 +23,7 @@ export async function collectAdaptive(
     const batch = await collect(active, {
       subject, aliases, from: monthsBefore(to, months), to, memo, previousItems: [...items.values()], queries,
     });
-    for (const item of batch.items) if (!items.has(item.id)) items.set(item.id, item);
+    for (const item of batch.items) if (!items.has(`${item.source}:${item.id}`)) items.set(`${item.source}:${item.id}`, item);
     for (const status of batch.statuses) statuses.set(status.source, status);
     const count = [...items.values()].filter((item) => item.kind !== "video").length;
     if (count >= EXPAND_BELOW) break;

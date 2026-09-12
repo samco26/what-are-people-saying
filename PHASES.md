@@ -25,7 +25,7 @@ Use the ten milestones in [PROJECT.md](PROJECT.md) as the stable numbering. Comp
 
 ## Immediate next checkpoint
 
-Submit the transparent non-commercial Reddit Data API application. After approval, add the three Reddit settings to Vercel Production, redeploy and run one controlled live search. Do not enable unrestricted public live searches until a search limit and spending protection are in place.
+Milestones 6–8 and 10: benchmark BETA 0.13.0 on controlled live searches for relevance, sentiment accuracy, summary/score consistency, latency and billed cost before calling those quality checks complete. The local audit and acceptance plan are in [SEARCH_AUDIT.md](SEARCH_AUDIT.md). Reddit approval and enforceable search/spending protection remain outstanding.
 
 ## Technology actually in the project
 
@@ -39,6 +39,9 @@ Submit the transparent non-commercial Reddit Data API application. After approva
 | AI provider in the code | OpenAI Responses API; GPT-5.6 Luna default | package.json; src/lib/analysis/analyse.ts; live production responses verified |
 
 ## Latest verification
+
+BETA 0.13.0 is **verified locally, not deployed**. The user scrapped category-specific layouts: all five categories now share the default answer; the four review categories use a star pill level with the platform icons. All results print the interpreted subject; duplicated quote headings are removed; suggestions pulse subtly and remain accessible. The search audit found estimated overall sentiment, unclassified evidence leakage, unrelated keyword OR matches and overly broad opinion drilldowns. The backend now merges cited identity extraction with query planning, classifies every collected opinion before synthesis, derives scores from accepted unique evidence, enforces classification completeness and post-filter sufficiency, and passes only checked findings to the final writer. The successful path still uses four AI requests. All 63 tests, TypeScript and the production build pass. Simulated browser checks pass for all five categories at 1440×900, 390×844 and 320×660, including aligned controls, no page/row overflow, Back, duplicate quotes, clickable glow and reduced motion; no runtime errors. The tests/build used bundled Node.js 24; browser checks used bundled Playwright because agent-browser is absent. No live quality, latency, cost or new deployment success is claimed.
+
 
 BETA 0.12.2 merges the subject fact-check with GitHub’s BETA 0.12.1 category cards, search planner and collection improvements, within milestones 6 and 10. Verified spelling, aliases and cited dated facts reach planning, collection, category labels and analysis; uncertainty stops before platform reads. All 60 combined tests, TypeScript and the production build pass. Desktop (1440×900) and phone (390×844) browser checks confirm category cards, verified naming, cited facts, Back, ambiguity and retry without runtime errors or page overflow, using explicitly simulated data. GitHub reports Vercel deployment success for merged commit `3870bd8`; the production homepage returned HTTP 200 and BETA 0.12.2. The repository was confirmed private. No paid live lookup, measured cost or new live result-quality verification is claimed.
 

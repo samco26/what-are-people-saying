@@ -17,8 +17,8 @@ export function PostList({ threads, source }: { threads: SourceThread[]; source?
       {threads.slice(0, all ? undefined : 5).map((thread, index) => {
         const url = !thread.fictional && source ? sourceUrl(thread.url, source) : undefined;
         const content = <>
-          <h3>{thread.title}</h3>
-          {thread.author && <p className="post-attribution">{thread.author}</p>}
+          {!thread.comments?.some((comment) => comment.text.trim() === thread.title.trim()) && <h3>{thread.title}</h3>}
+          {thread.author && !thread.comments?.some((comment) => comment.author === thread.author) && <p className="post-attribution">{thread.author}</p>}
           {thread.comments?.length ? <div className="comment-pills">{thread.comments.slice(0, 3).map((comment) => <blockquote key={comment.id} className={`comment-pill opinion-${comment.sentiment ?? "unclassified"}`}>
             <span className={comment.sentiment ? "sr-only" : "unclassified-note"}>{comment.sentiment ?? "Sentiment unavailable"}: </span>
             {comment.text.length > 260 ? <>{comment.text.slice(0, 260)}<span aria-label="Excerpt continues">…</span></> : comment.text}

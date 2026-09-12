@@ -12,9 +12,10 @@ This is a simple consumer-facing, personal, non-commercial project. Visitors enc
 - Positive, mixed or negative classification.
 - Up to twenty distinct recurring opinions, each consolidated into one sentence and classified positive, neutral or negative. Aim for five to twenty only when supported by repeated evidence; never pad the result or force an equal balance.
 - Confidence level, with a brief explanation based on the available evidence.
-- Keep collection counts internal on the usual answer. The category cards (see DESIGN.md, 12 September 2026) are the one exception the user approved: they print the number of opinions read, the number behind each common opinion, and a star rating out of five derived from the sentiment split.
+- Classify every collected opinion before summarising. Reject irrelevant, unclassified and duplicate evidence; derive meters, stars and the verdict from accepted counts. Recheck sufficiency after filtering. The final writer receives accepted findings, not unreviewed scraped material.
+- Keep collection counts internal. The four review categories show a compact star sentiment score derived from the same checked evidence as the meter; it is not a submitted review average.
 - Links to representative source material.
-- When the search plan can tell that the subject is a film, product, place or app, the answer is laid out as a category card modelled on the site people would check for that kind of thing, with a star rating. An ambiguous name gets the usual answer and a did-you-mean suggestion in the search field.
+- All categories use the default answer layout. Films/media, products, places and apps replace the overall meter with a star pill in the source-icon row, of equal height. Every result shows “Showing results for …”. An unresolved live identity asks for clarification before collection. Any did-you-mean suggestion pulses subtly and accepts a click or Tab, with reduced-motion support.
 - Clear warnings for unavailable sources.
 
 Consensus describes the collected sample, not every person's opinion. Distinguish a positive result from strong agreement. When evidence is insufficient, show that clearly instead of forcing a verdict.
@@ -34,7 +35,7 @@ The default view prioritises the short answer. Keep the overall sentiment meter,
 - On desktop show the strongest recurring opinions in glass pills around the main card; on mobile initially show three beneath it. Pills float into place and settle, without dots. Show more reveals the remaining supported opinions.
 - Source controls use platform logos only. Opening one replaces the main answer with an expanded view; Back restores it and the subject remains editable in a compact control.
 - A platform view starts with its logo and a full-width sentiment bar, without repeated titles or analysed totals. Show up to five original post/video sections initially, with Show more for the rest.
-- Each post section uses the actual title, followed by a few verbatim collected comment excerpts in sentiment-coloured pills. The entire section links to the original post. X entries use their own text when no replies were collected; never invent comments.
+- Each post section uses the actual title, followed by a few verbatim collected comment excerpts in sentiment-coloured pills. Suppress a title when it duplicates the quote; an opinion drilldown shows only its supporting comments. The entire section links to the original post. X entries use their own text when no replies were collected; never invent comments.
 - An opinion pill can reveal its supporting posts. Loading uses an indeterminate liquid bar, with reduced-motion support.
 
 ## Sources and data

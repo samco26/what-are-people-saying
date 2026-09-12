@@ -6,7 +6,6 @@ import { RotatingSubjects } from "./RotatingSubjects";
 import { Answer, Coverage } from "./Answer";
 import { PlatformEvidence, PostList } from "./PlatformEvidence";
 import { OpinionPills } from "./OpinionPills";
-import { CategoryCard, isCategoryCard } from "./CategoryCard";
 import { HowItWorks } from "./HowItWorks";
 import { Logo } from "./Logo";
 import { SentimentBar } from "./SentimentBar";
@@ -22,9 +21,6 @@ export function SearchCard() {
   const [reduced, setReduced] = useState(false);
   const [history, setHistory] = useState<View[]>([]);
   const [settled, setSettled] = useState(false);
-  /* True once General view is pressed: the default card is shown for a
-     result that would otherwise get a category card. Reset per search. */
-  const [general, setGeneral] = useState(false);
   const view = history.at(-1);
   const shown = useRef(EVERGREEN_SUBJECTS[0]);
   const request = useRef<AbortController | null>(null);
@@ -34,7 +30,6 @@ export function SearchCard() {
   const returnFocus = useRef<HTMLElement | null>(null);
   const [origin, setOrigin] = useState({ x: "50%", y: "50%" });
   const result = phase.name === "done" && phase.response.kind === "result" ? phase.response.result : null;
-  const category = Boolean(result && isCategoryCard(result) && !general);
   /* The plan's suggestion for an ambiguous name is offered as ghost text
      for as long as the field still holds the searched subject. */
   const suggestion = result?.suggestion && phase.name === "done" && query === phase.subject ? result.suggestion : undefined;
@@ -109,7 +104,7 @@ export function SearchCard() {
     request.current?.abort();
     const controller = new AbortController();
     request.current = controller;
-    setQuery(value); setHistory([]); setGeneral(false); setPhase({ name: "loading", subject: value });
+    setQuery(value); setHistory([]); setPhase({ name: "loading", subject: value });
     try {
       const response = await fetch("/api/consensus", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ subject: value, ...(categoryHint ? { categoryHint } : {}) }), signal: controller.signal, cache: "no-store" });
       if (!response.ok) throw new Error("Search failed");
@@ -122,33 +117,31 @@ export function SearchCard() {
   const onShow = useCallback((subject: string) => { shown.current = subject; }, []);
   const submit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); void search(query || shown.current); };
   /* Tab accepts the did-you-mean suggestion, as in a search engine. */
-  const onKey = (event: ReactKeyboardEvent<HTMLInputElement>) => { if (event.key === "Tab" && suggestion) { event.preventDefault(); void search(suggestion, result?.suggestionCategory); } };
+  const onKey = (event: ReactKeyboardEvent<HTMLInputElement>) => { if (event.key === "Tab" && !event.shiftKey && suggestion) { event.preventDefault(); void search(suggestion, result?.suggestionCategory); } };
   const edit = () => { setHistory([]); requestAnimationFrame(() => { input.current?.focus(); input.current?.select(); }); };
   const source = view?.kind === "source" ? result?.bySource.find((reading) => reading.source === view.source) : undefined;
   const opinions = result?.opinions ?? [];
 
   return <div className="search-scene" ref={scene} style={{ "--panel-x": origin.x, "--panel-y": origin.y } as CSSProperties}>
     <div className="search-home" hidden={Boolean(view)} data-result={Boolean(result)}>
-      <div className={category ? "search-stack wide" : "search-stack"}>
+      <div className="search-stack">
         <h1>Find the popular opinion on</h1>
         <section className="glass main-card" aria-label="Search and overall opinion">
           <form className="field ctl" role="search" onSubmit={submit}>
             <input ref={input} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={onKey} aria-label="Subject" maxLength={200} autoComplete="off" enterKeyHint="search" />
             {!query && <span className="ghost"><RotatingSubjects subjects={examples} paused={reduced || phase.name !== "idle"} onShow={onShow} /></span>}
-            {suggestion && <span className="ghost ghost-suggest" aria-hidden="true"><span className="ghost-mirror">{query}</span><button type="button" tabIndex={-1} className="ghost-accept" onClick={() => void search(suggestion, result?.suggestionCategory)}>did you mean {suggestion}?</button><kbd>Tab</kbd></span>}
+            {suggestion && <span className="ghost ghost-suggest"><span className="ghost-mirror" aria-hidden="true">{query}</span><button type="button" className="ghost-accept" onClick={() => void search(suggestion, result?.suggestionCategory)}>did you mean {suggestion}?</button></span>}
             <button type="submit" className="go" aria-label="Search" disabled={phase.name === "loading"}><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 16V4m-5 5 5-5 5 5" /></svg></button>
           </form>
           <div className="result-unfold" data-open={unfolded} data-settled={settled}><div>
             {phase.name === "loading" && <div className="loading-state"><div className="liquid-track" role="progressbar" aria-label="Searching discussion" aria-valuetext="Searching"><span /><span /></div><p>Finding what people think…</p></div>}
             {phase.name === "error" && <div className="result-copy"><h2>Something interrupted the search.</h2><p>Please try again.</p><button type="button" className="text-action" onClick={() => void search(phase.subject)}>Try again</button></div>}
-            {phase.name === "done" && (category && result
-              ? <CategoryCard result={result} onChoose={(id) => open({ kind: "source", source: id })} onOpinion={(opinion) => open({ kind: "opinion", opinion })} onGeneral={() => setGeneral(true)} />
-              : <Answer response={phase.response} onPick={(subject) => void search(subject)} onChoose={(id) => open({ kind: "source", source: id })} />)}
+            {phase.name === "done" && <Answer response={phase.response} onPick={(subject) => void search(subject)} onChoose={(id) => open({ kind: "source", source: id })} />}
           </div></div>
         </section>
         <div className="under-card">{result?.context && <button className="text-action" onClick={() => open({ kind: "about" })}>About this answer</button>}<button className="text-action" onClick={() => open({ kind: "how" })}>How it works</button></div>
       </div>
-      {result && !category && <OpinionPills opinions={opinions} onSelect={(opinion) => open({ kind: "opinion", opinion })} onMore={() => open({ kind: "opinions" })} />}
+      {result && <OpinionPills opinions={opinions} onSelect={(opinion) => open({ kind: "opinion", opinion })} onMore={() => open({ kind: "opinions" })} />}
     </div>
     {view && <section className="glass evidence-screen" ref={panel} tabIndex={-1} aria-label={view.kind === "source" ? `${view.source} evidence` : "Supporting details"}>
       <div className="evidence-nav"><button type="button" className="back-button" onClick={back}><span aria-hidden="true">←</span> Back</button><button className="subject-chip ctl" onClick={edit} aria-label={`Edit subject ${query || "search"}`}><span>{result?.subject || query || "Search"}</span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m4 13 9-9 3 3-9 9-4 1 1-4ZM11 6l3 3" /></svg></button></div>
@@ -156,7 +149,10 @@ export function SearchCard() {
         {source && <PlatformEvidence analysis={source} />}
         {view.kind === "opinions" && <><h2>Recurring opinions</h2><div className="all-opinions">{opinions.map((opinion) => <button key={opinion.id} className={`opinion-pill opinion-${opinion.sentiment}`} onClick={() => open({ kind: "opinion", opinion })} aria-label={`${opinion.sentiment}: ${opinion.sentence}`}>{opinion.sentence}</button>)}</div>{!opinions.length && <p className="quiet">There is not enough repeated evidence to identify distinct recurring opinions.</p>}</>}
         {view.kind === "opinion" && <><h2 className="opinion-heading">{view.opinion.sentence}</h2>{result?.bySource.map((reading) => {
-          const threads = reading.threads.filter((thread) => thread.id && view.opinion.evidenceIds.includes(thread.id));
+          const threads = reading.threads.filter((thread) => thread.id && view.opinion.evidenceIds.includes(thread.id)).map((thread) => ({
+            ...thread,
+            comments: view.opinion.evidenceCommentIds ? thread.comments?.filter((comment) => view.opinion.evidenceCommentIds!.includes(`${reading.source}:${comment.id}`)) : thread.comments,
+          }));
           return threads.length ? <section key={reading.source} className="opinion-evidence" aria-label={reading.source}><Logo id={reading.source} size={24} /><PostList threads={threads} source={reading.source} /></section> : null;
         })}</>}
         {view.kind === "about" && result && <><h2>About this answer</h2><SentimentBar split={result.sentiment} /><p className="quiet">This describes the collected discussion, not everyone’s view.</p><p className="quiet">{result.confidence.level.charAt(0).toUpperCase() + result.confidence.level.slice(1)} confidence · {result.agreement} agreement. {result.confidence.reason}</p><Coverage sources={result.sources} />{opinions.length < 5 && <p className="quiet">The sample supports fewer distinct recurring opinions. Only those supported are shown.</p>}{result.context && <SubjectFacts context={result.context} />}</>}

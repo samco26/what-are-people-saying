@@ -8,7 +8,6 @@ import { platformQuery } from "../src/lib/connectors/query.ts";
 import { collectAdaptive } from "../src/lib/connectors/adaptive.ts";
 import { POST } from "../src/app/api/consensus/route.ts";
 import { Answer } from "../src/components/Answer.tsx";
-import { CategoryCard } from "../src/components/CategoryCard.tsx";
 import { SubjectFacts } from "../src/components/SubjectFacts.tsx";
 
 const originalFetch = globalThis.fetch;
@@ -30,7 +29,7 @@ const report = () => response([
   message("SIMULATED: iPhone Duo is the official name for the phone informally called iPhone Fold. Announced September 9, availability October 23; not shipping as of September 12.", [citation]),
 ]);
 const claim = (text, refs = [0]) => ({ text, refs });
-const resolution = () => ({ status: "resolved", name: claim("iPhone Duo"), description: claim("Fictional fixture describing an announced foldable phone."), aliases: [claim("iPhone Fold")], facts: [claim("SIMULATED: Announced September 9; available October 23, 2026.")] });
+const resolution = () => ({ plan: { subject:"iPhone Duo",interpretation:"Phone",category:"product",kind:"Phone",ambiguous:false,suggestion:"",suggestionCategory:"general",phrases:["iPhone Duo"],keywords:[],exclude:[],youtubeQuery:"iPhone Duo" }, status: "resolved", name: claim("iPhone Duo"), description: claim("Fictional fixture describing an announced foldable phone."), aliases: [claim("iPhone Fold")], facts: [claim("SIMULATED: Announced September 9; available October 23, 2026.")] });
 function mockLookup({ research = report(), resolved = resolution(), inspect = () => {} } = {}) {
   process.env.OPENAI_API_KEY = "test-placeholder";
   let calls = 0;
@@ -162,10 +161,12 @@ test("route passes resolved identity and facts through real connector and analys
       const body = JSON.parse(init.body);
       if (body.tools) { sequence.push("research"); return json(report()); }
       if (body.text.format.name === "subject_resolution") { sequence.push("resolve"); return json(response([message(JSON.stringify(resolution()))])); }
-      if (body.text.format.name === "search_plan") {
-        sequence.push("plan");
-        assert.match(body.input, /Cited web context/);
-        return json(response([message(JSON.stringify({subject:"iPhone Duo",interpretation:"Wrong stale description",category:"product",kind:"Rumoured phone",ambiguous:false,suggestion:"",suggestionCategory:"general",phrases:["iPhone Duo"],keywords:[],exclude:[],youtubeQuery:"iPhone Duo"}))]));
+      if (body.text.format.name === "checked_summary") {
+        sequence.push("summarise");
+        const checked = JSON.parse(body.input);
+        assert.equal(checked.verdict, "positive");
+        assert.equal(checked.counts.positive, 10);
+        return json(response([message(JSON.stringify({ summary: "SIMULATED: The sampled opinions lean positive.", confidence: { level: "low", reason: "Fictional evidence on one platform." } }))]));
       }
       sequence.push("analyse");
       assert.match(body.input, /Subject: "iPhone Duo"/);
@@ -196,13 +197,12 @@ test("route passes resolved identity and facts through real connector and analys
   assert.equal(out.result.context.original, "iphone fold");
   assert.equal(out.result.category, "product");
   assert.equal(out.result.kind, resolution().description.text);
-  assert.deepEqual(sequence, ["research", "resolve", "plan", "collect", "analyse"]);
+  assert.deepEqual(sequence, ["research", "resolve", "collect", "analyse", "summarise"]);
   assert.match(apiResponse.headers.get("server-timing"), /lookup;dur=/);
   const html = renderToStaticMarkup(createElement(Answer, { response: out, onPick() {}, onChoose() {} }));
   assert.match(html, /Showing results for iPhone Duo/);
-  const card = renderToStaticMarkup(createElement(CategoryCard, { result: out.result, onChoose() {}, onOpinion() {}, onGeneral() {} }));
-  assert.match(card, /Showing results for iPhone Duo/);
-  assert.doesNotMatch(card, /Rumoured phone/);
+  assert.match(html, /rating-pill/);
+  assert.doesNotMatch(html, /Rumoured phone/);
   const facts = renderToStaticMarkup(createElement(SubjectFacts, { context: out.result.context }));
   assert.match(facts, /https:\/\/example.com\/fictional-announcement/);
   assert.match(facts, /available October 23/);
