@@ -4,7 +4,7 @@ A personal, non-commercial app that reads a bounded selection of online discussi
 
 ## Current checkpoint: BETA 0.9.5
 
-BETA 0.9.5 prepares the Reddit connector for approved OAuth access, adds Reddit-specific connector tests, preserves the public username attribution required for representative Reddit evidence, and adds a privacy page. Reddit's current policy requires explicit approval before Data API access, including for non-commercial apps, so the production connector remains off until Reddit approves the use case and issues or authorizes credentials. The preceding deployed checkpoint verified YouTube and X archive collection; billed charges have not been reconciled against provider dashboards.
+BETA 0.9.5 was deployed from commit `6f354ed` on 12 September 2026. It prepares the Reddit connector for approved OAuth access, adds Reddit-specific connector tests, preserves the public username attribution required for representative Reddit evidence, and adds a live privacy page. Reddit's current policy requires explicit approval before Data API access, including for non-commercial apps, so the production connector remains off until Reddit approves the use case and issues or authorizes credentials. The preceding checkpoint verified YouTube and X archive collection; billed charges have not been reconciled against provider dashboards.
 
 The interface, server-side OpenAI analysis and YouTube/X/Reddit connectors are implemented. This workspace has no live API keys: local checks use simulated service responses, and controlled production checks use the server's configured credentials. Live evidence quality and billed cost still need auditing.
 
