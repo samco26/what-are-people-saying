@@ -13,6 +13,12 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.10.2", date: "12 September 2026",
+    items: [
+      ["changed", "The BETA label text is centred, and How it works sits at the bottom right of the search card again."],
+    ],
+  },
+  {
     v: "0.10.1", date: "12 September 2026",
     items: [
       ["changed", "The overall sentiment bar now sits under the platform icons in the answer."],
