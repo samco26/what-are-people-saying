@@ -5,6 +5,7 @@ import { collectAdaptive } from "@/lib/connectors/adaptive";
 import { collectAll } from "@/lib/connectors";
 import { fallbackPlan } from "@/lib/searchPlan";
 import { resolveSubject } from "@/lib/subjectContext";
+import { AnalysisFailure } from "@/lib/analysis/failure";
 import { analyse } from "@/lib/analysis/analyse";
 import { SOURCES, type ConsensusResponse } from "@/lib/types";
 
@@ -114,8 +115,10 @@ export async function POST(request: Request) {
       ...noStore.headers,
       "Server-Timing": `lookup;dur=${lookupMs.toFixed(0)}, collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}`,
     } });
-  } catch {
+  } catch (error) {
+    const code = error instanceof AnalysisFailure ? error.code : "analysis_failed";
+    console.error("consensus_failed", { code, elapsedMs: Math.round(performance.now() - started) });
     const message = "The evidence check or summary could not finish. Please try again.";
-    return NextResponse.json({ error: message }, { status: 502, ...noStore });
+    return NextResponse.json({ error: message, code }, { status: 502, headers: { ...noStore.headers, "Server-Timing": `total;dur=${(performance.now() - started).toFixed(0)}` } });
   }
 }

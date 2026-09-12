@@ -16,6 +16,7 @@ import { z } from "zod";
 import type { ConsensusResult, SourceId, SourceItem, SourceStatus, SubjectContext } from "../types";
 import { env } from "../env";
 import { buildEvidence } from "./evidence";
+import { AnalysisFailure, providerFailure } from "./failure";
 import { sentimentVerdict } from "../sentiment";
 
 const DEFAULT_MODEL = "gpt-5.6-luna";
@@ -80,17 +81,17 @@ export async function analyse(subject: string, items: SourceItem[], statuses: So
     text: { format },
     store: false,
 
-  }, { signal });
+  }, { signal }).catch((error: unknown) => { throw providerFailure("classification", error); });
 
   const refusal = response.output
     .filter((item) => item.type === "message")
     .flatMap((item) => item.content)
     .find((part) => part.type === "refusal");
   if (refusal) {
-    throw new Error("The analysis declined this subject.");
+    throw new AnalysisFailure("classification_refused", "The analysis declined this subject.");
   }
   const out = response.output_parsed;
-  if (!out || response.status !== "completed") throw new Error("The analysis did not come back in the expected shape.");
+  if (!out || response.status !== "completed") throw new AnalysisFailure("classification_incomplete", "The analysis did not come back in the expected shape.");
 
   const readings: Array<{ source: SourceId; drawnFrom: number[] }> = singleSource && "drawnFrom" in out
     ? [{ source: singleSource, drawnFrom: out.drawnFrom }]
@@ -102,7 +103,7 @@ export async function analyse(subject: string, items: SourceItem[], statuses: So
   const refs = classifications.map((entry) => entry.ref);
   if (refs.some((ref) => !sample[ref] || sample[ref].kind === "video") ||
       new Set(refs).size !== refs.length || sample.some((item, ref) => item.kind !== "video" && !refs.includes(ref))) {
-    throw new Error("Some discussion could not be checked consistently. Please try again.");
+    throw new AnalysisFailure("classification_references", "Some discussion could not be checked consistently. Please try again.");
   }
   const sentiment = normalise(evidence.counts);
   const verdict = sentimentVerdict(sentiment);
@@ -124,8 +125,8 @@ Only the supplied recurring opinions can establish substantive likes/dislikes; d
 Confidence must acknowledge that these are selected online comments, not a representative public survey. A large comment count from a few posts does not establish diversity. Use low confidence for a small sample, one platform, concentrated discussion or older evidence.`,
       input: JSON.stringify({ subject: context?.name ?? subject, context, window, verdict, counts: evidence.counts, recurringOpinions: evidence.opinions.map(({ sentence, sentiment, support }) => ({ sentence, sentiment, support })), sourceCounts: sources.map(({ source, itemsAnalysed }) => ({ source, accepted: itemsAnalysed })), discussionGroups: groupCount, acceptedDateRange: evidence.acceptedRefs.map((ref) => sample[ref].publishedAt).filter(Boolean).sort().filter((_, index, dates) => index === 0 || index === dates.length - 1) }),
       text: { format: zodTextFormat(Synthesis, "checked_summary") },
-    }, { signal });
-    if (synthesis.status !== "completed" || !synthesis.output_parsed?.summary.trim()) throw new Error("The checked summary could not finish. Please try again.");
+    }, { signal }).catch((error: unknown) => { throw providerFailure("summary", error); });
+    if (synthesis.status !== "completed" || !synthesis.output_parsed?.summary.trim()) throw new AnalysisFailure("summary_incomplete", "The checked summary could not finish. Please try again.");
     summary = synthesis.output_parsed.summary;
     confidence = synthesis.output_parsed.confidence;
     // Sampling limits are enforced even when the model is overconfident.
