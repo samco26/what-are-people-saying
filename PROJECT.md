@@ -12,8 +12,9 @@ This is a simple consumer-facing, personal, non-commercial project. Visitors enc
 - Positive, mixed or negative classification.
 - Up to twenty distinct recurring opinions, each consolidated into one sentence and classified positive, neutral or negative. Aim for five to twenty only when supported by repeated evidence; never pad the result or force an equal balance.
 - Confidence level, with a brief explanation based on the available evidence.
-- Keep collection counts internal. Do not show analysed totals or numbered post totals in the interface.
+- Keep collection counts internal on the usual answer. The category cards (see DESIGN.md, 12 September 2026) are the one exception the user approved: they print the number of opinions read, the number behind each common opinion, and a star rating out of five derived from the sentiment split.
 - Links to representative source material.
+- When the search plan can tell that the subject is a film, product, place or app, the answer is laid out as a category card modelled on the site people would check for that kind of thing, with a star rating. An ambiguous name gets the usual answer and a did-you-mean suggestion in the search field.
 - Clear warnings for unavailable sources.
 
 Consensus describes the collected sample, not every person's opinion. Distinguish a positive result from strong agreement. When evidence is insufficient, show that clearly instead of forcing a verdict.

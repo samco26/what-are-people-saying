@@ -33,6 +33,10 @@ const parts = {
   keywords: ["August", "heat"],
   exclude: ["recipe"],
   youtubeQuery: "Tuscany weather August",
+  category: "general",
+  kind: "",
+  ambiguous: false,
+  suggestion: "",
 };
 
 test("a planned search turns a natural-language subject into platform terms", async () => {
@@ -46,6 +50,9 @@ test("a planned search turns a natural-language subject into platform terms", as
   assert.equal(plan.planned, true);
   assert.equal(plan.subject, "the weather in Tuscany in August");
   assert.equal(plan.interpretation, parts.interpretation);
+  assert.equal(plan.category, "general");
+  assert.equal(plan.kind, undefined);
+  assert.equal(plan.suggestion, undefined);
   assert.equal(plan.queries.x, '("Tuscany weather" OR "Tuscany in August" OR August OR heat) -recipe');
   assert.equal(plan.queries.youtube, "Tuscany weather August -recipe");
   assert.equal(plan.queries.reddit, "Tuscany weather in August");
@@ -83,6 +90,7 @@ test("without a key, on an error, or on an empty answer the subject is searched 
   const fallback = fallbackPlan('best "budget" laptop');
   assert.equal(fallback.planned, false);
   assert.equal(fallback.interpretation, undefined);
+  assert.equal(fallback.category, "general");
   assert.equal(fallback.queries.x, '"best budget laptop"');
   assert.equal(fallback.queries.youtube, 'best "budget" laptop');
   assert.equal(fallback.queries.reddit, 'best "budget" laptop');
@@ -95,4 +103,28 @@ test("without a key, on an error, or on an empty answer the subject is searched 
   const plan = await planSearch("fictional phone");
   assert.equal(plan.planned, true);
   assert.equal(plan.interpretation, undefined);
+});
+
+test("a category and its kind line come through; an unknown category is general", () => {
+  const plan = planFromParts("the Keychron K2", { ...parts, subject: "Keychron K2", category: "product", kind: "  Product ·  75% wireless   keyboard " });
+  assert.equal(plan.category, "product");
+  assert.equal(plan.kind, "Product · 75% wireless keyboard");
+  assert.equal(plan.suggestion, undefined);
+  const odd = planFromParts("thing", { ...parts, category: "person", kind: "Person" });
+  assert.equal(odd.category, "general");
+  assert.equal(odd.kind, undefined);
+});
+
+test("an ambiguous name gets the general card and a suggestion, never a guessed category", () => {
+  const plan = planFromParts("dune", { ...parts, subject: "Dune", category: "film", kind: "Film · 2026", ambiguous: true, suggestion: "Dune: Part Three (2026 film)" });
+  assert.equal(plan.category, "general");
+  assert.equal(plan.kind, undefined);
+  assert.equal(plan.suggestion, "Dune: Part Three (2026 film)");
+  // A suggestion that only repeats the subject is not offered.
+  const same = planFromParts("Dune", { ...parts, ambiguous: true, suggestion: " dune " });
+  assert.equal(same.suggestion, undefined);
+  // Not ambiguous: the suggestion is ignored even if the model filled it.
+  const clear = planFromParts("Spotify", { ...parts, category: "app", kind: "Music streaming", ambiguous: false, suggestion: "Spotify Premium" });
+  assert.equal(clear.category, "app");
+  assert.equal(clear.suggestion, undefined);
 });

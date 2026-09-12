@@ -2,7 +2,10 @@
 
 A personal, non-commercial app that reads a bounded selection of online discussion about a subject and returns a short opinion summary, recurring opinion pills and linked evidence.
 
-## Current checkpoint: BETA 0.11.0
+## Current checkpoint: BETA 0.12.0
+
+BETA 0.12.0 adds category cards. The search plan now also says what kind of thing the subject is: a film (or series, book, album or game), a product, a place, an app or service, or general. The first four get a card shaped like the site people would normally check for that kind of thing, in the same glass and palette: a Letterboxd-like film card with a poster-sized rating tile, an Amazon-like product card with a rating line and tick-and-cross opinion chips, a Google-Maps-like place card, and an App-Store-like app card. Every card keeps everything the usual answer has (summary, the three platform buttons, the sentiment bar and the common opinions) and adds a star rating out of five worked out from the sentiment split (`src/lib/stars.ts`: the share of opinionated posts that were positive, pinned to the Rotten Tomatoes thresholds of 60% for 3.5 stars and 75% for 4, pulled toward 3 when neutral posts dominate or the sample is small), each platform's own rating beside its logo, and the number of posts behind each opinion. General view, top right on desktop, returns to the usual answer. On phones every category shares one column and only the opinions box scrolls. A name that could mean several things gets the usual answer and a bold italic did-you-mean suggestion in the search field, accepted with Tab or a click. The header reads Sentiment analyser and the heading asks how people feel about a subject.
+
 
 The preceding BETA 0.9.5 checkpoint was deployed from commit `6f354ed` on 12 September 2026. It prepares the Reddit connector for approved OAuth access, adds Reddit-specific connector tests, preserves the public username attribution required for representative Reddit evidence, and adds a live privacy page. Reddit's current policy requires explicit approval before Data API access, including for non-commercial apps, so the production connector remains off until Reddit approves the use case and issues or authorizes credentials. The preceding checkpoint verified YouTube and X archive collection; billed charges have not been reconciled against provider dashboards.
 
@@ -94,7 +97,7 @@ Suggestions load independently of searches. Only the public news suggestions and
 
 ## Verification and limitations
 
-- Current checkpoint: the mocked tests (now covering the search plan and its fallback, query sanitising, planned X terms and relevance ordering) are written but could not run on this machine, which has no Node.js. The no-Node harness parsed all 30 source files, mounted the app and executed the query-building cases from the tests with the expected results. `npm test`, `npm run typecheck`, `npm run build` and a controlled live search are the outstanding checks.
+- Current checkpoint: the mocked tests (now also covering the plan's category, kind and ambiguity fields and the star calibration) are written but could not run on this machine, which has no Node.js. The no-Node harness parsed all 34 source files and mounted the app; the product, place and app sample cards were checked at 1280 by 800 and 390 by 740 with no card or page overflow, General view switched back to the usual answer, and the phone opinions box scrolled in place. The film card has no sample and is unverified against real data. `npm test`, `npm run typecheck`, `npm run build` and a controlled live search (including how well the plan classifies real subjects and flags ambiguous ones) are the outstanding checks.
 - `npm test`: search planning and fallback, query sanitising, mocked YouTube collection, parallel requests, complete AI input, one-source and multi-source schemas, citation validation, partial failures, time windows, rounding, dated news parsing, topic grounding and news fallback.
 - `npm run typecheck` and `npm run build`: required before a checkpoint is committed.
 - Browser checks cover desktop/mobile search, labelled samples, the revised live-result layout using an explicitly fictional fixture, evidence links, source coverage, asynchronous suggestions, Enter-to-search, overflow and runtime errors.
@@ -113,10 +116,14 @@ src/lib/analysis/analyse.ts        grounded OpenAI analysis and evidence mapping
 src/lib/newsSubjects.ts           dated RSS headlines and grounded topic selection
 src/lib/suggestions.ts            evergreen examples and interleaving
 src/lib/sentiment.ts              percentage rounding
+src/lib/stars.ts                  star rating from the sentiment split
 src/lib/types.ts                  shared source, evidence and result shapes
 src/lib/sampleData.ts             clearly fictional demonstration results
 src/components/SearchCard.tsx     search/loading/result flow and suggestions
 src/components/Answer.tsx         short answer, platform logos and qualitative coverage
+src/components/CategoryCard.tsx   film, product, place and app cards, desktop and phone
+src/components/PlatformStack.tsx  platform logos with their own ratings
+src/components/Stars.tsx          the star glyphs
 src/components/PlatformEvidence.tsx parent post links and verbatim comment pills
 src/components/OpinionPills.tsx   recurring opinions around the answer
 src/lib/analysis/evidence.ts      validated grouping, classification and source URLs

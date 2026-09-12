@@ -97,6 +97,12 @@ export async function POST(request: Request) {
     const result = await analyse(subject, items, statuses, window, plan.interpretation);
     const analysisMs = performance.now() - analysisStarted;
     result.window = window;
+    /* The plan decided what kind of thing this is; the screen picks the
+       card from it. An ambiguous name gets the general card and a
+       suggestion for the search field. */
+    result.category = plan.category;
+    if (plan.kind) result.kind = plan.kind;
+    if (plan.suggestion) result.suggestion = plan.suggestion;
     const response: ConsensusResponse = { kind: "result", result };
     return NextResponse.json(response, { headers: {
       ...noStore.headers,

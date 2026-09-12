@@ -9,6 +9,7 @@
   --up:#215c40; --neg:#873b37; --down:#873b37;
   --sentPos:#53866a; --sentNeu:#525a5f; --sentNeg:#bc716b;
   --radius:32px; --easeOut:cubic-bezier(.16,1,.3,1);
+  --star:#cd7f6e; --starEmpty:#16464c22;
   --durIn:550ms; --durOut:240ms; --khaki:#f2c9b5; --orange:#d5908c;
 }
 *{box-sizing:border-box}
@@ -105,3 +106,86 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.liquid-track span{transform:none;width:100%;opacity:.7}}
 .unclassified-note{display:block;font-size:11px;margin-bottom:5px}
 .post-attribution{font-size:11px;color:var(--muted);margin:-8px 0 14px}.comment-attribution{display:block;font-style:normal;font-size:10px;margin-top:7px;opacity:.85}
+
+/* Category cards (src/components/CategoryCard.tsx). The card widens
+   outward for a film, product, place or app; the page still never scrolls. */
+.search-stack.wide{width:min(880px,76%)}.search-stack.wide .main-card{max-height:calc(100dvh - 190px)}
+.ccard{padding:12px 17px 8px}.ccard .sample-label{margin-bottom:10px}
+.eyebrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;min-height:32px}
+.general{margin-left:auto;display:inline-flex;align-items:center;gap:7px;border-radius:99px;min-height:32px;padding:0 12px 0 10px;font-size:11.5px;letter-spacing:.2px;text-transform:none;color:var(--ink);white-space:nowrap}
+.general svg{width:13px;height:13px;flex-shrink:0}.general:hover{background:#ffffff8c}
+.ctitle{font-size:24px;letter-spacing:-.7px;line-height:1.15;text-wrap:balance}
+.answer-small{font-size:17px;letter-spacing:-.3px;line-height:1.45;margin-top:8px;text-wrap:pretty}
+.ccard .label{display:block;margin-bottom:8px}.csection{margin-top:14px}
+.two{display:grid;grid-template-columns:170px 1fr;gap:22px;align-items:stretch}
+.side{display:flex;flex-direction:column;gap:14px;min-height:0}
+.tile{border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:18px 14px}
+.tile-poster{aspect-ratio:2/3}.tile-place{padding:22px 14px}.score-tile{padding:10px 14px;gap:4px;margin:0 0 4px}.score-tile .score-md{font-size:38px}.side .pstack{gap:6px}
+.score{font-variant-numeric:tabular-nums;letter-spacing:-1.5px;line-height:1}
+.score-xl{font-size:64px}.score-md{font-size:44px}.score-sm{font-size:20px;letter-spacing:-.6px;color:var(--ink)}
+.den{font-size:22px;letter-spacing:-.5px;color:var(--muted);margin-left:2px}
+.approval{font-size:12px;color:var(--muted);line-height:1.3}
+.stars{display:inline-block;font-size:18px;letter-spacing:1px;line-height:1;background:linear-gradient(90deg,var(--star) var(--fill),var(--starEmpty) var(--fill));-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
+.stars-lg{font-size:26px}.stars-xs{font-size:12px;letter-spacing:.5px}
+.opinion-pill .stars{--star:currentColor}
+.pstack{display:flex;flex-direction:column;gap:8px}.pstack-fill{justify-content:space-evenly;flex:1}
+.prow{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.prow b{color:var(--ink);font-weight:500;font-size:14px}.prow-none{font-size:11px}
+.srcbtn-sm{width:36px;height:36px}
+/* Desktop opinion boxes: capped, fading out, scrolling in place, so up to
+   twenty opinions stay reachable while the card keeps to one screen. */
+.list,.chips,.cards{max-height:190px;overflow:auto;overscroll-behavior:contain;scrollbar-width:none;padding-bottom:18px;-webkit-mask-image:linear-gradient(#000 calc(100% - 18px),transparent);mask-image:linear-gradient(#000 calc(100% - 18px),transparent)}
+.list::-webkit-scrollbar,.chips::-webkit-scrollbar,.cards::-webkit-scrollbar{display:none}
+.chips{max-height:130px}.cards{max-height:155px}
+.list{display:flex;flex-direction:column;gap:8px}
+.ccard .opinion-pill{animation:none;text-align:left;width:auto;max-width:none}
+.opinion-pill.rev{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:9px 14px;border-radius:99px;width:100%;font-size:13.5px}
+.opinion-pill.rev>span:first-child{min-width:0}
+.revmeta{display:flex;align-items:center;gap:8px;font-size:10.5px;opacity:.85;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start}
+.opinion-pill.chip{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:99px;font-size:13px}
+.opinion-pill .n{font-size:11px;opacity:.7;font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0}.opinion-pill.chip>.mark{flex-shrink:0}.opinion-pill .mark{font-size:12px;font-weight:600}
+.rating-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 12px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}.rating-row .dot{opacity:.5}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px;align-items:start}
+.grid2{display:grid;grid-template-columns:170px 1fr;grid-template-rows:auto auto;gap:12px 22px;align-items:start}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opinion-pill.card{border-radius:18px;padding:10px 12px;height:100%;font-size:13.5px;display:block;width:100%}
+.opinion-pill.card .ttl{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;margin-bottom:3px;opacity:.85}
+.apphead{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
+.apphead .sub{font-size:13px;color:var(--muted);margin:3px 0 4px}.apphead .general{align-self:start}
+.appicon{width:56px;height:56px;border-radius:15px;background:linear-gradient(135deg,#f9d6c5,var(--accent));border:1px solid #ffe6dc;box-shadow:inset 0 1px 0 #ffffffbb,0 6px 16px #885a4a29;display:grid;place-items:center;font-size:26px;letter-spacing:-1px;color:var(--ink)}
+.apphead~.two{margin-top:8px}
+.foot{margin-top:14px}.ccard .sentiment,.pbody .sentiment{margin:0}.ccard h2.ctitle{margin-bottom:0}
+/* Did you mean: the typed text is mirrored invisibly so the suggestion
+   starts exactly where the typing ends; Tab or a click accepts it. */
+.ghost-suggest{display:flex;align-items:center;gap:8px}
+.ghost-mirror{visibility:hidden;flex:0 0 auto;white-space:pre}
+.ghost-accept{pointer-events:auto;border:0;background:none;padding:0;font:inherit;font-weight:700;font-style:italic;color:var(--muted);opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;cursor:pointer}
+.ghost-accept:hover{opacity:1}
+.ghost-suggest kbd{font:inherit;font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;border:1px solid #16464c33;border-radius:6px;padding:2px 6px;color:var(--muted);flex-shrink:0}
+@media(max-width:1050px){.search-stack.wide{width:100%;max-width:880px}}
+@media(max-width:600px){
+  /* One column. The card fills the screen and only the opinions box scrolls. */
+  .search-home[data-result="true"]:has(.search-stack.wide){overflow:hidden}
+  .search-stack.wide{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+  .search-stack.wide .main-card{flex:1 1 auto;min-height:0;max-height:none}
+  .search-stack.wide .result-unfold{flex:1 1 auto;min-height:0}
+  .search-stack.wide .result-unfold[data-settled="true"]>div{overflow:hidden}
+  .pbody{display:flex;flex-direction:column;gap:10px;height:100%;padding:10px 10px 4px;overflow:hidden}
+  .pbody>*{flex-shrink:0}
+  .pbody .tile{flex-direction:row;justify-content:flex-start;text-align:left;padding:10px 12px;gap:12px;flex-wrap:wrap}
+  .pbody .score-md{font-size:36px}.pbody .approval{text-align:left;font-size:11px}
+  .pbody .answer-small{font-size:13px;line-height:1.4;margin-top:0}
+  .opn{flex:1 1 auto;min-height:60px;display:flex;flex-direction:column;gap:6px}.opn .label{margin:0}
+  .opbox{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:none;padding-bottom:22px;-webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent)}
+  .opbox::-webkit-scrollbar{display:none}
+  .opbox-list{display:flex;flex-direction:column;gap:6px}.opbox-list .opinion-pill{flex-shrink:0}
+  .opbox-chips{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+  .opbox-cards{display:grid;grid-template-columns:1fr;gap:6px}
+  .opinion-pill.rev{border-radius:20px;padding:8px 12px;font-size:12.5px;gap:10px}
+  .opinion-pill.chip{font-size:12px;padding:7px 11px}.opinion-pill.card{padding:9px 12px}
+  .pbody .pstack{flex-direction:row;justify-content:space-between;gap:6px}
+  .pbody .prow{flex:1;justify-content:center;gap:5px;font-size:11px;min-width:0}.pbody .prow b{font-size:12px}.pbody .stars-xs{font-size:9.5px;letter-spacing:.2px}
+  .pbody .foot{margin-top:0}.pbody .sentbar{height:10px}
+  .ghost-suggest kbd{display:none}
+}

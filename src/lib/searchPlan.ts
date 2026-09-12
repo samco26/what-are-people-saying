@@ -15,7 +15,7 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
-import type { SourceId } from "./types";
+import { CATEGORIES, type Category, type SourceId } from "./types";
 import { env } from "./env";
 
 const DEFAULT_MODEL = "gpt-5.6-luna";
@@ -28,6 +28,10 @@ const YOUTUBE_QUERY_MAX = 100;
 const Plan = z.object({
   subject: z.string(),
   interpretation: z.string(),
+  category: z.enum(["film", "product", "place", "app", "general"]),
+  kind: z.string(),
+  ambiguous: z.boolean(),
+  suggestion: z.string(),
   phrases: z.array(z.string()),
   keywords: z.array(z.string()),
   exclude: z.array(z.string()),
@@ -42,6 +46,12 @@ export interface SearchPlan {
   subject: string;
   /* One sentence on what the subject was taken to mean; absent on fallback. */
   interpretation?: string;
+  /* What kind of thing it is. An ambiguous name, or a fallback, is general. */
+  category: Category;
+  /* A few words for the category card: "Film · 2026 · dir. Denis Villeneuve". */
+  kind?: string;
+  /* For an ambiguous name, the most likely specific subject to offer. */
+  suggestion?: string;
   /* False when the AI step failed and the subject is searched as typed. */
   planned: boolean;
   /* The search terms per platform. X gets terms only; the connector adds
@@ -52,6 +62,10 @@ export interface SearchPlan {
 const INSTRUCTIONS = `You turn a subject someone typed into the terms that public discussion about it would actually contain, so that a search finds real posts and comments about it. Return:
 - subject: the short name people use for it, a few words, no explanation.
 - interpretation: one plain sentence saying what the subject most likely means and what kind of thing it is (product, place, person, event, topic).
+- category: "film" for a film, series, book, album or game people review; "product" for a physical product or vehicle; "place" for a city, country, region, venue, restaurant or hotel; "app" for software, an app, a website or a subscription service; "general" for everything else (a person, company, event, topic, question, news story) or when the name is ambiguous.
+- kind: for a category other than general, a few words on what it is, separated by " · ", for example "Film · 2026 · dir. Denis Villeneuve", "Product · 75% wireless mechanical keyboard", "City · Portugal", "Music streaming · iOS, Android, desktop". Only what you are sure of; empty for general.
+- ambiguous: true only when the name as typed commonly refers to several different things of comparable prominence (for example "Dune": novels, films, a board game), so that a category cannot be chosen safely. When true, category must be "general".
+- suggestion: when ambiguous, the most likely specific thing the person meant, written as they would search for it, for example "Dune: Part Three (2026 film)". Empty otherwise.
 - phrases: one to four exact phrases of one to four words each that posts about this subject would contain: its name, model names, common spellings and wordings. Different wordings for the same thing, never different subjects. For a natural-language subject use its core noun phrases, for example "Tuscany weather" and "Tuscany in August" for "the weather in Tuscany in August".
 - keywords: up to four single distinctive words that make a match about this subject and not something else. Empty when the phrases are already specific.
 - exclude: up to three single words that mark a DIFFERENT meaning of the same name, for example "animal" when the subject is the Jaguar car. Usually empty. Never a word that appears in the phrases.
@@ -132,14 +146,25 @@ export function buildRedditQuery(subject: string, parts: Pick<PlanParts, "subjec
 }
 
 export function fallbackPlan(subject: string): SearchPlan {
-  return { subject, planned: false, queries: { youtube: subject, x: buildXTerms(subject, { phrases: [], keywords: [], exclude: [] }), reddit: subject } };
+  return { subject, planned: false, category: "general", queries: { youtube: subject, x: buildXTerms(subject, { phrases: [], keywords: [], exclude: [] }), reddit: subject } };
 }
 
 export function planFromParts(subject: string, parts: PlanParts): SearchPlan {
-  const interpretation = parts.interpretation.replace(/\s+/g, " ").trim().slice(0, 240);
+  const tidy = (text: string, max: number) => (text ?? "").replace(/\s+/g, " ").trim().slice(0, max);
+  const interpretation = tidy(parts.interpretation, 240);
+  /* The category must be one the screen knows, and an ambiguous name always
+     gets the general card plus a suggestion instead of a guessed category. */
+  const ambiguous = parts.ambiguous === true;
+  const category: Category = !ambiguous && CATEGORIES.includes(parts.category) ? parts.category : "general";
+  const kind = category === "general" ? "" : tidy(parts.kind, 80);
+  const suggestion = ambiguous ? tidy(parts.suggestion, 120) : "";
+  const differs = suggestion !== "" && suggestion.toLowerCase() !== subject.trim().toLowerCase();
   return {
     subject,
     ...(interpretation ? { interpretation } : {}),
+    category,
+    ...(kind ? { kind } : {}),
+    ...(differs ? { suggestion } : {}),
     planned: true,
     queries: {
       youtube: buildYouTubeQuery(subject, parts),

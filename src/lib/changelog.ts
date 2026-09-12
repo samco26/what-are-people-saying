@@ -13,6 +13,15 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.12.0", date: "12 September 2026",
+    items: [
+      ["new", "A film, product, place or app gets a card shaped like the site people would normally check for it, with a star rating out of five worked out from the sentiment, each platform's own rating beside its logo, and the common opinions with how many posts back each one. Everything else keeps the usual answer."],
+      ["new", "When a name could mean several things, the usual answer is shown and the search field suggests the most likely specific one; Tab or a click searches it."],
+      ["new", "General view, top right of a category card on desktop, switches back to the usual answer for the same subject."],
+      ["changed", "The heading asks how people feel about a subject, and the header reads Sentiment analyser."],
+    ],
+  },
+  {
     v: "0.11.0", date: "12 September 2026",
     items: [
       ["new", "Before searching, the subject is turned into the words people actually use for it, so a question typed in plain English finds real posts on each platform. If that step fails the subject is searched as typed."],

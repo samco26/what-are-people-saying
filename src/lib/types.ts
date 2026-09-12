@@ -107,6 +107,9 @@ export interface RecurringOpinion {
   sentence: string;
   sentiment: OpinionSentiment;
   evidenceIds: string[];
+  /* How many distinct collected opinions support it. The category cards
+     print it beside the sentence; the default card keeps it internal. */
+  support?: number;
 }
 
 /* One platform's share of the sample. Its sentiment comes from the
@@ -132,8 +135,21 @@ export interface SentimentSplit {
   negative: number;
 }
 
+/* What kind of thing the subject is, decided by the search plan. Four
+   categories get a card shaped like the site people would normally check
+   for that kind of thing; "general" is the default answer card. */
+export type Category = "film" | "product" | "place" | "app" | "general";
+export const CATEGORIES: ReadonlyArray<Category> = ["film", "product", "place", "app", "general"];
+
 export interface ConsensusResult {
   subject: string;
+  category?: Category;
+  /* A few words on what the subject is, printed on the category card:
+     "Film · 2026 · dir. Denis Villeneuve". */
+  kind?: string;
+  /* When the typed name could mean several things, the most likely specific
+     subject, offered as ghost text in the search field. */
+  suggestion?: string;
   /* Actual collection bounds, supplied by the server for live searches. */
   window?: SearchWindow;
   /* One to three qualitative sentences. The default view shows only this. */
