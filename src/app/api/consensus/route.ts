@@ -12,7 +12,8 @@ import { CATEGORIES, SOURCES, type Category, type ConsensusResponse } from "@/li
 
    Two paths, chosen by what keys exist on the server:
 
-   Live, when OPENAI_API_KEY and at least one source key are set: the
+   Live, when OPENAI_API_KEY and at least one source key are set: a web
+   fact-check tries to settle the subject's official name and facts, then the
    available platforms are collected in parallel, each under its own
    timeout, then the sample goes to OpenAI once and the answer comes back
    in the shape the screen draws. A platform without a key is reported as
@@ -77,24 +78,27 @@ export async function POST(request: Request) {
         };
     return NextResponse.json(response, noStore);
   }
-
   const to = new Date();
+  /* The web fact-check is advisory. When it settles the name it supplies
+     the official name, aliases and dated facts to the plan, the collection
+     and the analysis. When it cannot (a name shared by two cities, a
+     generic topic, a timeout) the search simply runs on the subject as
+     typed, as it did before the lookup existed: an unsettled name is a
+     reason to answer carefully, never a reason to answer nothing. */
   const lookupStarted = performance.now();
   const lookup = await resolveSubject(subject, to);
   const lookupMs = performance.now() - lookupStarted;
-  if (lookup.status !== "resolved") {
-    const response: ConsensusResponse = { kind: "subject-unresolved", subject, reason: lookup.status, message: lookup.message };
-    return NextResponse.json(response, noStore);
-  }
-  const context = lookup.context;
-  /* Plan queries from the verified identity and facts. A failed plan falls
-     back to the verified name, never the unverified original input. */
+  const context = lookup.status === "resolved" ? lookup.context : undefined;
+  const name = context?.name ?? subject;
+  /* Plan queries from the verified identity and facts when there are any.
+     A verified name, like one accepted from a suggestion, is never flagged
+     ambiguous again. */
   const planStarted = performance.now();
   const categoryHint = readCategoryHint(body);
-  const plan = await planSearch(context.name, { confirmed: true, context });
+  const plan = await planSearch(name, { confirmed: Boolean(categoryHint) || Boolean(context), context });
   const planMs = performance.now() - planStarted;
   const collectionStarted = performance.now();
-  const { items, statuses, window } = await collectAdaptive(context.name, SOURCES.map((source) => source.id), to, collectAll, plan.queries, context.aliases.map((alias) => alias.text));
+  const { items, statuses, window } = await collectAdaptive(name, SOURCES.map((source) => source.id), to, collectAll, plan.queries, context?.aliases.map((alias) => alias.text));
   const collectionMs = performance.now() - collectionStarted;
   const opinionCount = items.filter((item) => item.kind !== "video").length;
 
@@ -102,8 +106,8 @@ export async function POST(request: Request) {
   if (opinionCount < minItems) {
     const response: ConsensusResponse = {
       kind: "insufficient",
-      subject: context.name,
-      context,
+      subject: name,
+      ...(context ? { context } : {}),
       message:
         opinionCount === 0
           ? "Nothing came back from the platforms that could be reached, so there is nothing to describe."
@@ -116,7 +120,7 @@ export async function POST(request: Request) {
 
   try {
     const analysisStarted = performance.now();
-    const result = await analyse(context.name, items, statuses, window, plan.interpretation, context, Math.max(1, 55_000 - (performance.now() - started)));
+    const result = await analyse(name, items, statuses, window, plan.interpretation, context, Math.max(1, 55_000 - (performance.now() - started)));
     const analysisMs = performance.now() - analysisStarted;
     /* Enough came back, but the analysis found that too little of it was
        actually about the subject: a name that does not exist, a subject too
@@ -126,8 +130,8 @@ export async function POST(request: Request) {
     if (relevant < minItems) {
       const response: ConsensusResponse = {
         kind: "insufficient",
-        subject: context.name,
-        context,
+        subject: name,
+        ...(context ? { context } : {}),
         message: relevant === 0
           ? `None of the ${opinionCount} opinions that came back were about the subject.`
           : `Only ${relevant} of the ${opinionCount} opinions that came back were about the subject, which is too few to describe honestly.`,

@@ -178,7 +178,6 @@ export interface ConsensusResult {
 
 export type ConsensusResponse =
   | { kind: "result"; result: ConsensusResult }
-  | { kind: "subject-unresolved"; subject: string; reason: "ambiguous" | "unverified" | "unavailable"; message: string }
   /* No live sources are connected and the subject is not one of the
      samples. */
   | { kind: "no-live-search"; subject: string; message: string; examples: string[] }

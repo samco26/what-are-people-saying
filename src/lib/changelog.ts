@@ -13,6 +13,13 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.12.5", date: "12 September 2026",
+    items: [
+      ["changed", "A search is never stopped because the web fact-check could not settle the name. Melbourne, a generic topic or a name the check cannot verify is simply searched as typed and gets the usual answer; verified names still bring their facts along."],
+      ["removed", "The Let's narrow down the subject screen."],
+    ],
+  },
+  {
     v: "0.12.4", date: "12 September 2026",
     items: [
       ["changed", "A product, place, film or app card is only used for one specific named thing you would find on Amazon, Google Maps, Letterboxd or the App Store: iPhone 17, McDonald's, a named film, ChatGPT. A brand alone, a kind of thing (smartphones), a city or country (Rome), or a phrase about a thing (the weather in Rome in August) gets the usual answer."],
