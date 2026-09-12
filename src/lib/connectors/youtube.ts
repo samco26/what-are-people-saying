@@ -6,7 +6,7 @@
 
    Bounds: the 10 most-viewed matching videos and 30 top comments each,
    so at most 300 opinions plus 10 video context entries. When top comments
-   are too old, also check recent comments (up to 21 calls, reused across windows).
+   are too old, recent comments are read at the same time (21 calls, reused across windows).
    Each search costs 100 quota units and each comment list 1, against the
    API's free daily quota of 10,000, so a search is about 110–120 units.
 
@@ -46,7 +46,7 @@ async function collect(opts: CollectOptions): Promise<Collected> {
   const search = new URL(`${API}/search`);
   search.searchParams.set("part", "snippet");
   search.searchParams.set("type", "video");
-  search.searchParams.set("q", opts.subject);
+  search.searchParams.set("q", opts.queries?.youtube ?? opts.subject);
   search.searchParams.set("maxResults", String(maxVideos));
   search.searchParams.set("order", "viewCount");
   search.searchParams.set("fields", "items(id/videoId,snippet(title,description,publishedAt,channelTitle))");
@@ -113,12 +113,14 @@ async function collect(opts: CollectOptions): Promise<Collected> {
         for (const item of batch) if (selected.size < perVideo && !selected.has(item.id)) selected.set(item.id, item);
       };
       add((opts.previousItems ?? []).filter((item) => item.parentId === `youtube:video:${id}`));
+      // An old video's top comments can also be old, so its recent comments are
+      // requested at the same time rather than after the top ones arrive.
+      const recent = read("time").then((res) => ({ res }), (err: unknown) => ({ err }));
       add(convert(await read("relevance")));
-      // An old video's top comments can also be old. Check its recent comments
-      // before deciding it has no discussion inside the requested window.
       if (selected.size < perVideo) {
-        try { add(convert(await read("time"))); }
-        catch (err) { failures.push(reasonFor(err, opts.signal.aborted)); }
+        const outcome = await recent;
+        if ("res" in outcome) add(convert(outcome.res));
+        else failures.push(reasonFor(outcome.err, opts.signal.aborted));
       }
       return [...selected.values()];
     } catch (err) {

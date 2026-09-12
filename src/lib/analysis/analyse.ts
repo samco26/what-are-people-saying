@@ -37,17 +37,20 @@ const Reading = z.object({
 });
 
 const OpinionSentiment = z.enum(["positive", "neutral", "negative"]);
+/* Four lists of reference numbers instead of one object per entry: the same
+   classification in about a quarter of the output tokens. */
+const LABELS = ["positive", "neutral", "negative", "irrelevant"] as const;
+const Refs = z.array(z.number().int());
+const Classified = z.object({ positive: Refs, neutral: Refs, negative: Refs, irrelevant: Refs });
 const SingleAnalysis = Reading.extend({
   summary: z.string(), sentiment: Split,
-  classified: z.array(z.object({ ref: z.number().int(), sentiment: z.enum(["positive", "neutral", "negative", "irrelevant"]) })),
-  opinions: z.array(z.object({ sentence: z.string(), sentiment: OpinionSentiment, refs: z.array(z.number().int()) })),
+  classified: Classified,
+  opinions: z.array(z.object({ sentence: z.string(), sentiment: OpinionSentiment, refs: Refs })),
 });
+/* Per platform the screen only needs the representative references; its
+   sentiment bar is counted from the classification. */
 const Analysis = SingleAnalysis.omit({ drawnFrom: true }).extend({
-  bySource: z.array(
-    Reading.extend({
-      source: z.enum(["youtube", "x", "reddit"]),
-    }),
-  ),
+  bySource: z.array(z.object({ source: z.enum(["youtube", "x", "reddit"]), drawnFrom: Refs })),
 });
 
 const SYSTEM = `You read a sample of public discussion about a subject and describe where opinion sits. You write for a general reader in plain English. Never use first person plural ("we").
@@ -61,8 +64,8 @@ Rules:
 - Use the entry dates to distinguish older and newer reactions. Do not combine different product generations or describe historical opinions as current. Explain dated or mixed-generation evidence in confidence.
 - Confidence is about the evidence: how much there is, who it comes from, how consistent it is. Say why in one sentence.
 - sentiment is an estimate of the share of relevant opinions that read as positive, neutral and negative, as fractions summing to 1. Video titles and descriptions are context only, never opinions or votes. Likes indicate engagement, not additional votes. A parent reference links a comment to its video context.
-- For each platform that has opinions, give its own reading, and list in drawnFrom the numeric references of four to eight representative opinions, most representative first. Only references from that platform. When there is one platform the overall reading IS its reading; return it once using the supplied schema.
-- Classify EVERY supplied non-video entry once in classified: positive, neutral, negative, or irrelevant. Classify its opinion about the searched subject, not its tone. Never classify a missing item. Do not repeat comment text in the output.
+- For each platform that has opinions, list in bySource its drawnFrom: the numeric references of four to eight representative opinions from that platform, most representative first. Only references from that platform. When there is one platform, return drawnFrom once at the top level using the supplied schema.
+- Classify EVERY supplied non-video entry exactly once by putting its numeric reference in one of the four classified lists: positive, neutral, negative or irrelevant. Classify its opinion about the searched subject, not its tone. Never list a missing reference. Do not repeat comment text in the output.
 - Extract up to 20 distinct recurring opinions across the relevant entries, ideally 5 to 20 only when supported. Each opinion is a concise single sentence (preferably under 100 characters), its positive/neutral/negative sentiment, and the refs that actually support it. Require at least two independent relevant opinions per recurring sentence. Combine paraphrases, do not force equal positive/negative counts, and return fewer or none when evidence is thin. Sort by recurrence. Never invent references, evidence or quotations. Neutral means a neutral observation, not contradictory positive and negative claims.
 - Ignore spam, adverts and items that are not about the subject. If almost nothing is about the subject, say so in the summary and set confidence low.`;
 
@@ -80,7 +83,10 @@ function formatItems(items: SourceItem[]): string {
     .join("\n");
 }
 
-export async function analyse(subject: string, items: SourceItem[], statuses: SourceStatus[], window?: ConsensusResult["window"]): Promise<ConsensusResult> {
+/* interpretation is the search plan's one-sentence reading of the subject
+   (see searchPlan.ts). It tells the model which meaning to classify
+   opinions against when a name is ambiguous. */
+export async function analyse(subject: string, items: SourceItem[], statuses: SourceStatus[], window?: ConsensusResult["window"], interpretation?: string): Promise<ConsensusResult> {
   const client = new OpenAI({ apiKey: env("OPENAI_API_KEY") });
   const model = env("CONSENSUS_MODEL") ?? DEFAULT_MODEL;
   // Connectors bound collection. Never silently discard already-collected opinions.
@@ -92,7 +98,7 @@ export async function analyse(subject: string, items: SourceItem[], statuses: So
   const response = await client.responses.parse({
     model,
     instructions: `${SYSTEM}\n${UNTRUSTED_RULE}`,
-    input: `Subject: ${JSON.stringify(subject)}\nOpinion window: ${window ? `${window.from} to ${window.to} (${window.months} months)` : "as dated in entries"}\nPlatforms with opinions: ${[...seen].join(", ")}\n\n${sample.length} discussion and context entries (JSON lines):\n${formatItems(sample)}`,
+    input: `Subject: ${JSON.stringify(subject)}\n${interpretation ? `Taken to mean: ${JSON.stringify(interpretation)}\n` : ""}Opinion window: ${window ? `${window.from} to ${window.to} (${window.months} months)` : "as dated in entries"}\nPlatforms with opinions: ${[...seen].join(", ")}\n\n${sample.length} discussion and context entries (JSON lines):\n${formatItems(sample)}`,
     max_output_tokens: 16000,
     reasoning: { effort: "none" },
     text: { format },
@@ -114,7 +120,8 @@ export async function analyse(subject: string, items: SourceItem[], statuses: So
     ? [{ ...out, source: singleSource }]
     : "bySource" in out ? out.bySource : [];
 
-  const evidence = buildEvidence(sample, out.classified, out.opinions, readings.flatMap((reading) => reading.drawnFrom.filter((ref) => sample[ref]?.source === reading.source)));
+  const classifications = LABELS.flatMap((sentiment) => out.classified[sentiment].map((ref) => ({ ref, sentiment })));
+  const evidence = buildEvidence(sample, classifications, out.opinions, readings.flatMap((reading) => reading.drawnFrom.filter((ref) => sample[ref]?.source === reading.source)));
   return {
     subject,
     opinions: evidence.opinions,
@@ -133,11 +140,6 @@ export async function analyse(subject: string, items: SourceItem[], statuses: So
       .filter((b) => seen.has(b.source))
       .map((b) => ({
         source: b.source,
-        verdict: b.verdict,
-        agreement: b.agreement,
-        confidence: b.confidence,
-        positives: b.positives.slice(0, 3),
-        negatives: b.negatives.slice(0, 3),
         sentiment: normalise(evidence.splits[b.source]),
         threads: evidence.threadsFor(b.source),
       })),

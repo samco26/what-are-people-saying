@@ -109,16 +109,18 @@ export interface RecurringOpinion {
   evidenceIds: string[];
 }
 
-/* One platform's own reading of the sample: what that platform's users
-   thought, on its own, before the platforms are combined. */
+/* One platform's share of the sample. Its sentiment comes from the
+   classification counts and its threads from the representative references.
+   The reading fields are optional: fictional samples still carry them, the
+   live analysis no longer writes them. */
 export interface SourceAnalysis {
   source: SourceId;
   sentiment?: SentimentSplit;
-  verdict: Verdict;
-  agreement: Agreement;
-  confidence: Confidence;
-  positives: Theme[];
-  negatives: Theme[];
+  verdict?: Verdict;
+  agreement?: Agreement;
+  confidence?: Confidence;
+  positives?: Theme[];
+  negatives?: Theme[];
   threads: SourceThread[];
 }
 

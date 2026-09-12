@@ -13,6 +13,14 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.10.3", date: "12 September 2026",
+    items: [
+      ["changed", "Searches should be quicker: the analysis returns its classification as compact reference lists and only the representative posts per platform, and YouTube reads top and recent comments together."],
+      ["new", "A small note above the sentiment bar when fewer than 50 opinions were found."],
+      ["changed", "On phones every recurring opinion is listed under the answer and the list scrolls on its own. Show more opinions is desktop only."],
+    ],
+  },
+  {
     v: "0.10.2", date: "12 September 2026",
     items: [
       ["changed", "The BETA label text is centred, and How it works sits at the bottom right of the search card again."],
