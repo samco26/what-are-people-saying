@@ -13,7 +13,7 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
-import type { ConsensusResult, SourceItem, SourceStatus } from "../types";
+import type { ConsensusResult, SourceId, SourceItem, SourceStatus } from "../types";
 import { env } from "../env";
 import { buildEvidence } from "./evidence";
 
@@ -116,8 +116,8 @@ export async function analyse(subject: string, items: SourceItem[], statuses: So
   const out = response.output_parsed;
   if (!out) throw new Error("The analysis did not come back in the expected shape.");
 
-  const readings = singleSource && "drawnFrom" in out
-    ? [{ ...out, source: singleSource }]
+  const readings: Array<{ source: SourceId; drawnFrom: number[] }> = singleSource && "drawnFrom" in out
+    ? [{ source: singleSource, drawnFrom: out.drawnFrom }]
     : "bySource" in out ? out.bySource : [];
 
   const classifications = LABELS.flatMap((sentiment) => out.classified[sentiment].map((ref) => ({ ref, sentiment })));
