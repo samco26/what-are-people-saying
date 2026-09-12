@@ -15,9 +15,20 @@ export function Answer({ response, onPick, onChoose }: { response: ConsensusResp
     <h2>No live search yet</h2><p>There is no live discussion available for “{response.subject}”. Try an illustrative example.</p>
     <div className="example-list">{response.examples.map((subject) => <button className="example ctl" key={subject} onClick={() => onPick(subject)}>{subject}</button>)}</div>
   </div>;
-  if (response.kind === "insufficient") return <div className="result-copy"><h2>Not enough to go on</h2><p>The available discussion about “{response.subject}” is too limited to describe honestly.</p><Coverage sources={response.sources} /></div>;
+  /* Too little on the subject: the same shape as an answer, with a plain
+     sentence in the answer's place, the platform buttons greyed and the bar
+     empty, so a thin result never looks like a verdict. */
+  if (response.kind === "insufficient") return <div className="result-copy">
+    <p className="overall-answer">Not enough people are talking about “{response.subject}” to say what they think.</p>
+    <p className="quiet">{response.message}</p>
+    <Coverage sources={response.sources} />
+    <div className="source-buttons" aria-label="Explore a platform">
+      {SOURCES.map((source) => <button key={source.id} type="button" className="srcbtn ctl" disabled aria-label={`${source.name} has nothing to show`}><Logo id={source.id} size={23} /></button>)}
+    </div>
+    <SentimentBar />
+  </div>;
   const result = response.result;
-  const analysed = result.sources.reduce((total, status) => total + status.itemsAnalysed, 0);
+  const analysed = result.sources.reduce((total, status) => total + (status.relevant ?? status.itemsAnalysed), 0);
   return <div className="result-copy">
     {result.illustrative && <p className="sample-label">Illustrative sample · fictional opinions</p>}
     <p className="overall-answer">{result.summary}</p>

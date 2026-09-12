@@ -13,6 +13,15 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.12.2", date: "12 September 2026",
+    items: [
+      ["changed", "The answer now reads like a person telling you what people think (\"Melbourne is beautiful, has a real buzz and plenty to eat, though it is expensive\") instead of describing the opinions from the outside."],
+      ["changed", "The sentiment bar and star rating are counted from the same per-comment classification the platform bars use, with a little more weight for comments many people liked, so the answer, the stars and the platform ratings always agree. The opinion count is the number of comments actually about the subject."],
+      ["changed", "When too little of what came back is about the subject (a name that does not exist, something too specific, a search that matched something else), the usual answer is shown with a plain sentence, greyed platform buttons and an empty grey bar, with no star rating."],
+      ["changed", "On phones the rating now sits directly above the platform ratings, fixed in place like them, under the scrolling opinions."],
+    ],
+  },
+  {
     v: "0.12.1", date: "12 September 2026",
     items: [
       ["changed", "A did-you-mean suggestion now carries the kind of thing it is, so accepting it lands on the right card (a product stays a product) instead of the usual answer; and a name is only called ambiguous when it is shared by genuinely different things, not when a product is rumoured, unreleased or a concept."],

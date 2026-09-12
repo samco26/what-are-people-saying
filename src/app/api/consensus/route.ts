@@ -15,8 +15,9 @@ import { CATEGORIES, SOURCES, type Category, type ConsensusResponse } from "@/li
    available platforms are collected in parallel, each under its own
    timeout, then the sample goes to OpenAI once and the answer comes back
    in the shape the screen draws. A platform without a key is reported as
-   unavailable in the answer. Too little collected and the answer says so
-   instead of guessing. Nothing collected is kept.
+   unavailable in the answer. Too little collected, or too little of it
+   about the subject once classified, and the answer says so instead of
+   guessing. Nothing collected is kept.
 
    Sample, otherwise: the six example subjects answer from labelled
    fictional samples, and anything else gets the no-live-search state.
@@ -106,6 +107,23 @@ export async function POST(request: Request) {
     const analysisStarted = performance.now();
     const result = await analyse(subject, items, statuses, window, plan.interpretation);
     const analysisMs = performance.now() - analysisStarted;
+    /* Enough came back, but the analysis found that too little of it was
+       actually about the subject: a name that does not exist, a subject too
+       specific to be discussed, or a search that matched something else.
+       That is the same honest "not enough" as an empty collection. */
+    const relevant = result.sources.reduce((total, status) => total + (status.relevant ?? 0), 0);
+    if (relevant < minItems) {
+      const response: ConsensusResponse = {
+        kind: "insufficient",
+        subject,
+        message: relevant === 0
+          ? `None of the ${opinionCount} opinions that came back were about the subject.`
+          : `Only ${relevant} of the ${opinionCount} opinions that came back were about the subject, which is too few to describe honestly.`,
+        sources: result.sources,
+        window,
+      };
+      return NextResponse.json(response, { headers: { ...noStore.headers, "Server-Timing": `plan;dur=${planMs.toFixed(0)}, collection;dur=${collectionMs.toFixed(0)}, analysis;dur=${analysisMs.toFixed(0)}` } });
+    }
     result.window = window;
     /* The plan decided what kind of thing this is; the screen picks the
        card from it. An ambiguous name gets the general card and a

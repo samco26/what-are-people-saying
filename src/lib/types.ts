@@ -43,6 +43,9 @@ export interface SourceStatus {
   availability: SourceAvailability;
   /* How many items from this source went into the analysis. */
   itemsAnalysed: number;
+  /* How many of those the analysis classified as being about the subject.
+     The cards count these; absent on samples and before analysis. */
+  relevant?: number;
   /* A plain-English reason when the source is partial or unavailable. */
   note?: string;
   /* Actual bounds when a source expands independently of the others. */

@@ -15,7 +15,7 @@ export function PlatformStack({ result, onChoose, fill }: { result: ConsensusRes
         const reading = result.bySource.find((entry) => entry.source === source.id);
         const status = result.sources.find((entry) => entry.source === source.id);
         const available = Boolean(reading) && status?.availability !== "unavailable";
-        const count = status?.itemsAnalysed ?? 0;
+        const count = status?.relevant ?? status?.itemsAnalysed ?? 0;
         const rating = reading?.sentiment ? starRating(reading.sentiment, count) : undefined;
         return (
           <div className="prow" key={source.id}>

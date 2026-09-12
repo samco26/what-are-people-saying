@@ -3,6 +3,19 @@ import type { OpinionSentiment, RecurringOpinion, SentimentSplit, SourceId, Sour
 export interface Classification { ref: number; sentiment: OpinionSentiment | "irrelevant" }
 export interface OpinionDraft { sentence: string; sentiment: OpinionSentiment; refs: number[] }
 
+/* How much one classified entry counts toward the sentiment split.
+
+   A comment that a thousand people liked stands for more of the audience
+   than one nobody noticed: most people who agree press like rather than
+   write. The weight grows with the logarithm of the reactions, so an entry
+   with no reactions counts 1, ten count 2, a hundred 3 and ten thousand 5.
+   A viral post can therefore never outweigh more than a handful of quiet
+   ones, and the opinion counts printed on the cards stay plain counts. */
+export function reactionWeight(engagement: number | undefined): number {
+  const reactions = typeof engagement === "number" && Number.isFinite(engagement) ? Math.max(0, engagement) : 0;
+  return 1 + Math.log10(1 + reactions);
+}
+
 /** Only collected URLs are allowed, and only on the corresponding platform. */
 export function sourceUrl(value: string | undefined, source: SourceId): string | undefined {
   if (!value) return undefined;
@@ -22,18 +35,21 @@ export function buildEvidence(items: SourceItem[], classifications: Classificati
   }
   const groups = new Map<string, SourceThread & { source: SourceId; rank: number }>();
   const groupForRef = new Map<number, string>();
+  /* splits carry reaction-weighted totals; relevant is the plain number of
+     entries classified as being about the subject. */
   const splits: Record<SourceId, SentimentSplit> = {
     youtube: { positive: 0, neutral: 0, negative: 0 },
     x: { positive: 0, neutral: 0, negative: 0 },
     reddit: { positive: 0, neutral: 0, negative: 0 },
   };
+  const relevant: Record<SourceId, number> = { youtube: 0, x: 0, reddit: 0 };
   items.forEach((item, ref) => {
     if (item.kind === "video" || labels.get(ref) === "irrelevant") return;
     const parent = item.parentId ? byId.get(`${item.source}:${item.parentId}`) : undefined;
     const root = parent ?? item;
     const key = `${root.source}:${root.id}`;
     const sentiment = labels.get(ref);
-    if (sentiment && sentiment !== "irrelevant") splits[item.source][sentiment]++;
+    if (sentiment && sentiment !== "irrelevant") { splits[item.source][sentiment] += reactionWeight(item.engagement); relevant[item.source]++; }
     const priority = preferred.indexOf(ref);
     let group = groups.get(key);
     if (!group) {
@@ -60,8 +76,12 @@ export function buildEvidence(items: SourceItem[], classifications: Classificati
     .slice(0, 20)
     /* support stays on the opinion: the category cards print it. */
     .map((opinion): RecurringOpinion => opinion);
+  /* The overall split is the platforms' weighted totals added together, so
+     the answer's bar and the platform bars can never disagree. */
+  const split: SentimentSplit = { positive: 0, neutral: 0, negative: 0 };
+  for (const source of Object.keys(splits) as SourceId[]) for (const key of ["positive", "neutral", "negative"] as const) split[key] += splits[source][key];
   return {
-    opinions, splits,
+    opinions, splits, split, relevant,
     threadsFor: (source: SourceId): SourceThread[] => [...groups.values()]
       .filter((group) => group.source === source)
       .sort((a, b) => a.rank - b.rank || b.comments!.length - a.comments!.length)

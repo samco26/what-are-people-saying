@@ -74,6 +74,7 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
 .evidence-scroll h2{font-size:28px;line-height:1.2;letter-spacing:-.65px;margin:0 0 24px}.evidence-footer{font-size:11px;color:var(--muted);padding:10px 25px;border-top:1px solid var(--line);flex-shrink:0}
 .platform-heading{display:flex;flex-direction:column;align-items:flex-start;gap:21px;margin-bottom:26px}.platform-heading>span{display:flex;align-items:center}
 .sentiment{width:100%;margin:0 0 5px}.sentbar{width:100%;display:flex;height:16px;border-radius:50px;overflow:hidden;background:#19464c15}.sentbar span{height:100%;display:block;transition:flex-basis 500ms var(--easeOut)}.sent-pos{background:var(--sentPos)}.sent-neu{background:var(--sentNeu)}.sent-neg{background:var(--sentNeg)}
+.sentiment-empty .sentbar{background:#52666933}.sentiment-empty .sent-legend{opacity:.55}
 .sent-legend{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding-top:8px}.sent-note{font-size:10px;line-height:1.3;color:var(--muted);text-align:right;margin:0 0 6px;letter-spacing:.2px}
 .result-copy .sentiment{margin:24px 0 2px}.result-copy .sentbar{height:12px}
 .post-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}.post-section{display:block;color:var(--ink);text-decoration:none;padding:20px 22px;border-radius:25px;background:#ffffff40;border:1px solid #ffffffa6;box-shadow:inset 0 1px 0 #fff9;transition:background 200ms,transform 250ms var(--easeOut)}a.post-section:hover{background:#ffffff88;transform:translateY(-2px)}
@@ -173,7 +174,8 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
   .search-stack.wide .result-unfold[data-settled="true"]>div{overflow:hidden}
   .pbody{display:flex;flex-direction:column;gap:10px;height:100%;padding:10px 10px 4px;overflow:hidden}
   .pbody>*{flex-shrink:0}
-  .pbody .tile{flex-direction:row;justify-content:flex-start;text-align:left;padding:10px 12px;gap:12px;flex-wrap:wrap}
+  /* The rating tile sits directly above the platform row, fixed like it. */
+  .pbody .tile{flex-direction:row;justify-content:flex-start;text-align:left;padding:8px 12px;gap:12px;flex-wrap:wrap;margin-bottom:-2px}
   .pbody .score-md{font-size:36px}.pbody .approval{text-align:left;font-size:11px}
   .pbody .answer-small{font-size:13px;line-height:1.4;margin-top:0}
   .opn{flex:1 1 auto;min-height:60px;display:flex;flex-direction:column;gap:6px}.opn .label{margin:0}

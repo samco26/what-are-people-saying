@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildEvidence, sourceUrl } from '../src/lib/analysis/evidence.ts';
+import { buildEvidence, reactionWeight, sourceUrl } from '../src/lib/analysis/evidence.ts';
 
 const items = [
   { id:'video', source:'youtube', kind:'video', title:'Original video title', text:'Context and description', url:'https://www.youtube.com/watch?v=fixture' },
@@ -18,6 +18,19 @@ test('grouping preserves the actual title, parent link, verbatim comments and in
   assert.deepEqual(video.comments.map(c=>c.sentiment),['positive','positive']);
   assert.equal(result.threadsFor('x')[0].comments[0].sentiment,'negative');
   assert.deepEqual(result.splits.youtube,{positive:2,neutral:0,negative:0});
+  assert.deepEqual(result.split,{positive:2,neutral:0,negative:1});
+  assert.deepEqual(result.relevant,{youtube:2,x:1,reddit:0});
+});
+test('reactions weigh in on a log scale, never below one, and a viral entry counts for a handful, not a crowd', () => {
+  assert.equal(reactionWeight(undefined),1);
+  assert.equal(reactionWeight(0),1);
+  assert.equal(reactionWeight(-40),1);
+  for(const [reactions,weight] of [[9,2],[999,4],[9999,5]]) assert.ok(Math.abs(reactionWeight(reactions)-weight)<1e-9,`${reactions} reactions weigh ${weight}`);
+  const weighted=buildEvidence([{...items[3],id:'viral',engagement:100000},{...items[3],id:'q1',text:'One'},{...items[3],id:'q2',text:'Two'},{...items[3],id:'q3',text:'Three'}],
+    [{ref:0,sentiment:'negative'},{ref:1,sentiment:'positive'},{ref:2,sentiment:'positive'},{ref:3,sentiment:'positive'}],[]);
+  assert.ok(weighted.split.positive<weighted.split.negative);
+  assert.ok(weighted.split.negative<weighted.split.positive*3);
+  assert.equal(weighted.relevant.x,4);
 });
 test('recurring opinions require distinct relevant evidence, deduplicate references and exclude invented IDs', () => {
   const drafts=[{sentence:'The layout feels good.',sentiment:'positive',refs:[1,1,2,999,0]}, {sentence:'Unsupported claim.',sentiment:'negative',refs:[3]}, {sentence:'The layout feels good.',sentiment:'positive',refs:[1,2]}];

@@ -13,8 +13,8 @@ import { Stars } from "./Stars";
    (summary, platform buttons, sentiment bar, recurring opinions) and adds
    a star rating worked out from the sentiment split (src/lib/stars.ts).
 
-   On phones all four share one column: rating, summary, the opinions in a
-   box that scrolls in place, each platform's rating, the bar. The page
+   On phones all four share one column: summary, the opinions in a box that
+   scrolls in place, the rating, each platform's rating, the bar. The page
    itself never scrolls. General view, desktop only, returns to the default
    card for the same subject. */
 
@@ -38,7 +38,9 @@ function usePhone(): boolean {
   return phone;
 }
 
-const analysedCount = (result: ConsensusResult) => result.sources.reduce((total, status) => total + status.itemsAnalysed, 0);
+/* Opinions the analysis found to be about the subject; a sample carries
+   no classification, so its analysed total stands in. */
+const analysedCount = (result: ConsensusResult) => result.sources.reduce((total, status) => total + (status.relevant ?? status.itemsAnalysed), 0);
 const supportOf = (opinion: RecurringOpinion) => opinion.support ?? opinion.evidenceIds.length;
 const opinionStars = (opinion: RecurringOpinion) => opinion.sentiment === "positive" ? 4.5 : opinion.sentiment === "negative" ? 2 : 3;
 
@@ -98,20 +100,22 @@ function Sample({ result }: { result: ConsensusResult }) {
   return result.illustrative ? <p className="sample-label">Illustrative sample · fictional opinions</p> : null;
 }
 
-/* One column, shared by every category on phones. */
+/* One column, shared by every category on phones: summary, the opinions in
+   a box that scrolls in place, then the rating tile fixed directly above the
+   platform row, and the bar. */
 function PhoneCard({ result, onChoose, opinions, box }: { result: ConsensusResult; onChoose: CardProps["onChoose"]; opinions: ReactNode; box: "list" | "chips" | "cards" }) {
   const count = analysedCount(result);
   const rating = starRating(result.sentiment, count);
   return (
     <div className="result-copy pbody">
       <Sample result={result} />
+      <p className="answer-small">{result.summary}</p>
+      <div className="opn"><span className="label">Common opinions</span><div className={`opbox opbox-${box}`}>{opinions}</div></div>
       <div className="tile ctl" role="img" aria-label={`The internet says ${rating.stars.toFixed(1)} out of 5, ${Math.round(rating.approval * 100)}% positive from ${count} opinions`}>
         <span className="score score-md">{rating.stars.toFixed(1)}</span>
         <Stars value={rating.stars} />
         <span className="approval">{Math.round(rating.approval * 100)}% positive<br />{count} opinions</span>
       </div>
-      <p className="answer-small">{result.summary}</p>
-      <div className="opn"><span className="label">Common opinions</span><div className={`opbox opbox-${box}`}>{opinions}</div></div>
       <PlatformStack result={result} onChoose={onChoose} />
       <Foot result={result} />
     </div>

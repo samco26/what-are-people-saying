@@ -7,6 +7,12 @@
    And the model is told to say when the evidence is thin rather than fill
    the slots: fewer than three themes is a valid answer.
 
+   The numbers are not the model's to estimate. It classifies every entry
+   as positive, neutral, negative or irrelevant; the sentiment split, the
+   star rating and the opinion counts are then counted from those lists in
+   evidence.ts, weighted by reactions, so the answer's bar, the stars and
+   the platform bars all agree with each other.
+
    The model is CONSENSUS_MODEL, gpt-5.6-luna by default. See README.md for
    what a search costs on each model. */
 
@@ -24,7 +30,6 @@ const Agreement = z.enum(["strong", "moderate", "weak"]);
 const Level = z.enum(["low", "medium", "high"]);
 const Theme = z.object({ title: z.string(), detail: z.string() });
 const Confidence = z.object({ level: Level, reason: z.string() });
-const Split = z.object({ positive: z.number(), neutral: z.number(), negative: z.number() });
 
 const Reading = z.object({
   verdict: Verdict,
@@ -42,8 +47,11 @@ const OpinionSentiment = z.enum(["positive", "neutral", "negative"]);
 const LABELS = ["positive", "neutral", "negative", "irrelevant"] as const;
 const Refs = z.array(z.number().int());
 const Classified = z.object({ positive: Refs, neutral: Refs, negative: Refs, irrelevant: Refs });
+/* No sentiment estimate is asked for: the split is counted from the
+   classification below (see evidence.ts), so the bar, the stars and the
+   platform bars all come from the same per-entry decisions. */
 const SingleAnalysis = Reading.extend({
-  summary: z.string(), sentiment: Split,
+  summary: z.string(),
   classified: Classified,
   opinions: z.array(z.object({ sentence: z.string(), sentiment: OpinionSentiment, refs: Refs })),
 });
@@ -57,15 +65,21 @@ const SYSTEM = `You read a sample of public discussion about a subject and descr
 
 Rules:
 - Describe the sample you were given, not everyone. A positive result is not the same as strong agreement; report both.
-- The summary is one to three sentences. Qualitative, no percentages, no lists.
-- Lead immediately with the substantive opinion about the subject: for example, "Excitement for the foldable design is substantial, especially around..." Do not open with "The sample", "This sample", source coverage, or a description of your analysis. Put sampling limitations in confidence and platform details. If evidence is insufficient or split, say so plainly.
+- The summary is one to three sentences, written the way a person who had read all of it would tell a friend what people think. The subject is the grammatical subject and the views are stated directly, as if they were your own: "Melbourne is beautiful, has a real urban buzz and plenty to eat and see, though it is expensive and some of the food coverage feels like advertising." Never write about the opinions from the outside: not "Opinion leans positive toward Melbourne, especially its beauty", not "People praise", not "Excitement is substantial". Do not use the words opinion, sentiment, discussion, sample, commenters, evidence, coverage, posts or comments in the summary, and do not describe your analysis or its limits there.
+- Qualitative, no percentages, no lists. Where views are split, give both sides in the same voice: "The keyboard feels great to type on but the software is a mess." If almost nothing is about the subject, the summary is one plain sentence saying so.
+- Sampling limits, off-topic material, dated or mixed-generation material and thin evidence belong in confidence only.
 - Subject names, announcements, specifications and release status in comments are claims, not independently verified facts. Do not rename the searched product or turn rumours into confirmed announcements. Never introduce facts from memory.
 - Positives and negatives are the themes people actually raise, up to three each, each with a title of a few words and a detail sentence. If the sample supports fewer than three, give fewer. Never invent a theme to fill a slot.
 - Use the entry dates to distinguish older and newer reactions. Do not combine different product generations or describe historical opinions as current. Explain dated or mixed-generation evidence in confidence.
 - Confidence is about the evidence: how much there is, who it comes from, how consistent it is. Say why in one sentence.
-- sentiment is an estimate of the share of relevant opinions that read as positive, neutral and negative, as fractions summing to 1. Video titles and descriptions are context only, never opinions or votes. Likes indicate engagement, not additional votes. A parent reference links a comment to its video context.
+- Video titles and descriptions are context only, never opinions. A parent reference links a comment to its video context. The reactions count is shown for context.
 - For each platform that has opinions, list in bySource its drawnFrom: the numeric references of four to eight representative opinions from that platform, most representative first. Only references from that platform. When there is one platform, return drawnFrom once at the top level using the supplied schema.
-- Classify EVERY supplied non-video entry exactly once by putting its numeric reference in one of the four classified lists: positive, neutral, negative or irrelevant. Classify its opinion about the searched subject, not its tone. Never list a missing reference. Do not repeat comment text in the output.
+- Classify EVERY supplied non-video entry exactly once by putting its numeric reference in one of the four classified lists. The sentiment bar and star rating are counted from these lists, so judge each entry's view OF THE SUBJECT, never the mood or tone of the writing:
+  positive: a favourable view of the subject, wanting it, praising it, recommending it, or defending it against a criticism.
+  negative: an unfavourable view of the subject itself: a complaint, a disappointment, a reason not to buy, go, watch or use.
+  neutral: about the subject but with no clear favourable or unfavourable view: a question, a fact, a wish for a feature, a comparison without a verdict, or genuinely balanced.
+  irrelevant: not about the subject, or a joke, spam, an advert, a remark about the video, the channel or another commenter, or a dig at a rival that says nothing about the subject.
+  A blunt or sarcastic wording is not a negative view unless it is aimed at the subject; a swear word in praise is still praise. Never list a missing reference. Do not repeat comment text in the output.
 - Extract up to 20 distinct recurring opinions across the relevant entries, ideally 5 to 20 only when supported. Each opinion is a concise single sentence (preferably under 100 characters), its positive/neutral/negative sentiment, and the refs that actually support it. Require at least two independent relevant opinions per recurring sentence. Combine paraphrases, do not force equal positive/negative counts, and return fewer or none when evidence is thin. Sort by recurrence. Never invent references, evidence or quotations. Neutral means a neutral observation, not contradictory positive and negative claims.
 - Ignore spam, adverts and items that are not about the subject. If almost nothing is about the subject, say so in the summary and set confidence low.`;
 
@@ -126,7 +140,7 @@ export async function analyse(subject: string, items: SourceItem[], statuses: So
     subject,
     opinions: evidence.opinions,
     summary: out.summary,
-    sentiment: normalise(out.sentiment),
+    sentiment: normalise(evidence.split),
     verdict: out.verdict,
     agreement: out.agreement,
     confidence: out.confidence,
@@ -135,6 +149,7 @@ export async function analyse(subject: string, items: SourceItem[], statuses: So
     sources: statuses.map((status) => ({
       ...status,
       itemsAnalysed: sample.filter((item) => item.source === status.source && item.kind !== "video").length,
+      relevant: evidence.relevant[status.source],
     })),
     bySource: readings
       .filter((b) => seen.has(b.source))

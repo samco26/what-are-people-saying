@@ -102,7 +102,7 @@ const reading = {
   verdict: "positive", agreement: "moderate", confidence: { level: "medium", reason: "Fictional evidence." },
   positives: [{ title: "Design", detail: "Fictional praise." }], negatives: [], drawnFrom: [1, 299, 300, 9999, 0, 1],
 };
-const analysisOutput = { ...reading, classified: { positive: Array.from({ length: 300 }, (_, i) => i + 1), neutral: [], negative: [], irrelevant: [] }, opinions: [{ sentence: "The design is appealing.", sentiment: "positive", refs: [1, 2, 299, 9999] }], summary: "Excitement for the fictional phone is substantial.", sentiment: { positive: 0.6, neutral: 0.2, negative: 0.2 } };
+const analysisOutput = { ...reading, classified: { positive: Array.from({ length: 300 }, (_, i) => i + 1), neutral: [], negative: [], irrelevant: [] }, opinions: [{ sentence: "The design is appealing.", sentiment: "positive", refs: [1, 2, 299, 9999] }], summary: "The fictional phone is exciting." };
 function mockOpenAI(makeOutput, inspect) {
   process.env.OPENAI_API_KEY = "test-placeholder-not-a-key";
   globalThis.fetch = async (input, init) => {
@@ -126,7 +126,9 @@ test("all 300 opinions reach OpenAI and one-source evidence is generated only on
     assert.equal(lines.length, 301);
     assert.equal(lines.at(-1).text, "Fictional opinion 299");
     assert.equal(lines.at(-1).parent, 0);
-    assert.match(body.instructions, /Lead immediately/);
+    assert.equal(body.text.format.schema.properties.sentiment, undefined);
+    assert.match(body.instructions, /tell a friend what people think/);
+    assert.match(body.instructions, /judge each entry's view OF THE SUBJECT/);
     assert.match(body.instructions, /untrusted data/);
     assert.match(body.input, /^Subject: "fictional phone"\nTaken to mean: "A fictional phone, for the test\."\nOpinion window:/);
   });
@@ -139,6 +141,25 @@ test("all 300 opinions reach OpenAI and one-source evidence is generated only on
   assert.equal(result.bySource[0].threads[0].kind, "video");
   assert.equal(result.opinions.length, 1);
   assert.deepEqual(result.bySource[0].sentiment, { positive: 1, neutral: 0, negative: 0 });
+  assert.deepEqual(result.sentiment, { positive: 1, neutral: 0, negative: 0 });
+  assert.equal(result.sources[0].relevant, 300);
+});
+
+test("the overall split is counted from the classification, weighted by reactions, and irrelevant entries are not counted", async () => {
+  const items = [{ id: "video0", source: "youtube", kind: "video", text: "Fictional context" },
+    { id: "a", source: "youtube", kind: "comment", parentId: "video0", text: "Fictional praise", engagement: 999 },
+    { id: "b", source: "youtube", kind: "comment", parentId: "video0", text: "Fictional complaint", engagement: 0 },
+    { id: "c", source: "youtube", kind: "comment", parentId: "video0", text: "Fictional joke about the channel", engagement: 5000 },
+    { id: "d", source: "youtube", kind: "comment", parentId: "video0", text: "Fictional question" }];
+  mockOpenAI(() => ({ ...analysisOutput, classified: { positive: [1], neutral: [4], negative: [2], irrelevant: [3] }, opinions: [] }), () => {});
+  const result = await analyse("fictional phone", items, [{ source: "youtube", availability: "ok", itemsAnalysed: 4 }]);
+  /* 999 reactions weigh 4, none weigh 1: the one liked comment outweighs the complaint four to one, and the 5000-reaction joke counts for nothing. */
+  assert.equal(result.sources[0].itemsAnalysed, 4);
+  assert.equal(result.sources[0].relevant, 3);
+  assert.equal(Math.round(result.sentiment.positive * 100), 67);
+  assert.equal(Math.round(result.sentiment.neutral * 100), 17);
+  assert.equal(Math.round(result.sentiment.negative * 100), 17);
+  assert.deepEqual(result.sentiment, result.bySource[0].sentiment);
 });
 
 test("multi-source analysis preserves opinions and attribution without sending authors to OpenAI", async () => {

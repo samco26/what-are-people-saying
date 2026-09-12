@@ -134,6 +134,9 @@ async function main() {
     return load(key);
   }
   let fakeFetch = null;
+  /* __respond(body) answers the next /api/consensus call with body, so states the sample data cannot reach (insufficient, live-shaped results) can be drawn. */
+  let forced = null;
+  window.__respond = (body) => { forced = body; };
   function load(f) {
     if (mods[f]) return mods[f].exports;
     const module = { exports: {} };
@@ -150,6 +153,7 @@ async function main() {
   const route = load("src/app/api/consensus/route.ts");
   fakeFetch = async (url, init) => {
     window.__result.lastRequest = { url: String(url), body: init && init.body };
+    if (String(url).startsWith("/api/consensus") && forced) { const body = forced; forced = null; return new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } }); }
     if (String(url).startsWith("/api/consensus")) {
       return route.POST(new Request("http://localhost" + url, init));
     }
