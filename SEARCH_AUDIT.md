@@ -1,6 +1,6 @@
 # Search quality, speed and cost audit — 12 September 2026
 
-Scope: milestones 6–8 and 10. This is an audit of the code and simulated provider responses, with local fixes. It does not claim that a new live result is accurate, faster, cheaper or representative of the public. BETA 0.13.0 is awaiting push/deployment verification. The 13 September merge preserves the newer advisory lookup: if web verification fails, search the literal input without inferred identity, category or aliases and keep confidence low.
+Scope: milestones 6–8 and 10. This is an audit of the code and simulated provider responses, with local fixes. It does not claim that a new live result is accurate, faster, cheaper or representative of the public. BETA 0.13.0 was deployed from merge `04c3a31` on 13 September; GitHub/Vercel reported success and the production homepage returned HTTP 200 with the new version. Paid live searches remain unevaluated. The 13 September merge preserves the newer advisory lookup: if web verification fails, search the literal input without inferred identity, category or aliases and keep confidence low.
 
 ## Findings and fixes
 
