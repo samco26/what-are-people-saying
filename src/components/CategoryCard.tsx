@@ -3,27 +3,24 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { Category, ConsensusResult, RecurringOpinion, SourceId } from "@/lib/types";
 import { starRating } from "@/lib/stars";
 import { PlatformStack } from "./PlatformStack";
-import { SentimentBar } from "./SentimentBar";
 import { Stars } from "./Stars";
 
 /* The category cards: the same answer with a star rating worked out from
    the sentiment split (src/lib/stars.ts). Every card keeps everything the
-   default card has (summary, platform buttons, sentiment bar, recurring
-   opinions). What differs by category is the head (an app gets its icon,
-   the rest a kind line and title) and the shape of the opinions: a film
-   lists them as review rows, a product as tick-and-cross chips, a place as
-   chips, an app as review cards.
+   default card has except the sentiment bar (summary, platform buttons,
+   recurring opinions): the star rating stands in for the bar. What differs
+   by category is the head (an app gets its icon, the rest a kind line and
+   title) and the shape of the opinions: a film lists them as review rows,
+   a product and a place as chips, an app as review cards.
 
    The rating strip is the same on every card: a compact tile on the left
    and the three platform buttons beside it, stretched to the tile's height
    so the row reads as one line. Platforms carry no rating of their own.
 
-   On phones all four share one column: summary, the opinions in a box that
-   scrolls in place, the rating strip, the bar. The page itself never
-   scrolls. General view, desktop only, returns to the default card for the
-   same subject. */
-
-const LIMITED_BELOW = 50;
+   On phones all four share one column: summary and the rating strip; the
+   opinions sit under the card as the default answer's scrolling pill list
+   (drawn by SearchCard). The page itself never scrolls. General view,
+   desktop only, returns to the default card for the same subject. */
 
 interface CardProps {
   result: ConsensusResult;
@@ -32,13 +29,14 @@ interface CardProps {
   onGeneral: () => void;
 }
 
-function usePhone(): boolean {
+/* Shared with SearchCard, which draws the opinion pills under a phone card. */
+export function usePhone(): boolean {
   const [phone, setPhone] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 600px)");
     const sync = () => setPhone(mq.matches);
-    sync(); mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
+    sync(); mq.addEventListener("change", sync); window.addEventListener("resize", sync);
+    return () => { mq.removeEventListener("change", sync); window.removeEventListener("resize", sync); };
   }, []);
   return phone;
 }
@@ -101,30 +99,25 @@ function Cards({ opinions, onOpinion }: { opinions: RecurringOpinion[]; onOpinio
   ))}</>;
 }
 
-function Foot({ result }: { result: ConsensusResult }) {
-  return <div className="foot"><SentimentBar split={result.sentiment} note={analysedCount(result) < LIMITED_BELOW ? "Limited results on subject found" : undefined} /></div>;
-}
 function Sample({ result }: { result: ConsensusResult }) {
   return <>{result.illustrative && <p className="sample-label">Illustrative sample · fictional opinions</p>}{result.context && <p className="sample-label">Showing results for {result.subject}</p>}</>;
 }
 
-/* One column, shared by every category on phones: summary, the opinions in
-   a box that scrolls in place, then the rating strip fixed beneath it, and
-   the bar. */
-function PhoneCard({ result, onChoose, opinions, box }: { result: ConsensusResult; onChoose: CardProps["onChoose"]; opinions: ReactNode; box: "list" | "chips" | "cards" }) {
+/* One column, shared by every category on phones: summary and the rating
+   strip. The opinions are not in the card: SearchCard draws them
+   beneath it as the same scrolling pill list the default answer uses. */
+function PhoneCard({ result, onChoose }: { result: ConsensusResult; onChoose: CardProps["onChoose"] }) {
   return (
     <div className="result-copy pbody">
       <Sample result={result} />
       <p className="answer-small">{result.summary}</p>
-      <div className="opn"><span className="label">Common opinions</span><div className={`opbox opbox-${box}`}>{opinions}</div></div>
       <RatingStrip result={result} onChoose={onChoose} />
-      <Foot result={result} />
     </div>
   );
 }
 
 /* The desktop skeleton every category shares: head, rating strip, summary,
-   opinions, bar. An app's head is its icon, name, kind and stars; the rest
+   opinions. An app's head is its icon, name, kind and stars; the rest
    get the kind line and the title. */
 function DesktopCard({ result, onChoose, onGeneral, opinions, box, label }: CardProps & { opinions: ReactNode; box: "list" | "chips" | "cards"; label?: string }) {
   const app = result.category === "app";
@@ -146,7 +139,6 @@ function DesktopCard({ result, onChoose, onGeneral, opinions, box, label }: Card
       {label && <span className="label">{label}</span>}
       <p className="answer-small">{result.summary}</p>
       <div className="csection"><span className="label">Common opinions</span><div className={box}>{opinions}</div></div>
-      <Foot result={result} />
     </div>
   );
 }
@@ -167,6 +159,6 @@ export function CategoryCard(props: CardProps) {
       default: return { box: "cards", opinions: <Cards opinions={opinions} onOpinion={onOpinion} /> };
     }
   })();
-  if (phone) return <PhoneCard result={result} onChoose={onChoose} box={shape.box} opinions={shape.opinions} />;
+  if (phone) return <PhoneCard result={result} onChoose={onChoose} />;
   return <DesktopCard {...props} box={shape.box} opinions={shape.opinions} label={shape.label} />;
 }

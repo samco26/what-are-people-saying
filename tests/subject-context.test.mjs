@@ -9,7 +9,6 @@ import { collectAdaptive } from "../src/lib/connectors/adaptive.ts";
 import { POST } from "../src/app/api/consensus/route.ts";
 import { Answer } from "../src/components/Answer.tsx";
 import { CategoryCard } from "../src/components/CategoryCard.tsx";
-import { SubjectFacts } from "../src/components/SubjectFacts.tsx";
 
 const originalFetch = globalThis.fetch;
 const settings = ["OPENAI_API_KEY", "YOUTUBE_API_KEY", "X_BEARER_TOKEN", "REDDIT_CLIENT_ID", "REDDIT_CLIENT_SECRET", "REDDIT_USER_AGENT"];
@@ -239,8 +238,5 @@ test("route passes resolved identity and facts through real connector and analys
   const card = renderToStaticMarkup(createElement(CategoryCard, { result: out.result, onChoose() {}, onOpinion() {}, onGeneral() {} }));
   assert.match(card, /Showing results for iPhone Duo/);
   assert.doesNotMatch(card, /Rumoured phone/);
-  const facts = renderToStaticMarkup(createElement(SubjectFacts, { context: out.result.context }));
-  assert.match(facts, /https:\/\/example.com\/fictional-announcement/);
-  assert.match(facts, /available October 23/);
 });
 

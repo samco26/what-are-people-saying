@@ -13,6 +13,14 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.12.7", date: "12 September 2026",
+    items: [
+      ["changed", "On phones a category card keeps only the summary and the rating; the common opinions sit under the card as the same scrolling pills the usual answer has, with no heading."],
+      ["removed", "The sentiment bar from the four category cards, which have the star rating instead. The usual answer keeps its bar."],
+      ["removed", "The About this answer link and its facts panel."],
+    ],
+  },
+  {
     v: "0.12.6", date: "12 September 2026",
     items: [
       ["changed", "On every category card the star rating is a compact tile on the left with the three platform buttons beside it, stretched to the same height so the row reads as one line."],

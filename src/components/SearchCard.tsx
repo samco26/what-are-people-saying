@@ -3,17 +3,15 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type Keyboard
 import { EVERGREEN_SUBJECTS, type SuggestionsResponse } from "@/lib/suggestions";
 import type { ConsensusResponse, RecurringOpinion, SourceId } from "@/lib/types";
 import { RotatingSubjects } from "./RotatingSubjects";
-import { Answer, Coverage } from "./Answer";
+import { Answer } from "./Answer";
 import { PlatformEvidence, PostList } from "./PlatformEvidence";
 import { OpinionPills } from "./OpinionPills";
-import { CategoryCard, isCategoryCard } from "./CategoryCard";
+import { CategoryCard, isCategoryCard, usePhone } from "./CategoryCard";
 import { HowItWorks } from "./HowItWorks";
 import { Logo } from "./Logo";
-import { SentimentBar } from "./SentimentBar";
-import { SubjectFacts } from "./SubjectFacts";
 
 type Phase = { name: "idle" } | { name: "loading"; subject: string } | { name: "done"; subject: string; response: ConsensusResponse } | { name: "error"; subject: string };
-type View = { kind: "source"; source: SourceId } | { kind: "opinion"; opinion: RecurringOpinion } | { kind: "opinions" | "how" | "about" };
+type View = { kind: "source"; source: SourceId } | { kind: "opinion"; opinion: RecurringOpinion } | { kind: "opinions" | "how" };
 
 export function SearchCard() {
   const [examples, setExamples] = useState(EVERGREEN_SUBJECTS);
@@ -25,6 +23,9 @@ export function SearchCard() {
   /* True once General view is pressed: the default card is shown for a
      result that would otherwise get a category card. Reset per search. */
   const [general, setGeneral] = useState(false);
+  /* On phones a category card keeps only its summary, rating and bar; the
+     opinions are drawn under it as pills, exactly as for the usual answer. */
+  const phone = usePhone();
   const view = history.at(-1);
   const shown = useRef(EVERGREEN_SUBJECTS[0]);
   const request = useRef<AbortController | null>(null);
@@ -147,9 +148,9 @@ export function SearchCard() {
               : <Answer response={phase.response} onPick={(subject) => void search(subject)} onChoose={(id) => open({ kind: "source", source: id })} />)}
           </div></div>
         </section>
-        <div className="under-card">{result?.context && <button className="text-action" onClick={() => open({ kind: "about" })}>About this answer</button>}<button className="text-action" onClick={() => open({ kind: "how" })}>How it works</button></div>
+        <div className="under-card"><button className="text-action" onClick={() => open({ kind: "how" })}>How it works</button></div>
       </div>
-      {result && !category && <OpinionPills opinions={opinions} onSelect={(opinion) => open({ kind: "opinion", opinion })} onMore={() => open({ kind: "opinions" })} />}
+      {result && (!category || phone) && <OpinionPills opinions={opinions} onSelect={(opinion) => open({ kind: "opinion", opinion })} onMore={() => open({ kind: "opinions" })} />}
     </div>
     {view && <section className="glass evidence-screen" ref={panel} tabIndex={-1} aria-label={view.kind === "source" ? `${view.source} evidence` : "Supporting details"}>
       <div className="evidence-nav"><button type="button" className="back-button" onClick={back}><span aria-hidden="true">←</span> Back</button><button className="subject-chip ctl" onClick={edit} aria-label={`Edit subject ${query || "search"}`}><span>{result?.subject || query || "Search"}</span><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m4 13 9-9 3 3-9 9-4 1 1-4ZM11 6l3 3" /></svg></button></div>
@@ -160,7 +161,6 @@ export function SearchCard() {
           const threads = reading.threads.filter((thread) => thread.id && view.opinion.evidenceIds.includes(thread.id));
           return threads.length ? <section key={reading.source} className="opinion-evidence" aria-label={reading.source}><Logo id={reading.source} size={24} /><PostList threads={threads} source={reading.source} /></section> : null;
         })}</>}
-        {view.kind === "about" && result && <><h2>About this answer</h2><SentimentBar split={result.sentiment} /><p className="quiet">This describes the collected discussion, not everyone’s view.</p><p className="quiet">{result.confidence.level.charAt(0).toUpperCase() + result.confidence.level.slice(1)} confidence · {result.agreement} agreement. {result.confidence.reason}</p><Coverage sources={result.sources} />{opinions.length < 5 && <p className="quiet">The sample supports fewer distinct recurring opinions. Only those supported are shown.</p>}{result.context && <SubjectFacts context={result.context} />}</>}
         {view.kind === "how" && <><h2>How it works</h2><HowItWorks /></>}
       </div>
       {result?.illustrative && <p className="evidence-footer">Illustrative sample. Posts and comments are fictional.</p>}

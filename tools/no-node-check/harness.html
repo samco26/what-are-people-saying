@@ -39,7 +39,6 @@ const FILES = [
   "src/components/Stars.tsx",
   "src/components/PlatformStack.tsx",
   "src/components/RotatingSubjects.tsx",
-  "src/components/SubjectFacts.tsx",
   "src/components/Answer.tsx",
   "src/components/PlatformEvidence.tsx",
   "src/components/HowItWorks.tsx",
@@ -189,7 +188,8 @@ async function main() {
     if (!b) throw new Error("no button " + text);
     b.click();
   };
-  window.__size = (w, h) => { fr.style.width = w + "px"; fr.style.height = h + "px"; };
+  /* The pane never fires resize or matchMedia change events for a restyled frame, so the app is told itself. */
+  window.__size = (w, h) => { fr.style.width = w + "px"; fr.style.height = h + "px"; win.dispatchEvent(new win.Event("resize")); };
 }
 main().catch((e) => { window.__result.errors.push(String(e.message)); log("FATAL " + e.message); });
 </script>

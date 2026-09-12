@@ -151,7 +151,7 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
 .appicon{width:56px;height:56px;border-radius:15px;background:linear-gradient(135deg,#f9d6c5,var(--accent));border:1px solid #ffe6dc;box-shadow:inset 0 1px 0 #ffffffbb,0 6px 16px #885a4a29;display:grid;place-items:center;font-size:26px;letter-spacing:-1px;color:var(--ink)}
 .apphead~.rating-strip{margin-top:12px}
 .ccard>.label{margin-top:2px}.ccard .csection{margin-top:10px}
-.foot{margin-top:14px}.ccard .sentiment,.pbody .sentiment{margin:0}.ccard h2.ctitle{margin-bottom:0}
+.ccard h2.ctitle{margin-bottom:0}.ccard .csection{padding-bottom:6px}
 /* Did you mean: the typed text is mirrored invisibly so the suggestion
    starts exactly where the typing ends; Tab or a click accepts it. */
 .ghost-suggest{display:flex;align-items:center;gap:8px}
@@ -161,13 +161,8 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
 .ghost-suggest kbd{font:inherit;font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;border:1px solid #16464c33;border-radius:6px;padding:2px 6px;color:var(--muted);flex-shrink:0}
 @media(max-width:1050px){.search-stack.wide{width:100%;max-width:880px}}
 @media(max-width:600px){
-  /* One column. The card fills the screen and only the opinions box scrolls. */
-  .search-home[data-result="true"]:has(.search-stack.wide){overflow:hidden}
-  .search-stack.wide{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
-  .search-stack.wide .main-card{flex:1 1 auto;min-height:0;max-height:none}
-  .search-stack.wide .result-unfold{flex:1 1 auto;min-height:0}
-  .search-stack.wide .result-unfold[data-settled="true"]>div{overflow:hidden}
-  .pbody{display:flex;flex-direction:column;gap:10px;height:100%;padding:10px 10px 4px;overflow:hidden}
+  /* One column. The card sizes to its summary, rating strip and bar, and the opinion pills under it take the rest of the screen, exactly as on the usual answer. */
+  .pbody{display:flex;flex-direction:column;gap:10px;padding:10px 10px 8px}
   .pbody>*{flex-shrink:0}
   /* The rating tile sits directly above the platform row, fixed like it. */
   .pbody .rating-strip{margin:0;gap:6px}.pbody .tile-strip{flex:1 1 auto;min-width:0;padding:6px 12px;gap:10px}.pbody .tile-strip .score-md{font-size:30px}.pbody .tile-strip .approval{font-size:10.5px;white-space:normal;line-height:1.2}.pbody .tile-meta{min-width:0}.pbody .tile-strip .stars{font-size:15px}
@@ -175,14 +170,5 @@ h1,h2,h3,p,blockquote{margin:0}h1,h2,h3{font-weight:400}
   /* Once a search is underway the header goes, giving the card its 46px. */
   .app-shell:has(.search-scene[data-searched="true"]) .app-header{display:none}
   .pbody .answer-small{font-size:13px;line-height:1.4;margin-top:0}
-  .opn{flex:1 1 auto;min-height:60px;display:flex;flex-direction:column;gap:6px}.opn .label{margin:0}
-  .opbox{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:none;padding-bottom:22px;-webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent)}
-  .opbox::-webkit-scrollbar{display:none}
-  .opbox-list{display:flex;flex-direction:column;gap:6px}.opbox-list .opinion-pill{flex-shrink:0}
-  .opbox-chips{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
-  .opbox-cards{display:grid;grid-template-columns:1fr;gap:6px}
-  .opinion-pill.rev{border-radius:20px;padding:8px 12px;font-size:12.5px;gap:10px}
-  .opinion-pill.chip{font-size:12px;padding:7px 11px}.opinion-pill.card{padding:9px 12px}
-  .pbody .foot{margin-top:0}.pbody .sentbar{height:10px}
   .ghost-suggest kbd{display:none}
 }
