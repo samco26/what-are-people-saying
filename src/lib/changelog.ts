@@ -13,6 +13,13 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.12.4", date: "12 September 2026",
+    items: [
+      ["changed", "A product, place, film or app card is only used for one specific named thing you would find on Amazon, Google Maps, Letterboxd or the App Store: iPhone 17, McDonald's, a named film, ChatGPT. A brand alone, a kind of thing (smartphones), a city or country (Rome), or a phrase about a thing (the weather in Rome in August) gets the usual answer."],
+      ["changed", "The illustrative place example is now a fictional restaurant chain, Harbour Lane Burgers; living in Melbourne shows the usual answer."],
+    ],
+  },
+  {
     v: "0.12.3", date: "12 September 2026",
     items: [
       ["changed", "The answer now reads like a person telling you what people think (\"Melbourne is beautiful, has a real buzz and plenty to eat, though it is expensive\") instead of describing the opinions from the outside."],

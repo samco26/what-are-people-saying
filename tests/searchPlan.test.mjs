@@ -146,3 +146,19 @@ test("a confirmed reading tells the model the name is settled", async () => {
   await planSearch("iphone duo");
   assert.doesNotMatch(input, /chose this exact reading/);
 });
+
+test("the plan is told a card is only for one named thing with a review or marketplace listing", async () => {
+  let instructions = "";
+  mockOpenAI(() => parts, (body) => { instructions = body.instructions; });
+  await planSearch("smartphones");
+  assert.match(instructions, /has its own listing on the site people check for that kind of thing/);
+  assert.match(instructions, /"iPhone 17"/);
+  assert.match(instructions, /NOT a brand or company alone \("Apple"/);
+  assert.match(instructions, /NOT a class of things \("smartphones"/);
+  assert.match(instructions, /"McDonald's", "Disneyland"/);
+  assert.match(instructions, /NOT a city, country, region, island or neighbourhood \("Rome", "Melbourne"/);
+  assert.match(instructions, /NOT a franchise, genre, director, band, actor or author/);
+  assert.match(instructions, /NOT the company behind it \("OpenAI"\)/);
+  assert.match(instructions, /condition, time, use, aspect or comparison to a thing is "general": "the weather in Rome in August"/);
+  assert.match(instructions, /suggestionCategory: the category the suggestion would get on its own, by the same listing test/);
+});
