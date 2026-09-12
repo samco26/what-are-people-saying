@@ -3,15 +3,14 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type CSSPrope
 import { EVERGREEN_SUBJECTS, type SuggestionsResponse } from "@/lib/suggestions";
 import type { ConsensusResponse, RecurringOpinion, SourceId } from "@/lib/types";
 import { RotatingSubjects } from "./RotatingSubjects";
-import { Answer, Coverage } from "./Answer";
+import { Answer } from "./Answer";
 import { PlatformEvidence, PostList } from "./PlatformEvidence";
 import { OpinionPills } from "./OpinionPills";
-import { SentimentBar } from "./SentimentBar";
 import { HowItWorks } from "./HowItWorks";
 import { Logo } from "./Logo";
 
 type Phase = { name: "idle" } | { name: "loading"; subject: string } | { name: "done"; subject: string; response: ConsensusResponse } | { name: "error"; subject: string };
-type View = { kind: "source"; source: SourceId } | { kind: "opinion"; opinion: RecurringOpinion } | { kind: "opinions" | "about" | "how" };
+type View = { kind: "source"; source: SourceId } | { kind: "opinion"; opinion: RecurringOpinion } | { kind: "opinions" | "how" };
 
 export function SearchCard() {
   const [examples, setExamples] = useState(EVERGREEN_SUBJECTS);
@@ -19,6 +18,7 @@ export function SearchCard() {
   const [phase, setPhase] = useState<Phase>({ name: "idle" });
   const [reduced, setReduced] = useState(false);
   const [history, setHistory] = useState<View[]>([]);
+  const [settled, setSettled] = useState(false);
   const view = history.at(-1);
   const shown = useRef(EVERGREEN_SUBJECTS[0]);
   const request = useRef<AbortController | null>(null);
@@ -52,6 +52,14 @@ export function SearchCard() {
     return () => mq.removeEventListener("change", sync);
   }, []);
   useEffect(() => { if (view) panel.current?.focus({ preventScroll: true }); }, [view]);
+  /* The answer card keeps its scrollbar hidden while it unfolds, otherwise the
+     thin scroll track flashes as the height animates. */
+  const unfolded = phase.name !== "idle";
+  useEffect(() => {
+    if (!unfolded) { setSettled(false); return; }
+    const timer = window.setTimeout(() => setSettled(true), reduced ? 0 : 700);
+    return () => window.clearTimeout(timer);
+  }, [unfolded, reduced]);
   const back = useCallback(() => {
     setHistory((current) => current.slice(0, -1));
     if (history.length === 1) requestAnimationFrame(() => returnFocus.current?.focus({ preventScroll: true }));
@@ -62,6 +70,17 @@ export function SearchCard() {
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
   }, [view, back]);
+  /* A tap or click anywhere outside the expanded panel closes it completely. */
+  const closeAll = useCallback(() => {
+    setHistory([]);
+    requestAnimationFrame(() => returnFocus.current?.focus({ preventScroll: true }));
+  }, []);
+  useEffect(() => {
+    if (!view) return;
+    const outside = (event: PointerEvent) => { if (panel.current && !panel.current.contains(event.target as Node)) closeAll(); };
+    document.addEventListener("pointerdown", outside);
+    return () => document.removeEventListener("pointerdown", outside);
+  }, [view, closeAll]);
 
   const open = (next: View) => {
     if (!view) {
@@ -104,13 +123,13 @@ export function SearchCard() {
             {!query && <span className="ghost"><RotatingSubjects subjects={examples} paused={reduced || phase.name !== "idle"} onShow={onShow} /></span>}
             <button type="submit" className="go" aria-label="Search" disabled={phase.name === "loading"}><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 16V4m-5 5 5-5 5 5" /></svg></button>
           </form>
-          <div className="result-unfold" data-open={phase.name !== "idle"}><div>
+          <div className="result-unfold" data-open={unfolded} data-settled={settled}><div>
             {phase.name === "loading" && <div className="loading-state"><div className="liquid-track" role="progressbar" aria-label="Searching discussion" aria-valuetext="Searching"><span /><span /></div><p>Finding what people think…</p></div>}
             {phase.name === "error" && <div className="result-copy"><h2>Something interrupted the search.</h2><p>Please try again.</p><button type="button" className="text-action" onClick={() => void search(phase.subject)}>Try again</button></div>}
             {phase.name === "done" && <Answer response={phase.response} onPick={(subject) => void search(subject)} onChoose={(id) => open({ kind: "source", source: id })} />}
           </div></div>
         </section>
-        <div className="under-card">{result ? <button className="text-action" onClick={() => open({ kind: "about" })}>About this answer <span aria-hidden="true">+</span></button> : <span />}<button className="text-action" onClick={() => open({ kind: "how" })}>How it works <span aria-hidden="true">↗</span></button></div>
+        <div className="under-card"><button className="text-action" onClick={() => open({ kind: "how" })}>How it works</button></div>
       </div>
       {result && <OpinionPills opinions={opinions} onSelect={(opinion) => open({ kind: "opinion", opinion })} onMore={() => open({ kind: "opinions" })} />}
     </div>
@@ -123,7 +142,6 @@ export function SearchCard() {
           const threads = reading.threads.filter((thread) => thread.id && view.opinion.evidenceIds.includes(thread.id));
           return threads.length ? <section key={reading.source} className="opinion-evidence" aria-label={reading.source}><Logo id={reading.source} size={24} /><PostList threads={threads} source={reading.source} /></section> : null;
         })}</>}
-        {view.kind === "about" && result && <><h2>About this answer</h2><SentimentBar split={result.sentiment} /><p className="quiet">This describes the collected discussion, not everyone’s view.</p><p className="quiet">{result.confidence.level.charAt(0).toUpperCase() + result.confidence.level.slice(1)} confidence · {result.agreement} agreement.</p><Coverage sources={result.sources} />{opinions.length < 5 && <p className="quiet">The sample supports fewer distinct recurring opinions. Only those supported are shown.</p>}</>}
         {view.kind === "how" && <><h2>How it works</h2><HowItWorks /></>}
       </div>
       {result?.illustrative && <p className="evidence-footer">Illustrative sample. Posts and comments are fictional.</p>}

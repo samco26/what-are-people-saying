@@ -1,6 +1,7 @@
 "use client";
 import { SOURCES, sourceName, type ConsensusResponse, type SourceId, type SourceStatus } from "@/lib/types";
 import { Logo } from "./Logo";
+import { SentimentBar } from "./SentimentBar";
 export function Coverage({ sources }: { sources: SourceStatus[] }) {
   const missing = sources.filter((source) => source.availability !== "ok");
   if (!missing.length) return null;
@@ -22,6 +23,6 @@ export function Answer({ response, onPick, onChoose }: { response: ConsensusResp
         return <button key={source.id} type="button" className="srcbtn ctl" disabled={!available} aria-label={available ? `Explore ${source.name}` : `${source.name} unavailable`} onClick={() => onChoose(source.id)}><Logo id={source.id} size={23} /></button>;
       })}
     </div>
-    <Coverage sources={result.sources} />
+    <SentimentBar split={result.sentiment} />
   </div>;
 }

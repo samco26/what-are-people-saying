@@ -3,15 +3,13 @@
 import { useState } from "react";
 import { CHANGELOG } from "@/lib/changelog";
 import { SearchCard } from "./SearchCard";
-import { Changelog } from "./Changelog";
 
-/* The whole screen: the title, the BETA badge, the search, and the small
-   print. The title is a button because DESIGN.md says it returns to the
-   initial search view; bumping the key throws the search away and mounts a
-   fresh one. */
+/* The whole screen: the title, the BETA badge, and the search. The title is
+   a button because DESIGN.md says it returns to the initial search view;
+   bumping the key throws the search away and mounts a fresh one. The badge
+   only shows the version; it no longer opens anything. */
 export function App() {
   const [session, setSession] = useState(0);
-  const [log, setLog] = useState(false);
 
   return (
     <div className="app-shell">
@@ -28,24 +26,15 @@ export function App() {
           <a href="/privacy" className="text-[12px] font-medium page-ink opacity-70 hover:opacity-100 transition-opacity">
             Privacy
           </a>
-          <button
-            type="button"
-            className="beta"
-            onClick={() => setLog(true)}
-            aria-haspopup="dialog"
-            aria-expanded={log}
-            title="What changed in this version"
-          >
+          <span className="beta" aria-label={`Beta version ${CHANGELOG[0].v}`}>
             BETA {CHANGELOG[0].v}
-          </button>
+          </span>
         </div>
       </header>
 
       <main className="app-main">
         <SearchCard key={session} />
       </main>
-
-      {log ? <Changelog onClose={() => setLog(false)} /> : null}
     </div>
   );
 }

@@ -13,6 +13,14 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.10.1", date: "12 September 2026",
+    items: [
+      ["changed", "The overall sentiment bar now sits under the platform icons in the answer."],
+      ["changed", "Tapping anywhere outside an expanded view closes it. Smaller answer text on phones so the opinions fit on one screen."],
+      ["removed", "The About this answer panel, the list behind the BETA badge, the arrows on text links and two sentences from How it works."],
+    ],
+  },
+  {
     v: "0.10.0", date: "12 September 2026",
     items: [
       ["changed", "Turquoise and peach liquid glass, with a flowing search animation."],

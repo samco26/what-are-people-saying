@@ -2,13 +2,13 @@
 
 A personal, non-commercial app that reads a bounded selection of online discussion about a subject and returns a short opinion summary, recurring opinion pills and linked evidence.
 
-## Current checkpoint: BETA 0.10.0
+## Current checkpoint: BETA 0.10.1
 
 The preceding BETA 0.9.5 checkpoint was deployed from commit `6f354ed` on 12 September 2026. It prepares the Reddit connector for approved OAuth access, adds Reddit-specific connector tests, preserves the public username attribution required for representative Reddit evidence, and adds a live privacy page. Reddit's current policy requires explicit approval before Data API access, including for non-commercial apps, so the production connector remains off until Reddit approves the use case and issues or authorizes credentials. The preceding checkpoint verified YouTube and X archive collection; billed charges have not been reconciled against provider dashboards.
 
 The interface, server-side OpenAI analysis and YouTube/X/Reddit connectors are implemented. This workspace has no live API keys: local checks use simulated service responses, and controlled production checks use the server's configured credentials. Live evidence quality and billed cost still need auditing.
 
-The interface uses the user’s turquoise, shell-pink, peach and salmon palette. Search expands into the overall answer; recurring opinions float into place in green, grey or red glass pills. Desktop shows up to six initially, mobile three. The page stays fixed, with internal scrolling when necessary. Source buttons are logos only and replace the answer with a full-screen evidence view. A source view contains its logo, a full-width sentiment bar, and original post titles followed by sentiment-coloured comment excerpts. Each live post section links to its collected parent URL. Show more reveals the remaining analysed post groups without numeric totals. The overall meter is in About this answer. Analysed counts and repeated platform headings are not displayed.
+The interface uses the user’s turquoise, shell-pink, peach and salmon palette. Search expands into the overall answer; recurring opinions float into place in green, grey or red glass pills. Desktop shows up to six initially, mobile three. The page stays fixed, with internal scrolling when necessary. Source buttons are logos only and replace the answer with a full-screen evidence view. A source view contains its logo, a full-width sentiment bar, and original post titles followed by sentiment-coloured comment excerpts. Each live post section links to its collected parent URL. Show more reveals the remaining analysed post groups without numeric totals. The overall sentiment bar sits under the platform icons in the answer card. Tapping anywhere outside an expanded view closes it. Analysed counts and repeated platform headings are not displayed.
 
 The new source classifications and recurring-opinion schema pass mocked checks; their live latency, output quality and cost have not yet been verified. This checkpoint does not change source request limits. The loading bar is indeterminate and respects reduced motion.
 
