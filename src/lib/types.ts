@@ -86,6 +86,8 @@ export interface Theme {
 export interface SourceThread {
   title: string;
   kind: SourceItem["kind"];
+  /* Kept out of the AI prompt, then restored server-side for attribution. */
+  author?: string;
   url?: string;
   fictional?: true;
 }

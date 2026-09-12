@@ -4,7 +4,7 @@ Last audited: 12 September 2026 (Australia/Melbourne).
 
 ## Where we are
 
-**The website is built and deployed. Milestones 1–5 are complete; milestones 6–8 now have successful live searches, with quality and cost checks still open.** The analysis backend uses OpenAI's Responses API and passes local type, build and sample-mode checks. A controlled production query returned a live multi-source answer from 234 YouTube comments and 50 X posts. This verifies the working X and YouTube paths; Reddit still requires access and integration work.
+**The website is built and deployed. Milestones 1–5 are complete; milestones 6–8 have successful live searches, with quality and cost checks still open.** The analysis backend uses OpenAI's Responses API and passes local type, build and sample-mode checks. Reddit's connector now passes simulated OAuth, search, comment, attribution and failure tests, but Reddit requires explicit Data API approval before live credentials can be used.
 
 Use the ten milestones in [PROJECT.md](PROJECT.md) as the stable numbering. Completion is based on evidence, not the app's BETA version number.
 
@@ -20,12 +20,12 @@ Use the ten milestones in [PROJECT.md](PROJECT.md) as the stable numbering. Comp
 | 6 | Integrate server-side AI analysis | Live response verified; quality/cost checks pending | `src/lib/analysis/analyse.ts` uses the OpenAI Responses API, GPT-5.6 Luna by default, Zod Structured Outputs and `store: false`. TypeScript and the production build pass. Complete this phase only after a controlled request with synthetic evidence verifies account/model access, output quality, errors and measured cost. |
 | 7 | Integrate YouTube | Live collection verified; quality/edge cases pending | Separate video/comment connector exists. Complete when an authorized request retrieves real relevant comments, preserves their links and yields a grounded answer; test disabled comments, quota errors and insufficient evidence. |
 | 8 | Integrate X with collection and spending controls | Live collection verified; cost controls still need audit | After fixing X's ten-second `end_time` rule, a controlled production search returned 50 real X posts with source-specific analysis and links. The daily counter is only per server process, not a reliable whole-app spending cap. Reconcile actual charges and add an enforceable whole-app limit before completion. |
-| 9 | Integrate Reddit when access is available | Written; access/live verification pending | OAuth, post search and comment collection exist. Confirm permitted access and demonstrate a successful authenticated search with real evidence. |
+| 9 | Integrate Reddit when access is available | Implementation verified locally; approval/live verification pending | OAuth, post search, comment collection, attribution and partial-failure handling pass simulated tests. Current Reddit policy requires explicit approval even for non-commercial use. Submit the application, add the three server-only settings only after approval, then demonstrate a successful authenticated search with real evidence. |
 | 10 | Refine UI and test privately before public availability | In progress | Substantial visual refinement and sample-mode checks are done. Still needs live-result quality checks, failure/partial-source tests, abuse/cost protections and a controlled user trial. |
 
 ## Immediate next checkpoint
 
-Review the live answer against its collected evidence, measure actual API cost, and verify the remaining source failure cases. Do not enable unrestricted public live searches until a search limit and spending protection are in place.
+Submit the transparent non-commercial Reddit Data API application. After approval, add the three Reddit settings to Vercel Production, redeploy and run one controlled live search. Do not enable unrestricted public live searches until a search limit and spending protection are in place.
 
 ## Technology actually in the project
 
@@ -39,6 +39,8 @@ Review the live answer against its collected evidence, measure actual API cost, 
 | AI provider in the code | OpenAI Responses API; GPT-5.6 Luna default | package.json; src/lib/analysis/analyse.ts; live production responses verified |
 
 ## Latest verification
+
+BETA 0.9.5 makes Reddit activation require the client ID, client secret and identifying user agent together. Simulated tests verify the OAuth token exchange, bounded search and comment requests, exact date filtering, evidence links, required public username attribution and explicit partial failures. The analysis prompt still excludes author names. A privacy page accurately describes transient processing and external providers. Thirty tests and TypeScript checks pass; live Reddit access remains unverified pending explicit approval.
 
 X now uses official full-archive search with its own 3/12/36-month empty-result fallback, even when other sources have sufficient evidence. It stops at the first nonempty response and keeps the 20-post total cap. Twenty-seven tests and the production build pass, including the 12-month and 3-year paths, empty results, access/billing failures, timeout cancellation, per-request reuse, and the wider answer window. Vercel deployed `122d279` successfully. The live exact query “mercury marine boat engines australia” completed all three X windows with no matches and returned 159 YouTube opinions (9.1 seconds total; 2.840 seconds collection). “Mercury Marine” returned 15 X posts over three months and 243 YouTube opinions (12.5 seconds total; 1.020 seconds collection), confirming archive access and stopping on matches. No social content was persisted. Earlier successful X searches below used the recent endpoint.
 

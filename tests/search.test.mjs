@@ -114,8 +114,8 @@ test("all 300 opinions reach OpenAI and one-source evidence is generated only on
   assert.ok(result.bySource[0].threads.every((thread) => thread.kind === "comment"));
 });
 
-test("multi-source analysis preserves every opinion and prevents cross-platform citations", async () => {
-  const items = [...sample(), { id: "x1", source: "x", kind: "post", text: "Fictional X reaction", url: "https://x.com/i/status/fictional" }];
+test("multi-source analysis preserves opinions and attribution without sending authors to OpenAI", async () => {
+  const items = [...sample(), { id: "x1", source: "x", kind: "post", text: "Fictional X reaction", author: "public_test_author", url: "https://x.com/i/status/fictional" }];
   mockOpenAI(() => {
     const { drawnFrom, ...overall } = analysisOutput;
     return { ...overall, bySource: [{ ...reading, source: "youtube", drawnFrom: [1, 301] }, { ...reading, source: "x", drawnFrom: [301, 1] }] };
@@ -123,12 +123,14 @@ test("multi-source analysis preserves every opinion and prevents cross-platform 
     assert.ok(body.text.format.schema.properties.bySource);
     assert.match(body.input, /Fictional opinion 299/);
     assert.match(body.input, /Fictional X reaction/);
+    assert.doesNotMatch(body.input, /public_test_author/);
   });
   const result = await analyse("fictional phone", items, [{ source: "youtube", availability: "ok", itemsAnalysed: 300 }, { source: "x", availability: "partial", itemsAnalysed: 1 }]);
   assert.equal(result.bySource.length, 2);
   assert.equal(result.bySource[0].threads.length, 1);
   assert.equal(result.bySource[1].threads.length, 1);
   assert.match(result.bySource[1].threads[0].url, /^https:\/\/x.com/);
+  assert.equal(result.bySource[1].threads[0].author, "public_test_author");
 });
 
 test("percentage rounding totals 100 for thirds, tiny segments and uneven splits", () => {

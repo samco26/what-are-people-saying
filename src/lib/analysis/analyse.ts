@@ -106,7 +106,7 @@ export async function analyse(subject: string, items: SourceItem[], statuses: So
     [...new Set(ids)]
       .map((id) => Number.isInteger(id) ? sample[id] : undefined)
       .filter((it): it is SourceItem => Boolean(it && it.source === source && it.kind !== "video"))
-      .map((it) => ({ title: it.text.length > 140 ? `${it.text.slice(0, 139)}…` : it.text, kind: it.kind, url: it.url }));
+      .map((it) => ({ title: it.text.length > 140 ? `${it.text.slice(0, 139)}…` : it.text, kind: it.kind, author: it.author, url: it.url }));
 
   const readings = singleSource && "drawnFrom" in out
     ? [{ ...out, source: singleSource }]

@@ -13,6 +13,15 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ReadonlyArray<ChangeEntry> = [
   {
+    v: "0.9.5",
+    date: "12 September 2026",
+    items: [
+      ["changed", "The Reddit connector is ready for approved OAuth access and now reports unreadable comment sections instead of hiding them."],
+      ["changed", "Representative Reddit evidence keeps its required public username attribution, while usernames stay out of the AI analysis."],
+      ["new", "A privacy page explains how searches and temporary public discussion data are processed."],
+    ],
+  },
+  {
     v: "0.9.4",
     date: "12 September 2026",
     items: [

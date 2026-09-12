@@ -24,16 +24,21 @@ export function App() {
         >
           What People Think
         </button>
-        <button
-          type="button"
-          className="beta"
-          onClick={() => setLog(true)}
-          aria-haspopup="dialog"
-          aria-expanded={log}
-          title="What changed in this version"
-        >
-          BETA {CHANGELOG[0].v}
-        </button>
+        <div className="flex items-center gap-3">
+          <a href="/privacy" className="text-[12px] font-medium page-ink opacity-70 hover:opacity-100 transition-opacity">
+            Privacy
+          </a>
+          <button
+            type="button"
+            className="beta"
+            onClick={() => setLog(true)}
+            aria-haspopup="dialog"
+            aria-expanded={log}
+            title="What changed in this version"
+          >
+            BETA {CHANGELOG[0].v}
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 min-h-0 w-full max-w-[1180px] mx-auto flex flex-col pt-[clamp(12px,6vh,72px)]">

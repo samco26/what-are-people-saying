@@ -1,4 +1,4 @@
-/* Reddit, through its OAuth API with a "script" app's client id and secret.
+/* Reddit, through its approved OAuth Data API access.
 
    Three steps: a client-credentials token, a search for posts about the
    subject, then the top comments on each of the first few posts. Post
@@ -6,15 +6,18 @@
 
    Bounds: REDDIT_MAX_POSTS (default 10) and REDDIT_COMMENTS_PER_POST
    (default 12), so at most about 130 items and twelve calls a search,
-   against Reddit's limit of 100 calls a minute per app. The user agent is
-   required by Reddit's rules and has to name the app and the account.
+   against Reddit's free-access limit of 100 calls a minute per OAuth client.
+   The user agent is required by Reddit's rules and has to name the app and
+   the account. Access must be approved by Reddit before these credentials
+   are used.
 
    Not verified against the live API yet: written from the API's published
-   shapes and switched on only when both Reddit keys exist. */
+   shapes and switched on only when both Reddit keys and the identifying user
+   agent exist. */
 
 import type { SourceItem } from "../types";
 import { env, envInt } from "../env";
-import { getJson, getOnce, inWindow, statusFor, tidy, type Collected, type CollectOptions, type Connector } from "./shared";
+import { getJson, getOnce, inWindow, reasonFor, statusFor, tidy, type Collected, type CollectOptions, type Connector } from "./shared";
 
 const AUTH = "https://www.reddit.com/api/v1/access_token";
 const API = "https://oauth.reddit.com";
@@ -31,6 +34,7 @@ interface Post {
   id?: string;
   title?: string;
   selftext?: string;
+  author?: string;
   subreddit?: string;
   score?: number;
   created_utc?: number;
@@ -45,6 +49,12 @@ interface Comment {
   created_utc?: number;
   permalink?: string;
   author?: string;
+  subreddit?: string;
+}
+
+function attribution(author?: string, subreddit?: string): string | undefined {
+  const parts = [author ? `u/${author}` : undefined, subreddit ? `r/${subreddit}` : undefined].filter(Boolean);
+  return parts.length ? parts.join(" · ") : undefined;
 }
 
 async function token(signal: AbortSignal, agent: string): Promise<string> {
@@ -68,7 +78,7 @@ async function token(signal: AbortSignal, agent: string): Promise<string> {
 const isoFromUtc = (s?: number) => (typeof s === "number" ? new Date(s * 1000).toISOString() : undefined);
 
 async function collect(opts: CollectOptions): Promise<Collected> {
-  const agent = env("REDDIT_USER_AGENT") ?? "web:what-are-people-saying:v1";
+  const agent = env("REDDIT_USER_AGENT") ?? "";
   const maxPosts = envInt("REDDIT_MAX_POSTS", 10, 1, 25);
   const perPost = envInt("REDDIT_COMMENTS_PER_POST", 12, 1, 50);
   const bearer = await getOnce("reddit:token", opts, () => token(opts.signal, agent));
@@ -93,12 +103,13 @@ async function collect(opts: CollectOptions): Promise<Collected> {
     source: "reddit",
     kind: "thread",
     text: tidy(`${p.title}. ${p.selftext ?? ""}`),
-    author: p.subreddit ? `r/${p.subreddit}` : undefined,
+    author: attribution(p.author, p.subreddit),
     url: p.permalink ? `https://www.reddit.com${p.permalink}` : undefined,
     publishedAt: isoFromUtc(p.created_utc),
     engagement: p.score,
   }));
 
+  const failures: string[] = [];
   const commentRuns = posts.map(async (p) => {
     const url = new URL(`${API}/comments/${p.id}`);
     url.searchParams.set("sort", "top");
@@ -119,24 +130,33 @@ async function collect(opts: CollectOptions): Promise<Collected> {
             source: "reddit",
             kind: "comment",
             text: tidy(c.body ?? ""),
-            author: c.author,
+            author: attribution(c.author, c.subreddit ?? p.subreddit),
             url: c.permalink ? `https://www.reddit.com${c.permalink}` : undefined,
             publishedAt: isoFromUtc(c.created_utc),
             engagement: c.score,
           }),
         );
-    } catch {
+    } catch (error) {
+      failures.push(reasonFor(error, opts.signal.aborted));
       return [] as SourceItem[];
     }
   });
   for (const batch of await Promise.all(commentRuns)) items.push(...batch);
 
   const asked = maxPosts + maxPosts * perPost;
-  return { items, status: statusFor("reddit", items.length, asked) };
+  const notes = [
+    `Read ${items.length} of up to ${asked} Reddit posts and comments from ${posts.length} matching threads; entries are filtered to the search window.`,
+    failures.length ? `${failures.length} comment sections could not be read. ${[...new Set(failures)].join(" ")}` : "",
+  ].filter(Boolean);
+  return {
+    items,
+    canExpand: posts.length === 0 || failures.length < posts.length,
+    status: { ...statusFor("reddit", items.length, asked), note: notes.join(" ") },
+  };
 }
 
 export const reddit: Connector = {
   id: "reddit",
-  configured: () => Boolean(env("REDDIT_CLIENT_ID") && env("REDDIT_CLIENT_SECRET")),
+  configured: () => Boolean(env("REDDIT_CLIENT_ID") && env("REDDIT_CLIENT_SECRET") && env("REDDIT_USER_AGENT")),
   collect,
 };

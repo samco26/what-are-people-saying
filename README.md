@@ -2,9 +2,9 @@
 
 A personal, non-commercial app that reads a bounded selection of online discussion about a subject and returns a short opinion summary, estimated sentiment percentages and supporting evidence.
 
-## Current checkpoint: BETA 0.9.4
+## Current checkpoint: BETA 0.9.5
 
-Deployed BETA 0.9.4 with X archive fallback on 12 September 2026 (`122d279`). The exact query “mercury marine boat engines australia” completed all three X windows and reported no matches over three years, alongside 159 YouTube opinions. Searching “Mercury Marine” returned 15 X posts within three months and 243 YouTube opinions. These controlled checks verify production archive access, empty-result expansion, stopping on matches, and multi-source analysis. Collection took 2.840 seconds for the fallback query and 1.020 seconds for the matching query; full responses took 9.1 and 12.5 seconds respectively, not latency guarantees. Reddit remains unconnected, and billed charges have not been reconciled against provider dashboards.
+BETA 0.9.5 prepares the Reddit connector for approved OAuth access, adds Reddit-specific connector tests, preserves the public username attribution required for representative Reddit evidence, and adds a privacy page. Reddit's current policy requires explicit approval before Data API access, including for non-commercial apps, so the production connector remains off until Reddit approves the use case and issues or authorizes credentials. The preceding deployed checkpoint verified YouTube and X archive collection; billed charges have not been reconciled against provider dashboards.
 
 The interface, server-side OpenAI analysis and YouTube/X/Reddit connectors are implemented. This workspace has no live API keys: local checks use simulated service responses, and controlled production checks use the server's configured credentials. Live evidence quality and billed cost still need auditing.
 
@@ -37,7 +37,7 @@ Put credentials in `.env.local` locally or Vercel's Environment Variables. Never
 | `X_BEARER_TOKEN` | X full-archive search access (pay-per-use or Enterprise). |
 | `X_MAX_RESULTS` | Default 20; bounded to 10–20 posts per query, including older environment overrides. Up to US$0.10 in post-read charges at US$0.005 per post, excluding AI. |
 | `X_DAILY_POST_BUDGET` | Default 1,000; best-effort per-process budget, not a global billing cap. |
-| `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_USER_AGENT` | Reddit OAuth and an identifying user agent. |
+| `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_USER_AGENT` | All three are required to activate Reddit: approved OAuth credentials and Reddit's identifying user-agent string. |
 | `REDDIT_MAX_POSTS`, `REDDIT_COMMENTS_PER_POST` | Defaults 10 posts and 12 comments per post. |
 | `MIN_ITEMS` | Default 8 opinions before analysis; video context does not count. |
 
@@ -60,6 +60,16 @@ Without an AI key plus at least one source key, only six built-in fictional subj
 
 YouTube needs one video search and up to two comment-list requests per video: 11–21 requests, about 110–120 quota units. Successful and failed responses are memoized only within the request, so widening the date window does not repeat these reads. Reddit searches use the nearest supported year/all filter, then apply exact dates locally. AI cost depends on the collected text and generated output; the larger sample can cost more than the previous version.
 
+## Reddit access
+
+Reddit now requires a submitted request and explicit approval for all Data API access. The connector is locally verified with simulated OAuth, search, comment, date-filter and partial-failure responses, but that does not prove live access. Apply through Reddit's [Data API request form](https://support.reddithelp.com/hc/en-us/requests/new?tf_42139884615700=api_request_type_developer_clone&ticket_form_id=14868593862164), describe the OpenAI processing and non-storage accurately, and follow Reddit's credential instructions after approval. Do not add unapproved or scraped session credentials.
+
+The approved confidential client is expected to use an application-only OAuth token. Its user agent must follow Reddit's identifying format, for example `web:what-are-people-saying:v1 (by /u/your_username)`. Reddit's documented free-access limit for eligible approved clients is 100 queries per minute averaged over ten minutes, but Reddit decides eligibility and may impose different limits or fees.
+
+One app search makes one token request, up to two distinct listing searches across the 3/12/36-month fallback, and up to 20 distinct comment-list requests in the theoretical worst case. That is at most 23 Reddit HTTP requests and 260 unique posts/comments before deduplication, with no pagination, background collection or app database. Search and comment responses are reused only inside the active request.
+
+Reddit representative evidence links to the original item and shows the supplied public username for attribution. Usernames are not included in the OpenAI prompt or used for demographic inference. The public `/privacy` page explains processing by the app, OpenAI and infrastructure providers.
+
 ## Response speed
 
 Sparse searches can take longer than dense ones because they try broader windows. YouTube search/comment responses and Reddit tokens/comment responses are reused in request memory, avoiding redundant reads. No social content is cached across searches. X makes up to three archive requests, at least 1.05 seconds apart after empty responses, and stops at the first nonempty response. Therefore at most one response contains paid posts: up to 20 total, with no extra reply requests or pagination. Its daily budget reserves 20 posts once for the complete search, not once per date window. The result is memoized within the request and is not fetched again when other sources expand.
@@ -80,10 +90,10 @@ Suggestions load independently of searches. Only the public news suggestions and
 
 ## Verification and limitations
 
-- `npm test`: mocked YouTube collection, parallel requests, complete AI input, one-source and multi-source schemas, citation validation, partial failures, time windows, rounding, dated news parsing, topic grounding and news fallback.
+- `npm test`: mocked YouTube and Reddit collection, OAuth handling, attribution, parallel requests, complete AI input, one-source and multi-source schemas, citation validation, partial failures, time windows, rounding, dated news parsing, topic grounding and news fallback.
 - `npm run typecheck` and `npm run build`: required before a checkpoint is committed.
 - Browser checks cover desktop/mobile search, labelled samples, the revised live-result layout using an explicitly fictional fixture, evidence links, source coverage, asynchronous suggestions, Enter-to-search, overflow and runtime errors.
-- The public BBC feed format was checked directly, and production returned six AI-selected news topics after deployment. Controlled live queries verified YouTube/OpenAI, and a multi-source query returned 50 X posts. Detailed evidence quality and billed cost have not been audited. Mocked checks do not verify every provider failure mode or general response speed.
+- The public BBC feed format was checked directly, and production returned six AI-selected news topics after deployment. Controlled live queries verified YouTube/OpenAI, and an earlier multi-source query returned 50 X posts before the current 20-post cap. Reddit is locally verified only with simulated provider responses; approval and live access remain pending. Detailed evidence quality and billed cost have not been audited.
 - Popular videos and top-ranked comments are a popularity-biased selection. Even the widest window can miss discussion, and a bounded selection is not exhaustive. Fewer than 300 opinions is expected where coverage is limited. Suggestions can be broader than the available evidence.
 - The news rotation uses one publisher across several categories, not a comprehensive trend ranking.
 - The glass effect needs `backdrop-filter`; smaller windows scroll within the card.

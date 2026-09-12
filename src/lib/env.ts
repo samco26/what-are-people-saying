@@ -24,7 +24,7 @@ export const configured = {
   openai: () => Boolean(env("OPENAI_API_KEY")),
   youtube: () => Boolean(env("YOUTUBE_API_KEY")),
   x: () => Boolean(env("X_BEARER_TOKEN")),
-  reddit: () => Boolean(env("REDDIT_CLIENT_ID") && env("REDDIT_CLIENT_SECRET")),
+  reddit: () => Boolean(env("REDDIT_CLIENT_ID") && env("REDDIT_CLIENT_SECRET") && env("REDDIT_USER_AGENT")),
 };
 
 /* Live search is possible when the analysis key exists and at least one

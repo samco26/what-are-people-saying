@@ -38,6 +38,7 @@ export function PlatformEvidence({ analysis, status }: { analysis: SourceAnalysi
           {analysis.threads.map((th, i) => (
             <li key={i} className="thread">
               {th.url && !th.fictional ? <a href={th.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{th.title}</a> : th.title}
+              {th.author && !th.fictional ? <span className="text-faint"> — {th.author}</span> : null}
             </li>
           ))}
         </ul>
